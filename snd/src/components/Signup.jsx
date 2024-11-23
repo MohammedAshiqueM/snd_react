@@ -1,6 +1,9 @@
 import { useState } from 'react'
 import { Eye, EyeOff } from 'lucide-react'
 import SignupImage from '../assets/Images/sign_up.jpg'
+import { signupUser } from '../api'
+import { useNavigate } from 'react-router-dom';
+import { saveToSession } from '../util';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -11,6 +14,11 @@ export default function SignUp() {
     confirmPassword: '',
     agreeToTerms: false
   })
+  const navigate = useNavigate();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -23,9 +31,25 @@ export default function SignUp() {
     }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
-    // Add your signup logic here
+    setLoading(true);
+    setError(null);
+    setSuccess(null);
+
+    try {
+        const response = await signupUser(formData);
+        saveToSession('email',formData.email)
+        setSuccess('User registered successfully!');
+        console.log(response);
+        navigate('/otp');
+
+    } catch (err) {
+        setError(err.detail || 'An error occurred during registration.');
+        console.log(error)
+    } finally {
+        setLoading(false);
+    }
     console.log('Form submitted:', formData)
   }
 
@@ -47,7 +71,7 @@ export default function SignUp() {
               <h1 className="mb-6 text-center text-3xl font-bold">Sign Up</h1>
               <p className="mb-8 text-center text-sm text-gray-400">
                 Already have an account?{' '}
-                <a href="/login" className="text-[#8B5CF6] hover:underline">
+                <a href="/" className="text-[#8B5CF6] hover:underline">
                   Log in
                 </a>
               </p>
