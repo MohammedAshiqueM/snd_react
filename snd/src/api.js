@@ -13,7 +13,10 @@ export const signupUser = async (userData) => {
 //user login
 export const loginUser = async (userData) => {
     try {
-        const response = await axios.post(``, userData);
+        const response = await axios.post(`token/`, userData);
+        localStorage.setItem('access_token', response.data.access_token);
+        localStorage.setItem('refresh_token', response.data.refresh_token);
+        console.log(response.data)
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
@@ -24,6 +27,8 @@ export const loginUser = async (userData) => {
 export const emailVerification = async (userData) => {
     try{
         const response = await axios.post(`otp/`,userData);
+        localStorage.setItem('access_token', response.data.access_token);
+        localStorage.setItem('refresh_token', response.data.refresh_token);
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;

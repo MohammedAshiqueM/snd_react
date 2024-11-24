@@ -1,20 +1,40 @@
 import React, { useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import loginImage from '../assets/Images/login_image.jpg'
+import { loginUser } from "../api";
+import { useNavigate } from 'react-router-dom';
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [error, setError] = useState(null);
+  const [formData, setFormData] = useState({
+    username: '',
+    password: '',
+  });
+  const navigate = useNavigate();
   
-  const handleSubmit = (e) => {
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate login process
-    setTimeout(() => {
-      setLoading(false);
-      alert("Logged in!");
-    }, 1000);
+    try {
+        // console.log(formData)
+        const response = await loginUser(formData);
+        // setSuccess('User registered successfully!');
+        console.log(response);
+        navigate('/home');
+
+    } catch (err) {
+        setError(err.detail || 'An error occurred during registration.');
+        console.log(err)
+    } finally {
+        setLoading(false);
+    }
   };
 
   return (
@@ -40,7 +60,10 @@ export default function Login() {
               <div>
                 <input
                   type="email"
+                  name="username"
                   placeholder="Email"
+                  value={formData.email}
+                  onChange={handleChange}
                   required
                   className="w-full rounded-md border-0 bg-[#2D2A37] p-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6C5DD3]"
                 />
@@ -51,6 +74,9 @@ export default function Login() {
                 <input
                   type={showPassword ? "text" : "password"}
                   placeholder="Enter your password"
+                  name="password"
+                  value={formData.password}
+                  onChange={handleChange}
                   required
                   className="w-full rounded-md border-0 bg-[#2D2A37] p-2 pr-10 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-[#6C5DD3]"
                 />

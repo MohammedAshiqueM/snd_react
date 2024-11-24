@@ -71,7 +71,7 @@ export default function SignUp() {
               <h1 className="mb-6 text-center text-3xl font-bold">Sign Up</h1>
               <p className="mb-8 text-center text-sm text-gray-400">
                 Already have an account?{' '}
-                <a href="/" className="text-[#8B5CF6] hover:underline">
+                <a href="/login" className="text-[#8B5CF6] hover:underline">
                   Log in
                 </a>
               </p>

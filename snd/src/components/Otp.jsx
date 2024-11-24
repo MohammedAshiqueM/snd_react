@@ -89,11 +89,12 @@ const Otp = () => {
     try {
         const response = await resentOtp(payload);
         // setSuccess('User registered successfully!');
+        navigate('/home');
         console.log(response);
     } catch (err) {
         setError(err.detail || 'An error occurred during registration.');
         console.error(err);
-        navigate('/');
+        navigate('/login');
     } finally {
         setShowLoader(false);
     }
@@ -119,7 +120,7 @@ const Otp = () => {
         const response = await emailVerification(payload);
         // setSuccess('User registered successfully!');
         console.log(response);
-        navigate('/');
+        navigate('/home');
     } catch (err) {
         setError(err.detail || 'An error occurred during registration.');
         console.error(err);
