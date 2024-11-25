@@ -44,3 +44,18 @@ export const resentOtp = async (userData) => {
         throw error.response ? error.response.data : error.message;
     }
 }
+
+//sign in with google
+export const googleSignin = async (token) => {
+    try {
+        console.log("Sending token to backend:", token); 
+        const response = await axios.post(`auth/google-login/`, { token });
+        console.log("Backend response:", response.data);
+        localStorage.setItem('access_token', response.data.access);
+        localStorage.setItem('refresh_token', response.data.refresh);
+        return response.data;
+    } catch (error) {
+        console.error('Error during googleSignin:', error);  // Log any errors
+        throw error.response ? error.response.data : error.message;
+    }
+};

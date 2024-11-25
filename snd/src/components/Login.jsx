@@ -3,6 +3,7 @@ import { Eye, EyeOff } from "lucide-react";
 import loginImage from '../assets/Images/login_image.jpg'
 import { loginUser } from "../api";
 import { useNavigate } from 'react-router-dom';
+import GoogleAuth from "./GoogleAuth";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -142,7 +143,7 @@ export default function Login() {
               </svg>
               Continue with Google
             </button>
-
+                <GoogleAuth></GoogleAuth>
             {/* Sign-up Link */}
             <div className="text-center text-sm">
               Don&apos;t have an account?{" "}
