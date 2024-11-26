@@ -59,3 +59,28 @@ export const googleSignin = async (token) => {
         throw error.response ? error.response.data : error.message;
     }
 };
+
+//refresh token
+export const refreshToken = async () => {
+    try {
+      const refresh = localStorage.getItem('refresh_token');
+      if (!refresh) {
+        throw new Error('No refresh token found');
+      }
+  
+      const response = await axios.post('/token/refresh/', { refresh });
+      const newAccessToken = response.data.access;
+      
+      localStorage.setItem('access_token', newAccessToken); // Save new access token
+      console.log('New access token received:', newAccessToken);
+      return newAccessToken;
+    } catch (error) {
+        console.error('Token refresh failed:', error);
+        localStorage.removeItem('access_token');
+        localStorage.removeItem('refresh_token');
+        window.location.href = '/login';
+        throw error;
+    }
+  };
+  
+  

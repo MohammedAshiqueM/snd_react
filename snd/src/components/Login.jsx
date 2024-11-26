@@ -22,21 +22,35 @@ export default function Login() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
+  
     try {
-        // console.log(formData)
-        const response = await loginUser(formData);
-        // setSuccess('User registered successfully!');
-        console.log(response);
+      const response = await loginUser(formData);
+  
+      if (response.access_token && response.refresh_token) {
+        console.log("Login successful, tokens received:", response);
         navigate('/home');
-
+      } else if (response.redirect === '/otp') {
+        console.log("User inactive, redirecting to OTP page.");
+        navigate('/otp');
+      } else {
+        setError('Tokens missing in response');
+      }
     } catch (err) {
-        setError(err.detail || 'An error occurred during registration.');
-        console.log(err)
+      console.log('Error during login:', err);
+  
+      if (err.detail === 'Invalid credentials') {
+        setError('Invalid email or password');
+      } else if (err.detail === 'User is inactive. OTP has been resent.') {
+        setError('User inactive. Check your email for the OTP.');
+        navigate('/otp');
+      } else {
+        setError('An error occurred during login.');
+      }
     } finally {
-        setLoading(false);
+      setLoading(false);
     }
   };
+  
 
   return (
     <div className="min-h-screen bg-[#2D2A37] text-white flex items-center justify-center">
@@ -56,6 +70,9 @@ export default function Login() {
             <div className="space-y-2 text-center">
               <h1 className="text-3xl font-bold">Login</h1>
             </div>
+            {/* Error message */}
+            {error && <p className="text-red-500 text-center">{error}</p>}
+
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* Email Input */}
               <div>
@@ -117,7 +134,7 @@ export default function Login() {
             </div>
 
             {/* Google Login Button */}
-            <button className="w-full flex items-center justify-center rounded-md border border-gray-700 bg-transparent p-2 text-white hover:bg-[#2D2A37]">
+            {/* <button className="w-full flex items-center justify-center rounded-md border border-gray-700 bg-transparent p-2 text-white hover:bg-[#2D2A37]">
               <svg
                 className="mr-2 h-4 w-4"
                 viewBox="0 0 24 24"
@@ -142,7 +159,7 @@ export default function Login() {
                 />
               </svg>
               Continue with Google
-            </button>
+            </button> */}
                 <GoogleAuth></GoogleAuth>
             {/* Sign-up Link */}
             <div className="text-center text-sm">

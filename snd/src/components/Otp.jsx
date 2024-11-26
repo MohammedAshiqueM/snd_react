@@ -89,7 +89,7 @@ const Otp = () => {
     try {
         const response = await resentOtp(payload);
         // setSuccess('User registered successfully!');
-        navigate('/home');
+        // navigate('/home');
         console.log(response);
     } catch (err) {
         setError(err.detail || 'An error occurred during registration.');

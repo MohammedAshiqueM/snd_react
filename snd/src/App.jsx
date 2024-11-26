@@ -7,9 +7,11 @@ import Otp from './components/Otp';
 import Home from './components/Home';
 import {ProtectedRoute} from './protectedRoute';
 import Launch from './components/Launch';
+import ProfileHeader from './components/profile';
+import { initializeApp } from './auth';
+import React, { useEffect } from 'react';
 
 function App() {
-  
   return (
     <>
       <Router>
@@ -20,6 +22,7 @@ function App() {
             <Route path="/signup" element={<SignUp />} />
             <Route path="/otp" element={<Otp />} />
             <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/profile" element={<ProfileHeader />} />
             
           </Routes>
         </div>

@@ -115,7 +115,7 @@ const Home = () => {
             <button className="rounded-full p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
               <Bell className="h-5 w-5" />
             </button>
-            <div className="h-8 w-8 rounded-full bg-gray-700" />
+            <a href='/profile'><div className="h-8 w-8 rounded-full bg-gray-700" /></a>
           </div>
         </div>
       </nav>
@@ -144,7 +144,7 @@ const Home = () => {
       {/* Main Content */}
       <div className="flex">
         {/* Sidebar */}
-        <aside className="hidden w-64 border-r border-gray-800 bg-[#0D0E21] p-4 md:block">
+        <aside className="hidden w-48 border-r border-gray-800 bg-[#0D0E21] p-4 md:block">
           <nav className="space-y-2">
             {["Home", "Discover", "Account", "Tags", "Users", "Messages", "Requests"].map(
               (item, i) => (
