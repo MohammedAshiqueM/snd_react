@@ -10,6 +10,8 @@ import Launch from './components/Launch';
 import ProfileHeader from './components/profile';
 import { initializeApp } from './auth';
 import React, { useEffect } from 'react';
+import ForgotPassword from './components/ForgetPassword';
+import ResetPassword from './components/ResetPassword';
 
 function App() {
   return (
@@ -23,6 +25,8 @@ function App() {
             <Route path="/otp" element={<Otp />} />
             <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
             <Route path="/profile" element={<ProfileHeader />} />
+            <Route path="/forget-password" element={<ForgotPassword />} />
+            <Route path="/reset-password" element={<ResetPassword/>} />
             
           </Routes>
         </div>

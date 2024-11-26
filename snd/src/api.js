@@ -84,3 +84,29 @@ export const refreshToken = async () => {
   };
   
   
+//forgot Password
+export const forgetPassword = async (email) => {
+    try {
+        console.log("Sending mail to backend:", email); 
+        const response = await axios.post(`forget-password/`, { email });
+        console.log("Backend response:", response.data);
+        return response;
+    } catch (error) {
+        console.error(error);
+        throw error.response ? error.response.data : error.message;
+    }
+};
+
+//reset Password
+export const resetPassword = async (data) => {
+    try {
+        console.log("Sending data to backend:", data); 
+        const response = await axios.post(`reset-password/`, data );
+        console.log("Backend response:", response.data);
+        return response;
+    } catch (error) {
+        console.error(error);
+        throw error.response ? error.response.data : error.message;
+    }
+};
+

@@ -168,6 +168,12 @@ export default function Login() {
                 Sign up
               </a>
             </div>
+            <div className="text-center text-sm">
+              {" "}
+              <a href="forget-password" className="text-[#6C5DD3] hover:underline">
+                forget password
+              </a>
+            </div>
           </div>
         </div>
       </div>
