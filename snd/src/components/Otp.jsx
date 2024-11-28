@@ -14,7 +14,6 @@ const Otp = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Load saved time from localStorage
     const savedTime = localStorage.getItem('timeLeft');
     if (savedTime) {
       setTimeLeft(parseInt(savedTime));

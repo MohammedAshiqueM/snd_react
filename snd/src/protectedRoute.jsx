@@ -7,9 +7,9 @@ export const ProtectedRoute = ({ children }) => {
   
     useEffect(() => {
       const authenticate = async () => {
-        const isAuthenticated = await initializeApp(); // Check or refresh tokens
+        const isAuthenticated = await initializeApp();
         setIsAuthenticated(isAuthenticated);
-        setLoading(false); // Finish loading
+        setLoading(false);
       };
   
       authenticate();

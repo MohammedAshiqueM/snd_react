@@ -42,7 +42,7 @@ instance.interceptors.request.use(
 
 // Response Interceptor
 instance.interceptors.response.use(
-    (response) => response, // Pass successful responses
+    (response) => response,
     async (error) => {
       const originalRequest = error.config;
   
@@ -52,15 +52,15 @@ instance.interceptors.response.use(
         try {
           const newAccessToken = await refreshToken();
           originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return instance(originalRequest); // Retry failed request with new token
+          return instance(originalRequest);
         } catch (refreshError) {
           console.error('Token refresh failed, redirecting to login:', refreshError);
-          window.location.href = '/login'; // Redirect to login
+          window.location.href = '/login';
           return Promise.reject(refreshError);
         }
       }
   
-      return Promise.reject(error); // Pass other errors to be handled globally
+      return Promise.reject(error);
     }
   );
   
