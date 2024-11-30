@@ -2,6 +2,7 @@ import React from 'react';
 import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { googleSignin } from '../api';
 import { useNavigate } from 'react-router-dom'
+import Cookies from 'js-cookie';
 
 const GoogleAuth = () => {
     const navigate = useNavigate();
@@ -9,6 +10,7 @@ const GoogleAuth = () => {
     const { credential } = credentialResponse;
     if (credential) {
       console.log('Google credential:', credential);
+      Cookies.set('token', credential, { secure: true, sameSite: 'Lax' });
       try {
         const data = await googleSignin(credential);
         console.log('Server response:', data);

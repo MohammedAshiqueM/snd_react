@@ -8,7 +8,7 @@ import Home from './components/Home';
 import {ProtectedRoute} from './protectedRoute';
 import Launch from './components/Launch';
 import ProfileHeader from './components/profile';
-import { initializeApp } from './auth';
+// import { initializeApp } from './auth';
 import React, { useEffect } from 'react';
 import ForgotPassword from './components/ForgetPassword';
 import ResetPassword from './components/ResetPassword';

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useState } from 'react';
 import { Bell, Heart, MessageCircle, Search, Share2,ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
-
+import { logoutUser } from '../api';
 const Home = () => {
     const [votes, setVotes] = useState({});
 
@@ -92,6 +92,16 @@ const Home = () => {
         avatar: "/placeholder.svg",
       },
   ];
+  const handleLogout = async () => {
+    try {
+        await logoutUser();
+        alert("Logged out successfully!");
+        window.location.href = '/';
+    } catch (err) {
+        console.error(err);
+        alert("Failed to log out.");
+    }
+};
 
   return (
     <div className="min-h-screen bg-[#0A0B1A]">
@@ -111,6 +121,8 @@ const Home = () => {
               />
             </div>
           </div>
+          <button className='text-gray-400' onClick={handleLogout}>Logout</button>
+
           <div className="flex items-center gap-4">
             <button className="rounded-full p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
               <Bell className="h-5 w-5" />

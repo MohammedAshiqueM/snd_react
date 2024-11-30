@@ -25,7 +25,7 @@ export default function Login() {
   
     try {
       const response = await loginUser(formData);
-  
+      console.log("data is...",response.data)
       if (response.access_token && response.refresh_token) {
         console.log("Login successful, tokens received:", response);
         navigate('/home');

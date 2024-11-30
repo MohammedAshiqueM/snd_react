@@ -1,67 +1,69 @@
 import axios from 'axios';
+import { refreshToken } from './api';
 import { baseUrl } from './constants/constant';
 
-// Create Axios instance
+let isRefreshing = false;
+let failedRequestsQueue = [];
+
 const instance = axios.create({
-  baseURL: baseUrl,
-  withCredentials: true,
+    baseURL: baseUrl,
+    withCredentials: true,
+    headers: {
+        'Content-Type': 'application/json',
+    },
 });
-
-// Function to refresh access token
-export const refreshToken = async () => {
-  try {
-    const refresh = localStorage.getItem('refresh_token');
-    if (!refresh) {
-      throw new Error('No refresh token found');
-    }
-
-    const response = await instance.post('/token/refresh/', { refresh });
-    const newAccessToken = response.data.access;
-
-    // Save new access token to localStorage
-    localStorage.setItem('access_token', newAccessToken);
-    console.log('New access token received:', newAccessToken);
-    return newAccessToken;
-  } catch (error) {
-    console.error('Error refreshing token:', error);
-    throw error;
-  }
-};
 
 // Request Interceptor
 instance.interceptors.request.use(
-  async (config) => {
-    const accessToken = localStorage.getItem('access_token');
-    if (accessToken) {
-      config.headers.Authorization = `Bearer ${accessToken}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
+    (config) => {
+        console.log('Request URL:', config.url);
+        console.log('Request Headers:', config.headers);
+        return config;
+    },
+    (error) => Promise.reject(error)
 );
 
 // Response Interceptor
 instance.interceptors.response.use(
-    (response) => response,
+    (response) => {
+        return response;
+    },
     async (error) => {
-      const originalRequest = error.config;
-  
-      if (error.response?.status === 401 && !originalRequest._retry) {
-        originalRequest._retry = true;
-  
-        try {
-          const newAccessToken = await refreshToken();
-          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
-          return instance(originalRequest);
-        } catch (refreshError) {
-          console.error('Token refresh failed, redirecting to login:', refreshError);
-          window.location.href = '/login';
-          return Promise.reject(refreshError);
+        const originalRequest = error.config;
+
+        if (error.response?.status === 401 && !originalRequest._retry) {
+            // Prevent infinite loops
+            if (isRefreshing) {
+                return new Promise((resolve, reject) => {
+                    failedRequestsQueue.push({ resolve, reject });
+                })
+                    .then((token) => {
+                        originalRequest.headers['Authorization'] = `Bearer ${token}`;
+                        return instance(originalRequest);
+                    })
+                    .catch((err) => Promise.reject(err));
+            }
+
+            originalRequest._retry = true;
+            isRefreshing = true;
+
+            try {
+                const newAccessToken = await refreshToken();
+                failedRequestsQueue.forEach((req) => req.resolve(newAccessToken));
+                failedRequestsQueue = [];
+                originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+                return instance(originalRequest);
+            } catch (err) {
+                failedRequestsQueue.forEach((req) => req.reject(err));
+                failedRequestsQueue = [];
+                return Promise.reject(err);
+            } finally {
+                isRefreshing = false;
+            }
         }
-      }
-  
-      return Promise.reject(error);
+
+        return Promise.reject(error);
     }
-  );
-  
+);
+
 export default instance;

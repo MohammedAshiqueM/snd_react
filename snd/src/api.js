@@ -1,9 +1,9 @@
-import axios from './axios';
+import instance from './axios';
 
 //user signup
 export const signupUser = async (userData) => {
     try {
-        const response = await axios.post(`register/`, userData);
+        const response = await instance.post(`register/`, userData);
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
@@ -13,10 +13,10 @@ export const signupUser = async (userData) => {
 //user login
 export const loginUser = async (userData) => {
     try {
-        const response = await axios.post(`token/`, userData);
-        localStorage.setItem('access_token', response.data.access_token);
-        localStorage.setItem('refresh_token', response.data.refresh_token);
-        console.log(response.data)
+        const response = await instance.post(`token/`, userData);
+        // localStorage.setItem('access_token', response.data.access_token);
+        // localStorage.setItem('refresh_token', response.data.refresh_token);
+        console.log("login rep",response)
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
@@ -26,9 +26,9 @@ export const loginUser = async (userData) => {
 //email verification
 export const emailVerification = async (userData) => {
     try{
-        const response = await axios.post(`otp/`,userData);
-        localStorage.setItem('access_token', response.data.access_token);
-        localStorage.setItem('refresh_token', response.data.refresh_token);
+        const response = await instance.post(`otp/`,userData);
+        // localStorage.setItem('access_token', response.data.access_token);
+        // localStorage.setItem('refresh_token', response.data.refresh_token);
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
@@ -38,7 +38,7 @@ export const emailVerification = async (userData) => {
 //resend otp
 export const resentOtp = async (userData) => {
     try{
-        const response = await axios.post(`resent-otp/`,userData);
+        const response = await instance.post(`resent-otp/`,userData);
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
@@ -46,13 +46,13 @@ export const resentOtp = async (userData) => {
 }
 
 //sign in with google
-export const googleSignin = async (token) => {
+export const googleSignin = async () => {
     try {
-        console.log("Sending token to backend:", token); 
-        const response = await axios.post(`auth/google-login/`, { token });
+        // console.log("Sending token to backend:", token); 
+        const response = await instance.post(`auth/google-login/`,null, {withCredentials:true});
         console.log("Backend response:", response.data);
-        localStorage.setItem('access_token', response.data.access);
-        localStorage.setItem('refresh_token', response.data.refresh);
+        // localStorage.setItem('access_token', response.data.access);
+        // localStorage.setItem('refresh_token', response.data.refresh);
         return response.data;
     } catch (error) {
         console.error('Error during googleSignin:', error);  // Log any errors
@@ -63,32 +63,21 @@ export const googleSignin = async (token) => {
 //refresh token
 export const refreshToken = async () => {
     try {
-      const refresh = localStorage.getItem('refresh_token');
-      if (!refresh) {
-        throw new Error('No refresh token found');
-      }
-  
-      const response = await axios.post('/token/refresh/', { refresh });
-      const newAccessToken = response.data.access;
-      
-      localStorage.setItem('access_token', newAccessToken); // Save new access token
-      console.log('New access token received:', newAccessToken);
-      return newAccessToken;
+        const response = await instance.post('/token/refresh/');
+        console.log('New access token received via cookies',response);
+        return response.data.access; // No need to manually set tokens.
     } catch (error) {
-        console.error('Token refresh failed:', error);
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
-        window.location.href = '/login';
+        console.error('Error refreshing token:', error);
         throw error;
     }
-  };
+};
   
   
 //forgot Password
 export const forgetPassword = async (email) => {
     try {
         console.log("Sending mail to backend:", email); 
-        const response = await axios.post(`forget-password/`, { email });
+        const response = await instance.post(`forget-password/`, { email });
         console.log("Backend response:", response.data);
         return response;
     } catch (error) {
@@ -101,7 +90,7 @@ export const forgetPassword = async (email) => {
 export const resetPassword = async (data) => {
     try {
         console.log("Sending data to backend:", data); 
-        const response = await axios.post(`reset-password/`, data );
+        const response = await instance.post(`reset-password/`, data );
         console.log("Backend response:", response.data);
         return response;
     } catch (error) {
@@ -110,3 +99,35 @@ export const resetPassword = async (data) => {
     }
 };
 
+//user authentication
+export const auth = async () => {
+    try {
+        console.log("Attempting authentication...");
+        
+        const response = await instance.get(`auth/check/`, {
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            withCredentials: true
+        });
+        
+        console.log("Backend response on http only:", response);
+        console.log("Response Headers:", response.headers);
+        console.log("Cookies:", document.cookie);
+        
+        return response;
+    } catch (error) {
+        console.error("Authentication Error:", error);
+        console.error("Error Response:", error.response);
+        throw error.response ? error.response.data : error.message;
+    }
+};
+
+export const logoutUser = async () => {
+    try {
+        await instance.post('logout/'); // Adjust the endpoint if needed
+        // Optionally clear local state if necessary
+    } catch (error) {
+        console.error("Error during logout:", error);
+    }
+};
