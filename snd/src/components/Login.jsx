@@ -43,7 +43,9 @@ export default function Login() {
   
       if (err.detail === 'Invalid credentials') {
         setError('Invalid email or password');
-      } else if (err.detail === 'User is inactive. OTP has been resent.') {
+      }else if (err.detail === 'User is blocked') {
+        setError('User is blocked');
+      }else if (err.detail === 'User is inactive. OTP has been resent.') {
         setError('User inactive. Check your email for the OTP.');
         navigate('/otp');
       } else {
