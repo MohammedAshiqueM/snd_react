@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import axios from "axios";
 import { resetPassword } from "../api";
+import { useNavigate } from 'react-router-dom';
 
 const ResetPassword = () => {
   const [password, setPassword] = useState("");
@@ -9,6 +10,7 @@ const ResetPassword = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -38,6 +40,7 @@ const ResetPassword = () => {
       console.log(response)
       setMessage(response.data.message);
       setError("");
+      navigate('/login')
     } catch (err) {
       setError(err.response?.data?.message || "Something went wrong!");
       setMessage("");

@@ -27,13 +27,13 @@ export default function SignUp() {
     const newErrors = {};
     if (!formData.firstName.trim()) { 
     newErrors.firstName = 'First name is required.'; 
-    } else if (formData.firstName.trim().length < 5) {
-     newErrors.firstName = 'First name must be at least 5 letters.'; 
+    } else if (formData.firstName.trim().length < 3) {
+     newErrors.firstName = 'First name must be at least 3 letters.'; 
     } 
     if (!formData.lastName.trim()) {
      newErrors.lastName = 'Last name is required.'; 
-    } else if (formData.lastName.trim().length < 5) {
-     newErrors.lastName = 'Last name must be at least 5 letters.'; 
+    } else if (formData.lastName.trim().length < 3) {
+     newErrors.lastName = 'Last name must be at least 3 letters.'; 
     }
     if (!formData.email.match(/^\S+@\S+\.\S+$/)) newErrors.email = 'Valid email is required.';
     if (formData.password.length < 7)

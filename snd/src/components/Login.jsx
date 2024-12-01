@@ -36,6 +36,9 @@ export default function Login() {
         setError('Tokens missing in response');
       }
     } catch (err) {
+        if (err.status == 400){
+            navigate('/otp')
+        }
       console.log('Error during login:', err);
   
       if (err.detail === 'Invalid credentials') {

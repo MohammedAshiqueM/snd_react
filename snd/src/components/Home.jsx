@@ -2,8 +2,12 @@ import React from 'react';
 import { useState } from 'react';
 import { Bell, Heart, MessageCircle, Search, Share2,ChevronLeft, ChevronRight, ChevronUp, ChevronDown } from 'lucide-react';
 import { logoutUser } from '../api';
+import { useNavigate } from 'react-router-dom';
+
 const Home = () => {
     const [votes, setVotes] = useState({});
+    const navigate = useNavigate();
+
 
   const handleVote = (postId, voteType) => {
     setVotes(prev => {
@@ -96,7 +100,8 @@ const Home = () => {
     try {
         await logoutUser();
         alert("Logged out successfully!");
-        window.location.href = '/';
+        navigate('/');
+
     } catch (err) {
         console.error(err);
         alert("Failed to log out.");
