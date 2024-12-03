@@ -1,37 +1,167 @@
-import { useState } from 'react'
-import { X } from 'lucide-react'
+import React, { useState } from 'react';
+import axios from 'axios';
+import { X, Upload } from 'lucide-react';
+import { tagSuggestion, updateProfile } from '../api';
 
-function EditProfileModal({ isOpen, onClose, userData }) {
-  const [formData, setFormData] = useState({
-    username: userData?.username || '',
-    email: userData?.email || '',
-    githubId: userData?.githubId || '',
-    about: userData?.about || '',
-    skills: userData?.skills?.join(', ') || '',
-    profileImage: null,
-    coverImage: null,
-  })
+export default function EditProfileModal({ isOpen, onClose, userData }) {
+    const [formData, setFormData] = useState({
+      first_name: userData?.first_name || '',
+      last_name: userData?.last_name || '',
+    //   username: userData?.username || '',
+    //   email: userData?.email || '',
+      github_url: userData?.github_url || '',
+      linkedin_url: userData?.linkedin_url || '',
+      about: userData?.about || '',
+      skills: userData?.skills?.map(skill => skill.tag?.name || skill) || [],
+      profile_image: null,
+      banner_image: null,
+    });
+  
+    const BASE_URL ='http://127.0.0.1:8000';
+    const [profileImagePreview, setProfileImagePreview] = useState(
+    userData?.profile_image ? `${BASE_URL}${userData.profile_image}` : null
+    );
+    const [bannerImagePreview, setBannerImagePreview] = useState(
+    userData?.banner_image ? `${BASE_URL}${userData.banner_image}` : null
+    );
+    const [tagSuggestions, setTagSuggestions] = useState([]);
+    const [selectedTags, setSelectedTags] = useState(userData?.skills?.map(skill => skill.tag?.name || skill) || []);
 
-  const handleSubmit = (e) => {
-    e.preventDefault()
-    // Handle form submission (remainder for me later)
-    onClose()
-  }
+    const fetchTagSuggestions = async (query) => {
+        if (query) {
+          try {
+            const response = await tagSuggestion(query);
+            setTagSuggestions(response.data.tags); // Backend should return matched tags
+          } catch (error) {
+            console.error('Error fetching tags:', error);
+          }
+        } else {
+          setTagSuggestions([]);
+        }
+      };
 
-  const handleFileChange = (e, type) => {
-    const file = e.target.files[0]
-    if (file) {
+      const handleTagSelect = (tag) => {
+        if (!selectedTags.includes(tag)) {
+          setSelectedTags([...selectedTags, tag]);
+          setFormData((prev) => ({
+            ...prev,
+            skills: [...prev.skills, tag],
+          }));
+        }
+        setTagSuggestions([]);
+      };
+      
+    const handleChange = (e) => {
+      const { name, value } = e.target;
       setFormData(prev => ({
         ...prev,
-        [type]: file
-      }))
+        [name]: value,
+      }));
+    };
+  
+    const handleFileChange = (e, type) => {
+        const file = e.target.files[0];
+        console.log('File selected:', file);  // Log the selected file
+        
+        if (file) {
+          setFormData(prev => ({
+            ...prev,
+            [type]: file,  // Store the file in formData
+          }));
+      
+          const reader = new FileReader();
+          reader.onloadend = () => {
+            if (type === 'profile_image') {
+              setProfileImagePreview(reader.result);
+            } else {
+              setBannerImagePreview(reader.result);
+            }
+          };
+          reader.readAsDataURL(file);
+        }
+      };
+      
+  
+    const handleSkillChange = (e) => {
+        if (e.key === 'Enter' || e.key === ',') {
+          const newSkill = e.target.value.trim();
+          if (newSkill && !selectedTags.includes(newSkill)) {
+            setSelectedTags((prevTags) => [...prevTags, newSkill]);
+            setFormData((prevData) => ({
+              ...prevData,
+              skills: [...prevData.skills, newSkill],
+            }));
+          }
+          e.target.value = ''; // Clear input field after adding
+        } else {
+          fetchTagSuggestions(e.target.value); // Fetch tag suggestions while typing
+        }
+      };
+  
+      const removeSkill = (skillToRemove) => {
+        // Remove the skill from both selectedTags and formData.skills
+        setSelectedTags((prevTags) => {
+          const updatedTags = prevTags.filter((tag) => tag !== skillToRemove);
+          setFormData((prev) => ({
+            ...prev,
+            skills: updatedTags,
+          }));
+          return updatedTags;
+        });
+    };
+  
+    const handleSubmit = async (e) => {
+  e.preventDefault();
+  
+  const submitData = new FormData();
+
+  // Iterate through the formData keys and append them
+  Object.keys(formData).forEach(key => {
+      if (key !== 'profile_image' && key !== 'banner_image' && key !== 'skills') {
+      submitData.append(key, formData[key]);
     }
+  });
+  
+  // Append profile_image if it exists
+  if (formData.profile_image) {
+      console.log('Appending profile image:', formData.profile_image);  // Debug log
+    submitData.append('profile_image', formData.profile_image);  // Append the file correctly
+  }
+  
+  // Append banner_image if it exists
+  if (formData.banner_image) {
+    console.log('Appending banner image:', formData.banner_image);  // Debug log
+    submitData.append('banner_image', formData.banner_image);  // Append the file correctly
+}
+
+  // Log the FormData entries to ensure file is included
+  for (let pair of submitData.entries()) {
+    console.log(pair[0] + ': ' + pair[1]);
   }
 
-  return (
-    isOpen && (
+  console.log("Skills being submitted:", formData.skills);
+  if (formData.skills && formData.skills.length > 0) {
+    formData.skills.forEach((skill, index) => {
+      submitData.append('skills', skill);
+    });
+  }
+  console.log("........",submitData.formData)
+  
+  try {
+    const response = await updateProfile(submitData);  // Send data
+    // console.log('Profile updated successfully:', response.data); 
+    onClose();
+  } catch (error) {
+    console.error('Profile update failed:', error);
+  }
+};
+
+  
+    if (!isOpen) return null;
+  
+    return (
       <div className="fixed inset-0 flex justify-center items-center bg-gray-800 bg-opacity-50 z-50">
-        <div className="bg-[#0D0E21] w-full sm:w-[600px] p-6 rounded-lg relative">
+        <div className="bg-[#0D0E21] w-full sm:w-[800px] p-6 rounded-lg relative max-h-[90vh] overflow-y-auto">
           <button
             onClick={onClose}
             className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -39,105 +169,104 @@ function EditProfileModal({ isOpen, onClose, userData }) {
             <X className="h-6 w-6" />
           </button>
           <h2 className="text-xl font-bold text-white mb-6">Edit Profile</h2>
-
+  
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
-                <div>
-                  <label htmlFor="profileImage" className="text-white">Profile Image</label>
+            {/* Profile Image Upload */}
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-white mb-2">Profile Image</label>
+                <div className="relative w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center">
+                  {profileImagePreview ? (
+                    <img src={profileImagePreview} alt="Profile Preview" className="max-h-full max-w-full object-cover rounded-lg" />
+                  ) : (
+                    <div className="text-center text-gray-400">No image selected</div>
+                  )}
                   <input
-                    id="profileImage"
                     type="file"
                     accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'profileImage')}
-                    className="bg-[#1C1D2D] border-gray-800 text-white w-full p-2 rounded-md"
-                  />
-                </div>
-                <div>
-                  <label htmlFor="coverImage" className="text-white">Cover Image</label>
-                  <input
-                    id="coverImage"
-                    type="file"
-                    accept="image/*"
-                    onChange={(e) => handleFileChange(e, 'coverImage')}
-                    className="bg-[#1C1D2D] border-gray-800 text-white w-full p-2 rounded-md"
+                    onChange={(e) => handleFileChange(e, 'profile_image')}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
                   />
                 </div>
               </div>
-
               <div>
-                <label htmlFor="username" className="text-white">Username</label>
-                <input
-                  id="username"
-                  value={formData.username}
-                  onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                  className="bg-[#1C1D2D] border-gray-800 text-white w-full p-2 rounded-md"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="email" className="text-white">Email</label>
-                <input
-                  id="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  className="bg-[#1C1D2D] border-gray-800 text-white w-full p-2 rounded-md"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="githubId" className="text-white">GitHub ID</label>
-                <input
-                  id="githubId"
-                  value={formData.githubId}
-                  onChange={(e) => setFormData(prev => ({ ...prev, githubId: e.target.value }))}
-                  className="bg-[#1C1D2D] border-gray-800 text-white w-full p-2 rounded-md"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="about" className="text-white">About</label>
-                <textarea
-                  id="about"
-                  value={formData.about}
-                  onChange={(e) => setFormData(prev => ({ ...prev, about: e.target.value }))}
-                  className="bg-[#1C1D2D] border-gray-800 text-white w-full p-2 rounded-md min-h-[100px]"
-                />
-              </div>
-
-              <div>
-                <label htmlFor="skills" className="text-white">Skills (comma-separated)</label>
-                <input
-                  id="skills"
-                  value={formData.skills}
-                  onChange={(e) => setFormData(prev => ({ ...prev, skills: e.target.value }))}
-                  className="bg-[#1C1D2D] border-gray-800 text-white w-full p-2 rounded-md"
-                  placeholder="python, django, react..."
-                />
+                <label className="block text-white mb-2">Banner Image</label>
+                <div className="relative w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center">
+                  {bannerImagePreview ? (
+                    <img src={bannerImagePreview} alt="Banner Preview" className="max-h-full max-w-full object-cover rounded-lg" />
+                  ) : (
+                    <div className="text-center text-gray-400">No image selected</div>
+                  )}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={(e) => handleFileChange(e, 'banner_image')}
+                    className="absolute inset-0 opacity-0 cursor-pointer"
+                  />
+                </div>
               </div>
             </div>
-
+  
+            {/* Text Fields */}
+            {['first_name', 'last_name', 'github_url', 'linkedin_url', 'about'].map(field => (
+              <div key={field}>
+                <label className="block text-white mb-1 capitalize">{field.replace('_', ' ')}</label>
+                <input
+                  type={field === 'email' ? 'email' : 'text'}
+                  name={field}
+                  value={formData[field]}
+                  onChange={handleChange}
+                  className="w-full p-2 rounded-md bg-[#1C1D2D] text-white"
+                />
+              </div>
+            ))}
+  
+            {/* Skills */}
+            <div>
+      <label className="block text-white mb-1">Skills</label>
+      <div className="flex flex-wrap gap-2 mb-2">
+        {selectedTags.map((skill, index) => (
+          <span key={index} className="bg-gray-700 text-white px-2 py-1 rounded-full flex items-center">
+            {skill}
+            <button type="button" onClick={() => removeSkill(skill)} className="ml-2 text-red-300 hover:text-red-500">
+              ×
+            </button>
+          </span>
+        ))}
+      </div>
+      <input
+        type="text"
+        placeholder="Add skill (press Enter or , to add)"
+        onKeyDown={handleSkillChange}
+        className="w-full p-2 rounded-md bg-[#1C1D2D] text-white"
+      />
+      {tagSuggestions.length > 0 && (
+        <ul className="mt-2 bg-[#1C1D2D] p-2 rounded-md">
+          {tagSuggestions.map((tag) => (
+            <li
+              key={tag.id}
+              onClick={() => handleTagSelect(tag.name)}
+              className="cursor-pointer hover:bg-gray-600 p-1 rounded-md"
+            >
+              {tag.name}
+            </li>
+          ))}
+        </ul>
+      )}
+    </div>
+  
+            {/* Submit */}
             <div className="flex justify-end gap-4">
-              <button
-                type="button"
-                onClick={onClose}
-                className="border-gray-800 text-white bg-transparent p-2 rounded-md hover:bg-[#1C1D2D] hover:text-white"
-              >
+              <button type="button" onClick={onClose} className="border border-gray-600 text-white px-4 py-2 rounded-md hover:bg-gray-700">
                 Cancel
               </button>
-              <button
-                type="submit"
-                className="bg-[#4D7EF2] text-white p-2 rounded-md hover:bg-[#3D6AD8]"
-              >
+              <button type="submit" className="bg-[#4D7EF2] text-white px-4 py-2 rounded-md hover:bg-blue-600">
                 Save Changes
               </button>
             </div>
           </form>
         </div>
       </div>
-    )
-  )
-}
-
-export default EditProfileModal;
+    );
+  }
+  

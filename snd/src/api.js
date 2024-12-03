@@ -123,10 +123,48 @@ export const auth = async () => {
     }
 };
 
+//Logout user
 export const logoutUser = async () => {
     try {
         await instance.post('logout/'); // Adjust the endpoint if needed
         // Optionally clear local state if necessary
+    } catch (error) {
+        console.error("Error during logout:", error);
+    }
+};
+
+//Suggest tags
+export const tagSuggestion = async (query) => {
+    try {
+        const response = await instance.get(`tags?search=${query}`); // Adjust the endpoint if needed
+        // Optionally clear local state if necessary
+        return response
+    } catch (error) {
+        console.error("Error during logout:", error);
+    }
+};
+
+//View my profile
+export const myProfile = async () => {
+    try {
+        const response = await instance.get('profile/'); // Adjust the endpoint if needed
+        // Optionally clear local state if necessary
+        return response
+    } catch (error) {
+        console.error("Error during logout:", error);
+    }
+};
+
+//Update my profile
+export const updateProfile = async (userData) => {
+    try {
+        const response = await instance.put('profile/update/', userData,{
+            headers: {
+                'Content-Type': 'multipart/form-data'
+              }
+        }); // Adjust the endpoint if needed
+        // Optionally clear local state if necessary
+        return response
     } catch (error) {
         console.error("Error during logout:", error);
     }
