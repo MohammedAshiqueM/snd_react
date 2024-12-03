@@ -31,7 +31,7 @@ export default function EditProfileModal({ isOpen, onClose, userData }) {
         if (query) {
           try {
             const response = await tagSuggestion(query);
-            setTagSuggestions(response.data.tags); // Backend should return matched tags
+            setTagSuggestions(response.data.tags); 
           } catch (error) {
             console.error('Error fetching tags:', error);
           }
@@ -61,12 +61,12 @@ export default function EditProfileModal({ isOpen, onClose, userData }) {
   
     const handleFileChange = (e, type) => {
         const file = e.target.files[0];
-        console.log('File selected:', file);  // Log the selected file
+        console.log('File selected:', file); 
         
         if (file) {
           setFormData(prev => ({
             ...prev,
-            [type]: file,  // Store the file in formData
+            [type]: file,
           }));
       
           const reader = new FileReader();
@@ -92,14 +92,13 @@ export default function EditProfileModal({ isOpen, onClose, userData }) {
               skills: [...prevData.skills, newSkill],
             }));
           }
-          e.target.value = ''; // Clear input field after adding
+          e.target.value = '';
         } else {
-          fetchTagSuggestions(e.target.value); // Fetch tag suggestions while typing
+          fetchTagSuggestions(e.target.value);
         }
       };
   
       const removeSkill = (skillToRemove) => {
-        // Remove the skill from both selectedTags and formData.skills
         setSelectedTags((prevTags) => {
           const updatedTags = prevTags.filter((tag) => tag !== skillToRemove);
           setFormData((prev) => ({
@@ -115,26 +114,22 @@ export default function EditProfileModal({ isOpen, onClose, userData }) {
   
   const submitData = new FormData();
 
-  // Iterate through the formData keys and append them
   Object.keys(formData).forEach(key => {
       if (key !== 'profile_image' && key !== 'banner_image' && key !== 'skills') {
       submitData.append(key, formData[key]);
     }
   });
   
-  // Append profile_image if it exists
   if (formData.profile_image) {
-      console.log('Appending profile image:', formData.profile_image);  // Debug log
-    submitData.append('profile_image', formData.profile_image);  // Append the file correctly
+      console.log('Appending profile image:', formData.profile_image); 
+    submitData.append('profile_image', formData.profile_image); 
   }
   
-  // Append banner_image if it exists
   if (formData.banner_image) {
-    console.log('Appending banner image:', formData.banner_image);  // Debug log
-    submitData.append('banner_image', formData.banner_image);  // Append the file correctly
+    console.log('Appending banner image:', formData.banner_image); 
+    submitData.append('banner_image', formData.banner_image); 
 }
 
-  // Log the FormData entries to ensure file is included
   for (let pair of submitData.entries()) {
     console.log(pair[0] + ': ' + pair[1]);
   }
@@ -148,7 +143,7 @@ export default function EditProfileModal({ isOpen, onClose, userData }) {
   console.log("........",submitData.formData)
   
   try {
-    const response = await updateProfile(submitData);  // Send data
+    const response = await updateProfile(submitData); 
     // console.log('Profile updated successfully:', response.data); 
     onClose();
   } catch (error) {
@@ -241,19 +236,19 @@ export default function EditProfileModal({ isOpen, onClose, userData }) {
         className="w-full p-2 rounded-md bg-[#1C1D2D] text-white"
       />
       {tagSuggestions.length > 0 && (
-        <ul className="mt-2 bg-[#1C1D2D] p-2 rounded-md">
-          {tagSuggestions.map((tag) => (
-            <li
-              key={tag.id}
-              onClick={() => handleTagSelect(tag.name)}
-              className="cursor-pointer hover:bg-gray-600 p-1 rounded-md"
-            >
-              {tag.name}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
+            <ul className="mt-2 bg-[#1C1D2D] p-2 rounded-md">
+            {tagSuggestions.map((tag) => (
+                <li
+                key={tag.id}
+                onClick={() => handleTagSelect(tag.name)}
+                className="text-white cursor-pointer hover:bg-gray-600 p-1 rounded-md"
+                >
+                {tag.name}
+                </li>
+            ))}
+            </ul>
+        )}
+        </div>
   
             {/* Submit */}
             <div className="flex justify-end gap-4">

@@ -55,7 +55,7 @@ export const googleSignin = async () => {
         // localStorage.setItem('refresh_token', response.data.refresh);
         return response.data;
     } catch (error) {
-        console.error('Error during googleSignin:', error);  // Log any errors
+        console.error('Error during googleSignin:', error); 
         throw error.response ? error.response.data : error.message;
     }
 };
@@ -65,7 +65,7 @@ export const refreshToken = async () => {
     try {
         const response = await instance.post('/token/refresh/');
         console.log('New access token received via cookies',response);
-        return response.data.access; // No need to manually set tokens.
+        return response.data.access; // No need to manually set tokens.(I am using HTTPonly)
     } catch (error) {
         console.error('Error refreshing token:', error);
         throw error;
@@ -126,8 +126,8 @@ export const auth = async () => {
 //Logout user
 export const logoutUser = async () => {
     try {
-        await instance.post('logout/'); // Adjust the endpoint if needed
-        // Optionally clear local state if necessary
+        await instance.post('logout/'); 
+        
     } catch (error) {
         console.error("Error during logout:", error);
     }
@@ -136,8 +136,8 @@ export const logoutUser = async () => {
 //Suggest tags
 export const tagSuggestion = async (query) => {
     try {
-        const response = await instance.get(`tags?search=${query}`); // Adjust the endpoint if needed
-        // Optionally clear local state if necessary
+        const response = await instance.get(`tags?search=${query}`); 
+        
         return response
     } catch (error) {
         console.error("Error during logout:", error);
@@ -147,8 +147,8 @@ export const tagSuggestion = async (query) => {
 //View my profile
 export const myProfile = async () => {
     try {
-        const response = await instance.get('profile/'); // Adjust the endpoint if needed
-        // Optionally clear local state if necessary
+        const response = await instance.get('profile/'); 
+       
         return response
     } catch (error) {
         console.error("Error during logout:", error);
@@ -162,10 +162,50 @@ export const updateProfile = async (userData) => {
             headers: {
                 'Content-Type': 'multipart/form-data'
               }
-        }); // Adjust the endpoint if needed
-        // Optionally clear local state if necessary
+        }); 
         return response
     } catch (error) {
         console.error("Error during logout:", error);
     }
 };
+
+//Create blog
+export const createBlog = async (userData) => {
+    try {
+      const response = await instance.post('blog/create/', userData, {
+        headers: {
+          'Content-Type': 'multipart/form-data',
+        },
+      });
+      return response.data;
+    } catch (error) {
+      console.error('Error during blog creation:', error);
+  
+      throw error.response || error; 
+    }
+  };
+
+//Get user blogs
+export const getBlogs = async (data) => {
+    try {
+        console.log("Fetching Blogs with Params:", data);
+
+        const params = new URLSearchParams(data).toString();
+
+        const response = await instance.get(`blogs/?${params}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error during fetching the blogs", error);
+    }
+};
+
+//Get user skills
+export const userSkills = async (data) => {
+    try{
+        const response = await instance.get('skills/')
+        return response
+    } catch (error) {
+        console.error("Error during get the blogs")
+    }
+}
+  

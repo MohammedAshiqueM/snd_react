@@ -17,7 +17,7 @@ const ResetPassword = () => {
     setMessage("");
     setError("");
 
-    const token = searchParams.get("token"); // Extract token from URL
+    const token = searchParams.get("token"); 
 
     if (!token) {
       setError("Invalid or missing token.");

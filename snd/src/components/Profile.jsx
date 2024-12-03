@@ -138,7 +138,7 @@ export default function ProfilePage() {
               <span>Followers: {followers_count?followers_count:0}</span>
               <span>Following: {following_count?following_count:0}</span>
               <span>Time Balance: {time_balance}</span>
-              <span>Last Active: {new Date(last_active).toLocaleString()}</span>
+              {/* <span>Last Active: {new Date(last_active).toLocaleString()}</span> */}
             </div>
 
             <div className="mt-8">
