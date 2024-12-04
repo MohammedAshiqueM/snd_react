@@ -209,3 +209,13 @@ export const userSkills = async (data) => {
     }
 }
   
+//Get blog by slug
+export const blogRead = async (slug) => {
+    try{
+        const response = await instance.get(`blog/${slug}/`)
+        return response.data
+    } catch (error) {
+        console.error("Error during get the blogs")
+        throw error
+    }
+}

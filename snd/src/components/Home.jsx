@@ -197,7 +197,7 @@ useEffect(() => {
                     <ChevronRight className="h-5 w-5" />
                 </button>
             <button onClick={() => setIsEditModalOpen(true)} className="flex items-center hover:text-[#4D7EF2] text-white absolute right-10">
-                  <Pen className="mr-1" /> Edit
+                  <Pen className="mr-1" /> Write
                 </button>
             </div>
       </div>
@@ -228,13 +228,14 @@ useEffect(() => {
                                 <div
                                     key={i}
                                     className="group rounded-lg border border-gray-800 bg-[#0D0E21] p-4 transition-colors hover:border-gray-700"
+                                    onClick={() => navigate(`/blogs/${post.slug}`)} 
                                 >
                                     <div className="relative aspect-video overflow-hidden rounded-lg">
-                                        <img
+                                        {post.image?<img
                                             src={`${url}${post.image}` || '/default-image.jpg'}
                                             alt={post.title || 'Untitled'}
                                             className="h-full w-full object-cover transition-transform group-hover:scale-105"
-                                        />
+                                        />:<></>}
                                     </div>
                                     <div className="mt-4">
                                     <h3 className="font-semibold text-white truncate whitespace-nowrap overflow-hidden">

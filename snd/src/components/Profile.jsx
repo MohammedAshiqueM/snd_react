@@ -81,7 +81,7 @@ export default function ProfilePage() {
       <main className="ml-48">
         <div className="relative h-48 bg-gradient-to-r from-yellow-400 to-blue-600">
           <img
-            src={banner_image || "/placeholder.svg?height=192&width=1024"}
+            src={`${url}${banner_image}` || "/placeholder.svg?height=192&width=1024"}
             alt="Profile banner"
             className="h-full w-full object-cover"
           />

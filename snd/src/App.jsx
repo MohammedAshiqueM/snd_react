@@ -12,6 +12,8 @@ import ProfileHeader from './components/profile';
 import React, { useEffect } from 'react';
 import ForgotPassword from './components/ForgetPassword';
 import ResetPassword from './components/ResetPassword';
+import BlogRead from './components/BlogRead';
+
 
 function App() {
   return (
@@ -27,6 +29,8 @@ function App() {
             <Route path="/profile" element={<ProfileHeader />} />
             <Route path="/forget-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword/>} />
+            <Route path="/read" element={<BlogRead/>} />
+            <Route path="/blogs/:slug" element={<BlogRead />} />
             
           </Routes>
         </div>

@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState,useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
 import SignupImage from '../assets/Images/sign_up.jpg';
-import { signupUser, resentOtp } from '../api';
+import { signupUser, resentOtp, auth } from '../api';
 import { useNavigate } from 'react-router-dom';
 import { saveToSession } from '../util';
 
@@ -22,6 +22,24 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const authenticate = async () => {
+      try {
+        const res = await auth();
+        console.log("Authentication result:", res);
+        // setIsAuthenticated(res);
+        if (res) {
+          navigate('/home');
+        }
+      } catch (err) {
+        console.error("Auth error:", err);
+      }
+      setLoading(false);
+    };
+  
+    authenticate();
+  }, [navigate]);
 
   const validateForm = () => {
     const newErrors = {};
