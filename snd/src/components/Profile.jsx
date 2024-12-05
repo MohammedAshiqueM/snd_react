@@ -39,7 +39,7 @@ export default function ProfilePage() {
     last_name,
     profile_image,
     banner_image,
-    rating = 0,  // Provide default value
+    rating = 0, 
     time_balance,
     followers_count,
     following_count,

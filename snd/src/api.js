@@ -219,3 +219,25 @@ export const blogRead = async (slug) => {
         throw error
     }
 }
+
+//post comment
+export const postComment = async (slug, content) => {
+    try{
+        const response = await instance.post(`blog/${slug}/add-comment/`, {content})
+        return response.data
+    } catch (error) {
+        console.error("Error during posting comment")
+        throw error
+    }
+}
+
+//post comment
+export const getComments = async (slug) => {
+    try{
+        const response = await instance.get(`blog/${slug}/comments/`)
+        return response.data
+    } catch (error) {
+        console.error("Error during posting comment")
+        throw error
+    }
+}
