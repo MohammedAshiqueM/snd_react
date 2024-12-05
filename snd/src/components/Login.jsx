@@ -4,34 +4,28 @@ import loginImage from '../assets/Images/login_image.jpg'
 import { auth, loginUser } from "../api";
 import { useNavigate } from 'react-router-dom';
 import GoogleAuth from "./GoogleAuth";
+import useAuthStore from "../store/useAuthStore";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+//   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
   const navigate = useNavigate();
+  const { isAuthenticated,user } = useAuthStore();
+
   
   useEffect(() => {
-    const authenticate = async () => {
-      try {
-        const res = await auth();
-        console.log("Authentication result:", res);
-        // setIsAuthenticated(res);
-        if (res) {
+        if (isAuthenticated) {
           navigate('/home');
         }
-      } catch (err) {
-        console.error("Auth error:", err);
-      }
+      
       setLoading(false);
-    };
   
-    authenticate();
   }, [navigate]);
 
   const handleChange = (e) => {

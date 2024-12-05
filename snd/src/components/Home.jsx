@@ -5,6 +5,7 @@ import { getBlogs, logoutUser, userSkills } from '../api';
 import { useNavigate } from 'react-router-dom';
 import BlogWriteModal from './BlogWriteModal';
 import { baseUrl } from '../constants/constant';
+import useAuthStore from '../store/useAuthStore';
 
 
 const Home = () => {
@@ -19,7 +20,7 @@ const Home = () => {
     const url = baseUrl
     const blogsPerPage = 12;
     const navigate = useNavigate();
-
+    const { user, setUser, clearAuth } = useAuthStore();
 
   const handleVote = (postId, voteType) => {
     setVotes(prev => {
@@ -44,6 +45,7 @@ const Home = () => {
   const handleLogout = async () => {
     try {
         await logoutUser();
+        clearAuth();
         alert("Logged out successfully!");
         navigate('/');
 
@@ -152,6 +154,7 @@ useEffect(() => {
           <a href="/" className="text-xl font-bold text-white">
             <span className="font-mono">&lt;/&gt;</span>Snd
           </a>
+          {user?user.username:"null"}
           <div className="flex flex-1 items-center px-8">
             <div className="justify-center mx-auto relative w-full max-w-lg">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />

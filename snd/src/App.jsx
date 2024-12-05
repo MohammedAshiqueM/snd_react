@@ -13,9 +13,20 @@ import React, { useEffect } from 'react';
 import ForgotPassword from './components/ForgetPassword';
 import ResetPassword from './components/ResetPassword';
 import BlogRead from './components/BlogRead';
-
+import useAuthStore from './store/useAuthStore';
+import { AuthCall } from './AuthCall';
 
 function App() {
+    const { setAuthStatus } = useAuthStore();
+
+    useEffect(() => {
+        const initializeAuth = async () => {
+        const isAuthenticated = await AuthCall();
+        setAuthStatus(isAuthenticated);
+        };
+
+        initializeAuth();
+    }, []);
   return (
     <>
       <Router>

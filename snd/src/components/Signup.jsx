@@ -4,6 +4,7 @@ import SignupImage from '../assets/Images/sign_up.jpg';
 import { signupUser, resentOtp, auth } from '../api';
 import { useNavigate } from 'react-router-dom';
 import { saveToSession } from '../util';
+import useAuthStore from '../store/useAuthStore';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({
@@ -22,23 +23,14 @@ export default function SignUp() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const authenticate = async () => {
-      try {
-        const res = await auth();
-        console.log("Authentication result:", res);
-        // setIsAuthenticated(res);
-        if (res) {
-          navigate('/home');
-        }
-      } catch (err) {
-        console.error("Auth error:", err);
-      }
-      setLoading(false);
-    };
+  const { isAuthenticated,user } = useAuthStore();
   
-    authenticate();
+  useEffect(() => {
+    
+        if (isAuthenticated) {
+          navigate('/home');
+        }    
+  
   }, [navigate]);
 
   const validateForm = () => {

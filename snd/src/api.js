@@ -1,9 +1,11 @@
 import instance from './axios';
+import useAuthStore from './store/useAuthStore';
 
 //user signup
 export const signupUser = async (userData) => {
     try {
         const response = await instance.post(`register/`, userData);
+        
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
@@ -16,6 +18,13 @@ export const loginUser = async (userData) => {
         const response = await instance.post(`token/`, userData);
         // localStorage.setItem('access_token', response.data.access_token);
         // localStorage.setItem('refresh_token', response.data.refresh_token);
+        const { user } = response.data;
+
+        console.log("the user is ",user)
+        const { setAuthStatus, setUser } = useAuthStore.getState();
+        setAuthStatus(true);
+        setUser(user);
+        
         console.log("login rep",response)
         return response.data;
     } catch (error) {
@@ -29,6 +38,13 @@ export const emailVerification = async (userData) => {
         const response = await instance.post(`otp/`,userData);
         // localStorage.setItem('access_token', response.data.access_token);
         // localStorage.setItem('refresh_token', response.data.refresh_token);
+        const { user } = response.data;
+
+        console.log("the user is ",user)
+        const { setAuthStatus, setUser } = useAuthStore.getState();
+        setAuthStatus(true);
+        setUser(user);
+        
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
@@ -51,8 +67,12 @@ export const googleSignin = async () => {
         // console.log("Sending token to backend:", token); 
         const response = await instance.post(`auth/google-login/`,null, {withCredentials:true});
         console.log("Backend response:", response.data);
-        // localStorage.setItem('access_token', response.data.access);
-        // localStorage.setItem('refresh_token', response.data.refresh);
+        const { user } = response.data;
+
+        console.log("the user is ",user)
+        const { setAuthStatus, setUser } = useAuthStore.getState();
+        setAuthStatus(true);
+        setUser(user);
         return response.data;
     } catch (error) {
         console.error('Error during googleSignin:', error); 
@@ -65,6 +85,12 @@ export const refreshToken = async () => {
     try {
         const response = await instance.post('/token/refresh/');
         console.log('New access token received via cookies',response);
+        const { user } = response.data;
+
+        console.log("the user is ",user)
+        const { setAuthStatus, setUser } = useAuthStore.getState();
+        setAuthStatus(true);
+        setUser(user);
         return response.data.access; // No need to manually set tokens.(I am using HTTPonly)
     } catch (error) {
         console.error('Error refreshing token:', error);
@@ -114,7 +140,8 @@ export const auth = async () => {
         console.log("Backend response on http only:", response);
         console.log("Response Headers:", response.headers);
         console.log("Cookies:", document.cookie);
-        
+        const { setAuthStatus, setUser } = useAuthStore.getState();
+        setAuthStatus(true);
         return response;
     } catch (error) {
         console.error("Authentication Error:", error);
