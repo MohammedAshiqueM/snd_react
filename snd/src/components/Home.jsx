@@ -154,7 +154,6 @@ useEffect(() => {
           <a href="/" className="text-xl font-bold text-white">
             <span className="font-mono">&lt;/&gt;</span>Snd
           </a>
-          {user?user.username:"null"}
           <div className="flex flex-1 items-center px-8">
             <div className="justify-center mx-auto relative w-full max-w-lg">
               <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
@@ -175,7 +174,11 @@ useEffect(() => {
             <button className="rounded-full p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
               <Bell className="h-5 w-5" />
             </button>
-            <a href='/profile'><div className="h-8 w-8 rounded-full bg-gray-700" /></a>
+            <a href='/profile'><div className="h-8 w-8 rounded-full bg-gray-700" >{user?<img
+                src={`${url}${user.profile_image}` || '/default-image.jpg'}
+                alt={user.first_name || 'Untitled'}
+                className="h-full w-full rounded-full object-cover transition-transform group-hover:scale-105"
+            />:<></>}</div></a>
           </div>
         </div>
       </nav>
@@ -247,7 +250,11 @@ useEffect(() => {
 
                                         <div className="mt-4 flex items-center justify-between">
                                             <div className="flex items-center gap-2">
-                                                <div className="h-6 w-6 rounded-full bg-gray-700" />
+                                                <div className="h-6 w-6 rounded-full bg-gray-700" >{post.user?<img
+                                                        src={`${url}${post.user.profile_image}` || '/default-image.jpg'}
+                                                        alt={post.user.first_name || 'Untitled'}
+                                                        className="h-full w-full rounded-full object-cover transition-transform group-hover:scale-105"
+                                                    />:<></>}</div>
                                                 <span className="text-sm text-gray-400">
                                                     {post.user?.first_name || 'Unknown Author'}
                                                 </span>
