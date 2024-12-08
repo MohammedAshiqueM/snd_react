@@ -15,6 +15,9 @@ import ResetPassword from './components/ResetPassword';
 import BlogRead from './components/BlogRead';
 import useAuthStore from './store/useAuthStore';
 import { AuthCall } from './AuthCall';
+import Questions from './components/Question';
+import SideBar from './components/SideBar';
+import { SearchContextProvider } from './context/searchContext';
 
 function App() {
     const { setAuthStatus } = useAuthStore();
@@ -31,6 +34,7 @@ function App() {
     <>
       <Router>
         <div>
+            <SearchContextProvider>
           <Routes>
             <Route path="/" element={<Launch />} />
             <Route path="/login" element={<Login />} />
@@ -42,8 +46,11 @@ function App() {
             <Route path="/reset-password" element={<ResetPassword/>} />
             <Route path="/read" element={<BlogRead/>} />
             <Route path="/blogs/:slug" element={<BlogRead />} />
+            <Route path="/questions" element={<Questions />} />
+            <Route path="/side" element={<SideBar />} />
             
           </Routes>
+          </SearchContextProvider>
         </div>
       </Router>
     </>

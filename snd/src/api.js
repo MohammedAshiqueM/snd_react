@@ -196,6 +196,16 @@ export const updateProfile = async (userData) => {
     }
 };
 
+//Get user skills
+export const userSkills = async (data) => {
+    try{
+        const response = await instance.get('skills/')
+        return response
+    } catch (error) {
+        console.error("Error during get the blogs")
+    }
+}
+
 //Create blog
 export const createBlog = async (userData) => {
     try {
@@ -212,7 +222,7 @@ export const createBlog = async (userData) => {
     }
   };
 
-//Get user blogs
+//Get blogs
 export const getBlogs = async (data) => {
     try {
         console.log("Fetching Blogs with Params:", data);
@@ -226,17 +236,8 @@ export const getBlogs = async (data) => {
     }
 };
 
-//Get user skills
-export const userSkills = async (data) => {
-    try{
-        const response = await instance.get('skills/')
-        return response
-    } catch (error) {
-        console.error("Error during get the blogs")
-    }
-}
   
-//Get blog by slug
+//Get blog details by slug
 export const blogRead = async (slug) => {
     try{
         const response = await instance.get(`blog/${slug}/`)
@@ -258,13 +259,50 @@ export const postComment = async (slug, content) => {
     }
 }
 
-//post comment
+//get comments
 export const getComments = async (slug) => {
     try{
         const response = await instance.get(`blog/${slug}/comments/`)
         return response.data
     } catch (error) {
         console.error("Error during posting comment")
+        throw error
+    }
+}
+
+//Create question
+export const createQuestion = async (userData) => {
+    try {
+      const response = await instance.post('question/create/', userData,);
+      return response.data;
+    } catch (error) {
+      console.error('Error during question creation:', error);
+  
+      throw error.response || error; 
+    }
+  };
+
+//Get question
+export const getQuestion = async (data) => {
+    try {
+        // console.log("Fetching questions with Params:", data);
+
+        const params = new URLSearchParams(data).toString();
+
+        const response = await instance.get(`questions/?${params}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error during fetching the questions", error);
+    }
+};
+
+//Get question details by slug
+export const questionRead = async (slug) => {
+    try{
+        const response = await instance.get(`question/${slug}/`)
+        return response.data
+    } catch (error) {
+        console.error("Error during get the question")
         throw error
     }
 }
