@@ -130,7 +130,16 @@ export default function NavBar({
                     {skills.map((skill) => (
                         <button
                             key={skill}
-                            onClick={() => setSelectedCategory(skill)}
+                            onClick={() => {
+                                if (skill === 'All') {
+                                  // Clear search input
+                                  setSearchInput('');
+                                  // Clear search query in the store
+                                  setSearchQuery('');
+                                }
+                                // Set the selected category
+                                setSelectedCategory(skill);
+                              }}
                             className={`px-4 py-2 whitespace-nowrap ${
                                 selectedCategory === skill 
                                     ? 'text-white bg-gray-700' 

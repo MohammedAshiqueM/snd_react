@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Upload } from 'lucide-react';
-import { createBlog, tagSuggestion } from '../api'; 
+import { createQuestion, tagSuggestion } from '../api'; 
 
 export default function QuestionCreationModal({ isOpen, onClose }) {
   const [formData, setFormData] = useState({
@@ -117,14 +117,14 @@ export default function QuestionCreationModal({ isOpen, onClose }) {
 
     setLoading(true);
     try {
-      const response = await createBlog(submitData);
+      const response = await createQuestion(submitData);
 
       setFormData({ title: '', body_content: '', tags: [], image: null });
       setImagePreview(null);
       setSelectedTags([]);
       onClose();
 
-      alert('Blog created successfully!');
+      alert('Question created successfully!');
     } catch (error) {
       console.error('Error:', error);
       if (error.data) {
@@ -148,7 +148,7 @@ export default function QuestionCreationModal({ isOpen, onClose }) {
         >
           <X className="h-6 w-6" />
         </button>
-        <h2 className="text-xl font-bold text-white mb-6">Create Blog</h2>
+        <h2 className="text-xl font-bold text-white mb-6">Ask question</h2>
 
         <form 
          onSubmit={handleSubmit} 
@@ -232,28 +232,6 @@ export default function QuestionCreationModal({ isOpen, onClose }) {
               </ul>
             )}
             {errors.tags && <p className="text-red-500 text-sm">{errors.tags}</p>}
-          </div>
-
-          {/* Image Upload */}
-          <div>
-            <label className="block text-white mb-2">Blog Image</label>
-            <div className="relative w-full h-48 border-2 border-dashed border-gray-600 rounded-lg flex items-center justify-center">
-              {imagePreview ? (
-                <img
-                  src={imagePreview}
-                  alt="Blog Preview"
-                  className="max-h-full max-w-full object-cover rounded-lg"
-                />
-              ) : (
-                <div className="text-center text-gray-400">No image selected</div>
-              )}
-              <input
-                type="file"
-                accept="image/*"
-                onChange={handleFileChange}
-                className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-              />
-            </div>
           </div>
 
           {/* Submit Button */}

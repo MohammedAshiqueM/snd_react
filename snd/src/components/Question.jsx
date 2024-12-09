@@ -9,6 +9,7 @@ import NavBar from './NavBar';
 import useSearchStore from "../store/useSearchStore";
 import { formatDistanceToNow } from 'date-fns';
 import QuestionWriteModal from './QuestionWriteModal'
+import { truncateText } from '../util';
 
 function Question() {
   const [questions, setQuestions] = useState([]);
@@ -75,7 +76,13 @@ const fetchQuestions = async (page = currentPage, category = selectedCategory, q
   };
 
   const filteredQuestions = questions.filter((question) =>
-    question.title.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    (searchQuery === '' || 
+      question.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      question.tags.some((tagObj) => 
+        tagObj.tag && 
+        tagObj.tag.name.toLowerCase().includes(searchQuery.toLowerCase())
+      )
+    ) &&
     (selectedCategory === 'All' ||
       question.tags.some((tagObj) => 
         tagObj.tag && tagObj.tag.name.toLowerCase() === selectedCategory.toLowerCase()
@@ -93,32 +100,28 @@ const fetchQuestions = async (page = currentPage, category = selectedCategory, q
     fetchQuestions(1);
     fetchUserSkills();
   }, []);
-  useEffect(() => {
-    setSearchContext('questions');
-}, []);
+//   useEffect(() => {
+//     setSearchContext('questions');
+// }, []);
 
 useEffect(() => {
+    // Handle search query and skills changes
     if (searchQuery) {
       const matchingCategory = skills.find(skill =>
         skill.toLowerCase().includes(searchQuery.toLowerCase())
       );
       
-      if (matchingCategory) {
-        setSelectedCategory(matchingCategory);
-        fetchQuestions(1, matchingCategory, searchQuery);
-      } else {
-        setSelectedCategory('All');
-        fetchQuestions(1, 'All', searchQuery);
-      }
+      const categoryToUse = matchingCategory || 'All';
+      setSelectedCategory(categoryToUse);
+      fetchQuestions(1, categoryToUse, searchQuery);
     } else {
-      // When search query is empty, reset to default
       setSelectedCategory('All');
       fetchQuestions(1);
     }
   }, [searchQuery, skills]);
 
   useEffect(() => {
-    fetchQuestions();
+    fetchQuestions(currentPage, selectedCategory, searchQuery);
   }, [searchQuery, selectedCategory, currentPage]);
 
 
@@ -142,7 +145,7 @@ useEffect(() => {
 {/* Questions List */}
 <div className="space-y-4 max-w-6xl mx-auto p-4 grid grid-cols-1 gap-4">
             {filteredQuestions.map((question) => (
-              <div key={question.id} className="border border-gray-700 bg-[#1A1B2E] rounded-lg p-4 relative hover:border-gray-500">
+              <div key={question.id} className="border border-gray-700 bg-[#1A1B2E] rounded-lg p-4 relative hover:border-gray-500" onClick={() => navigate(`/question/${question.id}`)}>
               <div className="absolute top-4 right-4 text-sm text-gray-400">
                 {/* Date at the Top Right */}
                 asked {formatDistanceToNow(new Date(question.created_at))} ago
@@ -162,7 +165,7 @@ useEffect(() => {
                   <h2 className="text-blue-400 hover:text-blue-300 cursor-pointer mb-2">
                     {question.title}
                   </h2>
-                  <p className="text-sm text-gray-400 mb-4">{question.body_content}</p>
+                  <p className="text-sm text-gray-400 mb-4">{truncateText(question.body_content, 25)}</p>
                   <div className="flex items-center justify-between">
                     <div className="flex space-x-2">
                       {question.tags.map((tagObj, index) => (

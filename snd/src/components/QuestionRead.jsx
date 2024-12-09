@@ -1,14 +1,14 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { blogRead, getComments, postComment,  } from '../api'; 
+import { blogRead, getComments, postComment, questionRead,  } from '../api'; 
 import { MessageCircle, Eye, ThumbsUp, ThumbsDown, Share2, Copy } from 'lucide-react'
 import { baseUrl } from '../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
 import SideBar from './SideBar';
 import SecondNavbar from './SecondNavbar';
 
-export default function BlogRead() {
-  const { slug } = useParams();
+export default function QuestionRead() {
+  const { pk } = useParams();
   const [blog, setBlog] = useState(null);
   const [votes, setVotes] = useState(0);
   const [comments, setComments] = useState([]);
@@ -47,9 +47,9 @@ export default function BlogRead() {
   useEffect(() => {
     async function loadBlog() {
       try {
-        const blogData = await blogRead(slug);
-        setBlog(blogData);
-        setVotes(blogData.data.vote_count || 0);
+        const questionData = await questionRead(pk);
+        setBlog(questionData);
+        setVotes(questionData.data.vote_count || 0);
       } catch (err) {
         setError('Failed to load blog');
       } finally {
@@ -67,8 +67,8 @@ export default function BlogRead() {
     }
 
     loadBlog();
-    loadComments();
-  }, [slug]);
+    // loadComments();
+  }, [pk]);
   
   if (loading) return <div>Loading...</div>;
   if (error) return <div>{error}</div>;
