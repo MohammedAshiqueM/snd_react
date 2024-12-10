@@ -297,12 +297,34 @@ export const getQuestion = async (data) => {
 };
 
 //Get question details by slug
-export const questionRead = async (slug) => {
+export const questionRead = async (pk) => {
     try{
-        const response = await instance.get(`question/${slug}/`)
+        const response = await instance.get(`question/${pk}/`)
         return response.data
     } catch (error) {
         console.error("Error during get the question")
+        throw error
+    }
+}
+
+//get answers
+export const getAnswers = async (pk) => {
+    try{
+        const response = await instance.get(`question/${pk}/answers/`)
+        return response.data
+    } catch (error) {
+        console.error("Error during loading answers")
+        throw error
+    }
+}
+
+//post answer
+export const postAnswer = async (pk, content) => {
+    try{
+        const response = await instance.post(`question/${pk}/add-answer/`, {content})
+        return response.data
+    } catch (error) {
+        console.error("Error during posting answer")
         throw error
     }
 }

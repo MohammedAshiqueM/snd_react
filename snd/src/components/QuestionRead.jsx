@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { blogRead, getComments, postComment, questionRead,  } from '../api'; 
+import { blogRead, getAnswers, getComments, postAnswer, postComment, questionRead,  } from '../api'; 
 import { MessageCircle, Eye, ThumbsUp, ThumbsDown, Share2, Copy } from 'lucide-react'
 import { baseUrl } from '../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
@@ -16,23 +16,34 @@ export default function QuestionRead() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [showComments, setShowComments] = useState(false);
+  const [validationError, setValidationError] = useState('');
   const url = baseUrl;
   
   const navItems = ['Home', 'Discover', 'Account', 'Tags', 'Users', 'Messages', 'Requests'];
   
   const handleVote = async (voteType) => {
     try {
-      const response = await voteBlog(slug, voteType);
+      const response = await voteBlog(pk, voteType);
       setVotes(response.vote_count);
     } catch (err) {
       console.error('Failed to vote:', err);
     }
   };
-
-  const handleAddComment = async () => {
+  const validateAnswer = () => {
     if (!newComment.trim()) return;
+
+     if (newComment.length < 50) {
+         setValidationError('Answer must be at least 50 characters long.');
+             return false; 
+            } 
+             setValidationError('');
+            return true;
+        };
+        
+  const handleAddAnswer = async () => {
+    if (!validateAnswer()) return;
     try {
-      const addedComment = await postComment(slug, newComment);
+      const addedComment = await postAnswer(pk, newComment);
       setComments([addedComment, ...comments]);
       setNewComment('');
     } catch (err) {
@@ -57,9 +68,9 @@ export default function QuestionRead() {
       }
     }
 
-    async function loadComments() {
+    async function loadAnswers() {
       try {
-        const commentsData = await getComments(slug);
+        const commentsData = await getAnswers(pk);
         setComments(commentsData.data);
       } catch (err) {
         console.error(err);
@@ -67,7 +78,7 @@ export default function QuestionRead() {
     }
 
     loadBlog();
-    // loadComments();
+    loadAnswers();
   }, [pk]);
   
   if (loading) return <div>Loading...</div>;
@@ -114,13 +125,6 @@ export default function QuestionRead() {
 
           {/* Blog Content */}
           <h1 className="mb-8 text-3xl font-bold">{blog.data.title}</h1>
-          {blog.data.image && (
-            <img 
-              src={`${url}${blog.data.image}`} 
-              alt={blog.data.title} 
-              className="mb-8 w-full rounded-lg" 
-            />
-          )}
           <div className="prose prose-invert max-w-none">
             <p className="mb-4 text-gray-300">{blog.data.body_content}</p>
           </div>
@@ -149,7 +153,7 @@ export default function QuestionRead() {
                 className="flex items-center space-x-2 rounded-full bg-gray-800 px-4 py-2 hover:bg-gray-700"
               >
                 <MessageCircle className="h-5 w-5" />
-                <span>Comment</span>
+                <span>Answers</span>
               </button>
               <button className="flex items-center space-x-2 rounded-full bg-gray-800 px-4 py-2 hover:bg-gray-700">
                 <Share2 className="h-5 w-5" />
@@ -162,12 +166,12 @@ export default function QuestionRead() {
             </div>
           </div>
 
-          {/* Comments Section */}
+          {/* Answer Section */}
           {showComments && (
             <div className="mt-12 border-t border-gray-800 pt-8">
-              <h3 className="mb-6 text-lg font-semibold">Comments</h3>
+              <h3 className="mb-6 text-lg font-semibold">Answers</h3>
               
-              {/* Comment Form */}
+              {/* Answer Form */}
               <div className="mb-8 rounded-lg bg-[#1A1B2E] p-4">
                 <textarea
                   placeholder="Write your thoughts..."
@@ -176,17 +180,18 @@ export default function QuestionRead() {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                 />
+                {validationError && ( <p className="text-red-500 text-sm mt-2">{validationError}</p> )}
                 <div className="mt-4 flex justify-end">
                   <button 
                     className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                    onClick={handleAddComment}
+                    onClick={handleAddAnswer}
                   >
                     Post
                   </button>
                 </div>
               </div>
 
-              {/* Comments List */}
+              {/* Answer List */}
               <div className="mt-4 space-y-4">
                 {comments.map((comment) => (
                   <div 
