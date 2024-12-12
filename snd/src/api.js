@@ -328,3 +328,25 @@ export const postAnswer = async (pk, content) => {
         throw error
     }
 }
+
+//post vote
+export const voteBlog = async (slug, vote) => {
+    try{
+        const response = await instance.post(`blog/${slug}/vote/`, {vote})
+        return response.data
+    } catch (error) {
+        console.error("Error during posting vote")
+        throw error
+    }
+}
+
+//post question
+export const voteQuestion = async (pk, vote) => {
+    try{
+        const response = await instance.post(`question/${pk}/vote/`, {vote})
+        return response.data
+    } catch (error) {
+        console.error("Error during posting vote")
+        throw error
+    }
+}

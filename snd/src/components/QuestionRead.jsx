@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { blogRead, getAnswers, getComments, postAnswer, postComment, questionRead,  } from '../api'; 
+import { blogRead, getAnswers, getComments, postAnswer, postComment, questionRead, voteQuestion,  } from '../api'; 
 import { MessageCircle, Eye, ThumbsUp, ThumbsDown, Share2, Copy } from 'lucide-react'
 import { baseUrl } from '../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
@@ -14,21 +14,27 @@ export default function QuestionRead() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+//   const [error, setError] = useState(null);
   const [showComments, setShowComments] = useState(false);
   const [validationError, setValidationError] = useState('');
+  const [userVote, setUserVote] = useState(null);
   const url = baseUrl;
   
-  const navItems = ['Home', 'Discover', 'Account', 'Tags', 'Users', 'Messages', 'Requests'];
   
   const handleVote = async (voteType) => {
     try {
-      const response = await voteBlog(pk, voteType);
-      setVotes(response.vote_count);
+      const newVoteType = userVote === voteType ? null : voteType;
+      const response = await voteQuestion(pk, voteType);
+  
+      if (response.vote_count !== undefined) {
+        setVotes(response.vote_count); // Update the vote count on the UI
+        setUserVote(newVoteType);
+      }
     } catch (err) {
-      console.error('Failed to vote:', err);
+      console.error("Failed to vote:", err);
     }
   };
+
   const validateAnswer = () => {
     if (!newComment.trim()) return;
 
@@ -82,7 +88,7 @@ export default function QuestionRead() {
   }, [pk]);
   
   if (loading) return <div>Loading...</div>;
-  if (error) return <div>{error}</div>;
+//   if (error) return <div>{error}</div>;
 
   return (
     <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col">
@@ -133,19 +139,23 @@ export default function QuestionRead() {
           <div className="mb-8 flex items-center justify-between">
             {/* Voting */}
             <div className="mb-8 flex items-center space-x-4">
-              <button 
+            <button 
                 onClick={() => handleVote('upvote')} 
-                className="rounded-full bg-gray-800 p-2 hover:bg-gray-700"
-              >
-                <ThumbsUp className="h-6 w-6" />
-              </button>
-              <span className="text-xl font-semibold">{votes}</span>
-              <button 
+                className={`rounded-full p-2 ${
+                userVote === 'upvote' ? 'bg-[#85a8ff] hover:bg-gray-500' : 'bg-gray-800 hover:bg-gray-700'
+                }`}
+            >
+                <ThumbsUp className={`h-6 w-6 ${userVote === 'upvote' ? 'text-[#0c0eff] fill-[#85a8ff]' : 'text-gray-400'}`} />
+            </button>
+            <span className="text-xl font-semibold">{votes}</span>
+            <button 
                 onClick={() => handleVote('downvote')} 
-                className="rounded-full bg-gray-800 p-2 hover:bg-gray-700"
-              >
-                <ThumbsDown className="h-6 w-6" />
-              </button>
+                className={`rounded-full p-2 ${
+                userVote === 'downvote' ? 'bg-[#ff9494] hover:bg-gray-500' : 'bg-gray-800 hover:bg-gray-700'
+                }`}
+            >
+                <ThumbsDown className={`h-6 w-6 ${userVote === 'downvote' ? 'text-[#500000] fill-[#ff9494]' : 'text-gray-400'}`}  />
+            </button>
             </div>
             <div className="flex items-center space-x-4">
               <button 
