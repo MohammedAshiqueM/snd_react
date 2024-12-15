@@ -81,39 +81,46 @@ const Home = () => {
         });
       };
     
-    useEffect(() => {
-        // Load sidebar state from localStorage when component mounts
+      const handleSearch = (query) => {
+        setCurrentPage(1);
+        setSelectedCategory(
+          skills.find(skill => skill.toLowerCase().includes(query.toLowerCase())) || 'All'
+        );
+      };
+
+      useEffect(() => {
         const storedSidebarState = localStorage.getItem('isSidebarCollapsed');
         if (storedSidebarState !== null) {
-          setIsSidebarCollapsed(JSON.parse(storedSidebarState));
+            setIsSidebarCollapsed(JSON.parse(storedSidebarState));
         }
-      }, []);
-
-    useEffect(() => {
-        fetchBlogs();
+    
         fetchUserSkills();
         setSearchContext("blogs");
     }, []);
-
+    
     useEffect(() => {
         if (searchQuery) {
-            const matchingCategory = skills.find(skill => skill.toLowerCase().includes(searchQuery.toLowerCase()));
-            setSelectedCategory(matchingCategory || "All");
-            fetchBlogs(1, matchingCategory || "All", searchQuery);
+            const matchingCategory = skills.find(skill =>
+                skill.toLowerCase().includes(searchQuery.toLowerCase())
+            );
+    
+            const categoryToFetch = matchingCategory || "All";
+            if (selectedCategory !== categoryToFetch) {
+                setSelectedCategory(categoryToFetch);
+            }
+            fetchBlogs(1, categoryToFetch, searchQuery);
         } else {
-            setSelectedCategory("All");
-            fetchBlogs(1, "All");
+            fetchBlogs(1, selectedCategory, "");
         }
-    }, [searchQuery]);
+    }, [searchQuery, selectedCategory, skills]);
+    
+    
 
     return (
         <div className="min-h-screen bg-[#0A0B1A] flex flex-col">
             {/* Top Navigation */}
             <NavBar
-                onSearch={(query) => {
-                    setCurrentPage(1);
-                    fetchBlogs(1, selectedCategory, query);
-                }}
+                onSearch={handleSearch}
                 searchQuery={searchQuery}
                 onWriteClick={() => setIsEditModalOpen(true)}
                 writeButtonLabel="Write Blog"

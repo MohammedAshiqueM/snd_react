@@ -101,16 +101,28 @@ function Question() {
     const storedSidebarState = localStorage.getItem('isSidebarCollapsed');
     if (storedSidebarState !== null) {
       setIsSidebarCollapsed(JSON.parse(storedSidebarState));
+      setSearchContext('questions');
+      fetchUserSkills();
     }
   }, []);
-  useEffect(() => {
-    setSearchContext('questions');
-    fetchUserSkills();
-  }, []);
+
+
 
   useEffect(() => {
-    fetchQuestions(currentPage, selectedCategory, searchQuery);
-  }, [currentPage, selectedCategory, searchQuery]);
+    if (searchQuery) {
+        const matchingCategory = skills.find(skill =>
+            skill.toLowerCase().includes(searchQuery.toLowerCase())
+        );
+
+        const categoryToFetch = matchingCategory || "All";
+        if (selectedCategory !== categoryToFetch) {
+            setSelectedCategory(categoryToFetch);
+        }
+        fetchQuestions(1, categoryToFetch, searchQuery);
+    } else {
+        fetchQuestions(1, selectedCategory, "");
+    }
+}, [searchQuery, selectedCategory, skills]);
 
   return (
     <div className="min-h-screen bg-[#0A0B1A] text-gray-300 flex flex-col">
