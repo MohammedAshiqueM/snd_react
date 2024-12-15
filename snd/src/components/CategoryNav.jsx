@@ -8,7 +8,7 @@ import { logoutUser, userSkills } from "../api";
 import { useSearchContext } from "../context/searchContext";
 import noUser from '../assets/Images/no_user.jpg'
 
-export default function NavBar({ 
+export default function CateoryNav({ 
     onWriteClick, 
     writeButtonLabel = "Write",
     writeButtonIcon = Pen 
@@ -85,7 +85,7 @@ export default function NavBar({
     return (
         <>
             {/* Navbar */}
-            <nav className="fixed top-0 left-0 w-full z-50 bg-[#0D0E21] border-b border-gray-800">
+            {/* <nav className="fixed top-0 left-0 w-full z-50 bg-[#0D0E21] border-b border-gray-800">
                 <div className="flex h-16 items-center justify-between px-4">
                     <a href="/" className="text-xl font-bold text-white">
                         <span className="font-mono">&lt;/&gt;</span>Snd
@@ -123,9 +123,9 @@ export default function NavBar({
                         </a>
                     </div>
                 </div>
-            </nav>
+            </nav> */}
 
-            <div className="fixed top-16 left-0 w-full z-40 bg-[#0A0B1A]/70 backdrop-blur-sm border-b border-gray-800 shadow-md animate-fadeIn">
+            <div className="fixed top-16 left-0 w-full z-10 bg-[#0A0B1A]/70 backdrop-blur-sm border-b border-gray-800 shadow-md animate-fadeIn">
     {/* Category Navigation */}
     <div className="flex h-16 items-center justify-between px-4">
         <div className="flex justify-center px-4 mx-auto space-x-4">

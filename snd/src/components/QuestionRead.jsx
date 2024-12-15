@@ -95,7 +95,7 @@ export default function QuestionRead() {
         <SecondNavbar/>
 
       {/* Main Content */}
-      <main className="flex flex-1">
+      <main className="flex flex-1 md:ml-64 pt-20">
       {/* Sidebar */}
       <SideBar/>
         <article className="mx-auto max-w-4xl">

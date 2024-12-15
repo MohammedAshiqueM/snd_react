@@ -29,7 +29,7 @@ export default function SecondNavbar({
 
     return (
         <>
-            <nav className="border-b border-gray-800 bg-[#0D0E21]">
+            <nav className="fixed top-0 left-0 w-full z-50 bg-[#0D0E21] border-b border-gray-800">
                 <div className="flex h-16 items-center justify-between px-4">
                     <a href="/" className="text-xl font-bold text-white">
                         <span className="font-mono">&lt;/&gt;</span>Snd

@@ -350,3 +350,14 @@ export const voteQuestion = async (pk, vote) => {
         throw error
     }
 }
+
+//post question
+export const usersList = async (params) => {
+    try{
+        const response = await instance.get(`users/`,{params})
+        return response.data
+    } catch (error) {
+        console.error("Error during listing users")
+        throw error
+    }
+}

@@ -1,15 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, Compass, User, Tag, Users, MessageSquare, FileQuestion, Menu, X } from 'lucide-react';
+import {
+  Home as HomeIcon,
+  Compass,
+  User,
+  Tag,
+  Users,
+  MessageSquare,
+  FileQuestion,
+  ChevronLeft,
+  ChevronRight,
+} from 'lucide-react';
 
-export default function SideBar() {
+export function ToggleButton({ isCollapsed, onToggle }) {
+  return (
+    <button
+      onClick={onToggle}
+      className={`fixed top-32 ${isCollapsed ? 'left-16' : 'left-48'} bg-[#0D0E21] border border-gray-800 text-gray-400 hover:text-white z-40 p- rounded transition-all duration-300`}
+    >
+      {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+    </button>
+  );
+}
+
+export default function SideBar({ isCollapsed, onToggle }) {
   const location = useLocation();
-  const [isOpen, setIsOpen] = useState(false);
 
   const isActive = (path) => location.pathname === path;
 
   const navItems = [
-    { name: 'Home', path: '/home', icon: Home },
+    { name: 'Home', path: '/home', icon: HomeIcon },
     { name: 'Discover', path: '/questions', icon: Compass },
     { name: 'Account', path: '/account', icon: User },
     { name: 'Tags', path: '/tags', icon: Tag },
@@ -19,92 +39,30 @@ export default function SideBar() {
   ];
 
   return (
-    <div>
-      {/* Mobile Hamburger */}
-      <div className="md:hidden fixed top-4 left-4 z-50">
-        <button onClick={() => setIsOpen(!isOpen)} className="text-white bg-gray-800 p-2 rounded-md">
-          {isOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
-        </button>
-      </div>
+    <>
+      {/* Collapse/Expand Button Outside Sidebar */}
+      <ToggleButton isCollapsed={isCollapsed} onToggle={onToggle} />
 
-      {/* Sliding Menu */}
-      <div
-        className={`fixed top-0 left-0 h-full w-64 bg-[#0D0E21] border-r border-gray-800 transform transition-transform duration-300 ${
-          isOpen ? 'translate-x-0' : '-translate-x-full'
-        } z-40`}
+      <aside
+        className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-[#0D0E21] border-r border-t border-gray-800 z-50 transition-all duration-300 ${isCollapsed ? 'w-16' : 'w-48'}`}
       >
-        <nav className="space-y-2 p-4">
-          {navItems.map((item, i) => (
-            <Link to={item.path} key={i} onClick={() => setIsOpen(false)}>
+        <nav className="space-y-3 p-2 pt-14 h-full">
+          {navItems.map((item, index) => (
+            <Link to={item.path} key={index}>
               <button
-                className={`flex items-center w-full px-4 py-2 text-left rounded-md ${
+                className={`flex items-center w-full px-2 py-2 text-left rounded-md space-x-3 ${ //add p-4 then remove px and py
                   isActive(item.path)
                     ? 'bg-gray-800 text-white'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`}
+                    : 'text-gray-400 hover:bg-gray-800 hover:text-white text-base '
+                } ${isCollapsed ? 'justify-center' : ''}`}
               >
-                <item.icon className="w-5 h-5 mr-2" />
-                {item.name}
-              </button>
-            </Link>
-          ))}
-        </nav>
-      </div>
-
-      {/* Desktop Sidebar */}
-      <aside className="hidden md:block w-48 border-r border-gray-800 bg-[#0D0E21] p-4 h-full">
-        <nav className="space-y-2">
-          {navItems.map((item, i) => (
-            <Link to={item.path} key={i}>
-              <button
-                className={`w-full px-4 py-2 text-left rounded-md ${
-                  isActive(item.path)
-                    ? 'bg-gray-800 text-white'
-                    : 'text-gray-400 hover:bg-gray-800 hover:text-white'
-                }`}
-              >
-                {item.name}
+                <item.icon className={`w-5 h-5 ${isCollapsed ? '' : 'hidden'}`} />
+                {!isCollapsed && <span>{item.name}</span>}
               </button>
             </Link>
           ))}
         </nav>
       </aside>
-    </div>
+    </>
   );
 }
-
-
-
-{/* <aside className="w-48 p-4 border-r border-gray-700">
-          <nav className="space-y-4">
-            <a href="#" className="flex items-center space-x-2 text-gray-400 hover:text-white">
-              <Home className="h-5 w-5" />
-              <span>Home</span>
-            </a>
-            <a href="#" className="flex items-center space-x-2 text-gray-400 hover:text-white">
-              <Compass className="h-5 w-5" />
-              <span>Discover</span>
-            </a>
-            <a href="#" className="flex items-center space-x-2 text-gray-400 hover:text-white">
-              <User className="h-5 w-5" />
-              <span>Account</span>
-            </a>
-            <a href="#" className="flex items-center space-x-2 text-gray-400 hover:text-white">
-              <Tag className="h-5 w-5" />
-              <span>Tags</span>
-            </a>
-            <a href="#" className="flex items-center space-x-2 text-gray-400 hover:text-white">
-              <Users className="h-5 w-5" />
-              <span>Users</span>
-            </a>
-            <a href="#" className="flex items-center space-x-2 text-gray-400 hover:text-white">
-              <MessageSquare className="h-5 w-5" />
-              <span>Messages</span>
-            </a>
-            <a href="#" className="flex items-center space-x-2 text-gray-400 hover:text-white">
-              <FileQuestion className="h-5 w-5" />
-              <span>Requests</span>
-            </a>
-          </nav>
-        </aside> */}
-

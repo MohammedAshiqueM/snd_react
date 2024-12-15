@@ -19,6 +19,7 @@ import Questions from './components/Question';
 import SideBar from './components/SideBar';
 import { SearchContextProvider } from './context/searchContext';
 import QuestionRead from './components/questionRead';
+import UsersList from './components/UsersList';
 
 function App() {
     const { setAuthStatus } = useAuthStore();
@@ -49,7 +50,7 @@ function App() {
             <Route path="/blogs/:slug" element={<BlogRead />} />
             <Route path="/questions" element={<Questions />} />
             <Route path="/question/:pk" element={<QuestionRead />} />
-    
+            <Route path="/users" element={<UsersList />} />
           </Routes>
           </SearchContextProvider>
         </div>

@@ -11,6 +11,11 @@ import SecondNavbar from './SecondNavbar';
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    // Retrieve state from localStorage if available
+    const savedState = localStorage.getItem('isSidebarCollapsed');
+    return savedState ? JSON.parse(savedState) : false;
+  });
   const url = baseUrl
   useEffect(() => {
     const fetchProfile = async () => {
@@ -27,7 +32,7 @@ export default function ProfilePage() {
   }, []);
 
   if (!profile) {
-    return <div>Loading...</div>;
+    return <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col"><SecondNavbar /></div>;
   }
 
   const { 
@@ -62,12 +67,24 @@ export default function ProfilePage() {
     ));
   };
 
+  const handleSidebarToggle = () => {
+    setIsSidebarCollapsed((prevState) => {
+      // Save the state in localStorage whenever it changes
+      const newState = !prevState;
+      localStorage.setItem('isSidebarCollapsed', JSON.stringify(newState));
+      return newState;
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col">
   <SecondNavbar />
-  <div className="flex flex-1">
-    <SideBar />
-    <main className="flex-1 p-4">
+  <div className={`flex-1 pt-4 transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-48'}`}>
+    <SideBar
+        isCollapsed={isSidebarCollapsed}
+        onToggle={handleSidebarToggle}
+    />
+    <main className="flex-1 pt-12">
       <div className="relative h-48 bg-gradient-to-r from-yellow-400 to-blue-600">
         <img
           src={`${url}${banner_image}` || "/placeholder.svg?height=192&width=1024"}
