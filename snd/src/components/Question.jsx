@@ -10,17 +10,16 @@ import { getQuestion, userSkills } from '../api';
 import { baseUrl } from '../constants/constant';
 import { truncateText } from '../util';
 import Paginator from "./Paginator";
-
+import useSkillsStore from '../store/useSkillStore';
 
 
 function Question() {
   const [questions, setQuestions] = useState([]);
   const [votes, setVotes] = useState({});
   const [totalPages, setTotalPages] = useState(1);
-  const [skills, setSkills] = useState(['All']);
+  const { skills } = useSkillsStore();  
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-      // Retrieve state from localStorage if available
       const savedState = localStorage.getItem('isSidebarCollapsed');
       return savedState ? JSON.parse(savedState) : false;
     });
@@ -55,15 +54,6 @@ function Question() {
     }
   };
 
-  const fetchUserSkills = async () => {
-    try {
-      const response = await userSkills();
-      setSkills(['All', ...response.data.skills]);
-    } catch (err) {
-      console.error('Failed to fetch skills:', err);
-    }
-  };
-
   const handleVote = (questionId, voteType) => {
     setVotes((prev) => {
       const currentVote = prev[questionId] || 0;
@@ -81,15 +71,8 @@ function Question() {
     setCurrentPage(newPage);
   };
 
-  const handleSearch = (query) => {
-    setCurrentPage(1);
-    setSelectedCategory(
-      skills.find(skill => skill.toLowerCase().includes(query.toLowerCase())) || 'All'
-    );
-  };
   const handleSidebarToggle = () => {
     setIsSidebarCollapsed((prevState) => {
-      // Save the state in localStorage whenever it changes
       const newState = !prevState;
       localStorage.setItem('isSidebarCollapsed', JSON.stringify(newState));
       return newState;
@@ -97,12 +80,10 @@ function Question() {
   };
 
   useEffect(() => {
-    // Load sidebar state from localStorage when component mounts
     const storedSidebarState = localStorage.getItem('isSidebarCollapsed');
     if (storedSidebarState !== null) {
-      setIsSidebarCollapsed(JSON.parse(storedSidebarState));
-      setSearchContext('questions');
-      fetchUserSkills();
+        setIsSidebarCollapsed(JSON.parse(storedSidebarState));
+        setSearchContext('questions');
     }
   }, []);
 
@@ -127,7 +108,7 @@ function Question() {
   return (
     <div className="min-h-screen bg-[#0A0B1A] text-gray-300 flex flex-col">
       <NavBar 
-        onSearch={handleSearch}
+        // onSearch={handleSearch}
         searchQuery={searchQuery}
         onWriteClick={() => setIsEditModalOpen(true)} 
         writeButtonLabel="Ask question"

@@ -17,7 +17,7 @@ import useAuthStore from './store/useAuthStore';
 import { AuthCall } from './AuthCall';
 import Questions from './components/Question';
 import SideBar from './components/SideBar';
-import { SearchContextProvider } from './context/searchContext';
+// import { SearchContextProvider } from './context/searchContext';
 import QuestionRead from './components/questionRead';
 import UsersList from './components/UsersList';
 
@@ -36,7 +36,7 @@ function App() {
     <>
       <Router>
         <div>
-            <SearchContextProvider>
+            {/* <SearchContextProvider> */}
           <Routes>
             <Route path="/" element={<Launch />} />
             <Route path="/login" element={<Login />} />
@@ -52,7 +52,7 @@ function App() {
             <Route path="/question/:pk" element={<QuestionRead />} />
             <Route path="/users" element={<UsersList />} />
           </Routes>
-          </SearchContextProvider>
+          {/* </SearchContextProvider> */}
         </div>
       </Router>
     </>

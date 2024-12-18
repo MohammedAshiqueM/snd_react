@@ -10,6 +10,7 @@ import blogDefault from '../assets/Images/blogDefault.png';
 import SideBar from './SideBar';
 import NavBar from './NavBar';
 import Paginator from './Paginator';
+import useSkillsStore from '../store/useSkillStore';
 
 const Home = () => {
     const [votes, setVotes] = useState({});
@@ -23,7 +24,7 @@ const Home = () => {
     const { searchQuery, selectedCategory, currentPage, setSelectedCategory, setCurrentPage, setSearchContext } = useSearchStore();
     const [posts, setPosts] = useState([]);
     const [totalPages, setTotalPages] = useState(1);
-    const [skills, setSkills] = useState(['All']);
+    const { skills } = useSkillsStore();  
 
     const blogsPerPage = 12;
 
@@ -54,16 +55,6 @@ const Home = () => {
         }
     };
 
-    // Fetch user skills
-    const fetchUserSkills = async () => {
-        try {
-            const response = await userSkills();
-            setSkills(["All", ...response.data.skills]);
-        } catch (err) {
-            console.error("Error fetching skills:", err);
-        }
-    };
-
     const handlePageChange = newPage => {
         if (newPage >= 1 && newPage <= totalPages) {
             setCurrentPage(newPage);
@@ -73,27 +64,19 @@ const Home = () => {
 
     const handleSidebarToggle = () => {
         setIsSidebarCollapsed((prevState) => {
-          // Save the state in localStorage whenever it changes
           const newState = !prevState;
           localStorage.setItem('isSidebarCollapsed', JSON.stringify(newState));
           return newState;
         });
       };
     
-      const handleSearch = (query) => {
-        setCurrentPage(1);
-        setSelectedCategory(
-          skills.find(skill => skill.toLowerCase().includes(query.toLowerCase())) || 'All'
-        );
-      };
-
       useEffect(() => {
         const storedSidebarState = localStorage.getItem('isSidebarCollapsed');
         if (storedSidebarState !== null) {
             setIsSidebarCollapsed(JSON.parse(storedSidebarState));
         }
     
-        fetchUserSkills();
+        // fetchUserSkills();
         setSearchContext("blogs");
     }, []);
     
@@ -119,7 +102,7 @@ const Home = () => {
         <div className="min-h-screen bg-[#0A0B1A] flex flex-col">
             {/* Top Navigation */}
             <NavBar
-                onSearch={handleSearch}
+                // onSearch={handleSearch}
                 searchQuery={searchQuery}
                 onWriteClick={() => setIsEditModalOpen(true)}
                 writeButtonLabel="Write Blog"

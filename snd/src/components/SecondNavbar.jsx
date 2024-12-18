@@ -5,7 +5,7 @@ import useAuthStore from "../store/useAuthStore";
 import useSearchStore from "../store/useSearchStore";
 import { baseUrl } from "../constants/constant";
 import { logoutUser, userSkills } from "../api";
-import { useSearchContext } from "../context/searchContext";
+// import { useSearchContext } from "../context/searchContext";
 import noUser from '../assets/Images/no_user.jpg'
 
 
