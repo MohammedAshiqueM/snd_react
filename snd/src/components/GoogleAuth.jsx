@@ -14,10 +14,11 @@ const GoogleAuth = () => {
       try {
         const data = await googleSignin(credential);
         console.log('Server response:', data);
-        navigate('/home')
-      } catch (error) {
+        if (data?.user) navigate('/home');
+    } catch (error) {
         console.error('Login failed:', error);
-      }
+    }
+    
     } else {
       console.error('Credential not received');
     }

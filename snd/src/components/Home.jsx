@@ -16,7 +16,6 @@ const Home = () => {
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const navigate = useNavigate();
     const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-        // Retrieve state from localStorage if available
         const savedState = localStorage.getItem('isSidebarCollapsed');
         return savedState ? JSON.parse(savedState) : false;
       });

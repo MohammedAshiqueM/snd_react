@@ -6,6 +6,7 @@ import { baseUrl } from '../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
 import SideBar from './SideBar';
 import SecondNavbar from './SecondNavbar';
+import noUser from '../assets/Images/no_user.jpg'
 
 export default function QuestionRead() {
   const { pk } = useParams();
@@ -15,11 +16,22 @@ export default function QuestionRead() {
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
 //   const [error, setError] = useState(null);
+const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    const savedState = localStorage.getItem('isSidebarCollapsed');
+    return savedState ? JSON.parse(savedState) : false;
+  });
   const [showComments, setShowComments] = useState(false);
   const [validationError, setValidationError] = useState('');
   const [userVote, setUserVote] = useState(null);
   const url = baseUrl;
   
+  const handleSidebarToggle = () => {
+    setIsSidebarCollapsed((prevState) => {
+      const newState = !prevState;
+      localStorage.setItem('isSidebarCollapsed', JSON.stringify(newState));
+      return newState;
+    });
+  };
   
   const handleVote = async (voteType) => {
     try {
@@ -87,7 +99,7 @@ export default function QuestionRead() {
     loadAnswers();
   }, [pk]);
   
-  if (loading) return <div>Loading...</div>;
+  if (loading) return <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col"><SecondNavbar /></div>;
 //   if (error) return <div>{error}</div>;
 
   return (
@@ -95,10 +107,13 @@ export default function QuestionRead() {
         <SecondNavbar/>
 
       {/* Main Content */}
-      <main className="flex flex-1 md:ml-64 pt-20">
+      <main className={`flex-1 pt-12 transition-all duration-300`}>
       {/* Sidebar */}
-      <SideBar/>
-        <article className="mx-auto max-w-4xl">
+        <SideBar
+            isCollapsed={isSidebarCollapsed}
+            onToggle={handleSidebarToggle}
+        />
+        <article className={`mx-auto flex-1 p-6 pt-12 transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-64'}`}> {/* max-w-4xl */}
           {/* Author details */}
           <div className="mb-8 flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -210,7 +225,7 @@ export default function QuestionRead() {
                   >
                     <div className="h-8 w-8 rounded-full bg-gray-700 overflow-hidden">
                       <img 
-                        src={`${url}${comment.user.profile_image}`} 
+                        src={comment.user.profile_image ? `${baseUrl}${comment.user.profile_image}` : noUser}
                         alt={comment.user.first_name}
                         className="w-full h-full object-cover" 
                       />

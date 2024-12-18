@@ -1,5 +1,7 @@
 import instance from './axios';
 import useAuthStore from './store/useAuthStore';
+import { clearAllCookies } from './util';
+import  Cookies  from 'js-cookie';
 
 //user signup
 export const signupUser = async (userData) => {
@@ -62,20 +64,47 @@ export const resentOtp = async (userData) => {
 }
 
 //sign in with google
-export const googleSignin = async () => {
+export const googleSignin = async (idToken) => {
     try {
-        // console.log("Sending token to backend:", token); 
-        const response = await instance.post(`auth/google-login/`,null, {withCredentials:true});
-        console.log("Backend response:", response.data);
-        const { user } = response.data;
+        // Remove any existing tokens
+        Cookies.remove('access_token');
+        Cookies.remove('refresh_token');
 
-        console.log("the user is ",user)
+        // Send Google ID token to backend
+        const response = await instance.post(`auth/google-login/`, 
+            { id_token: idToken }, 
+            { withCredentials: true }
+        );
+
+        const { user, access_token, refresh_token } = response.data;
+
+        // Set tokens as cookies
+        Cookies.set('access_token', access_token, { 
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax'
+        });
+        
+        Cookies.set('refresh_token', refresh_token, { 
+            httpOnly: true, 
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'Lax'
+        });
+
+        // Update auth store
         const { setAuthStatus, setUser } = useAuthStore.getState();
         setAuthStatus(true);
         setUser(user);
+
         return response.data;
     } catch (error) {
-        console.error('Error during googleSignin:', error); 
+        console.error('Error during googleSignin:', error);
+        
+        // Handle specific authentication errors
+        if (error.response && error.response.status === 401) {
+            handleLogout();
+        }
+
         throw error.response ? error.response.data : error.message;
     }
 };
@@ -153,12 +182,28 @@ export const auth = async () => {
 //Logout user
 export const logoutUser = async () => {
     try {
-        await instance.post('logout/'); 
-        
+        // Backend logout
+        await instance.post('logout/');
+        Cookies.remove('access_token'); // Assuming 'access_token' is your JWT token stored in cookies.
+        Cookies.remove('token'); // Any other custom token you set.
+
+        // You can also clear sessionStorage or localStorage if needed
+        sessionStorage.clear();
+        localStorage.clear();
+
+        // Clear React state (if applicable)
+        const { setAuthStatus, setUser } = useAuthStore.getState();
+        setAuthStatus(false);
+        setUser(null);
+
+        // Redirect to login
+        window.location.href = '/login';
     } catch (error) {
         console.error("Error during logout:", error);
     }
 };
+
+
 
 //Suggest tags
 export const tagSuggestion = async (query) => {
@@ -174,8 +219,8 @@ export const tagSuggestion = async (query) => {
 //View my profile
 export const myProfile = async () => {
     try {
-        const response = await instance.get('profile/'); 
-       
+        const response = await instance.get('profile/');
+         
         return response
     } catch (error) {
         console.error("Error during logout:", error);
@@ -190,6 +235,8 @@ export const updateProfile = async (userData) => {
                 'Content-Type': 'multipart/form-data'
               }
         }); 
+        const { setUser } = useAuthStore.getState();
+        setUser(response.data);
         return response
     } catch (error) {
         console.error("Error during logout:", error);

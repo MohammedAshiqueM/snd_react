@@ -6,6 +6,8 @@ import useSearchStore from "../store/useSearchStore";
 import { baseUrl } from "../constants/constant";
 import { logoutUser, userSkills } from "../api";
 import { useSearchContext } from "../context/searchContext";
+import noUser from '../assets/Images/no_user.jpg'
+
 
 export default function SecondNavbar({ 
     onWriteClick, 
@@ -45,7 +47,7 @@ export default function SecondNavbar({
                             <div className="h-8 w-8 rounded-full bg-gray-700">
                                 {user && (
                                     <img
-                                        src={`${baseUrl}${user.profile_image}` || "/default-image.jpg"}
+                                        src={user.profile_image ? `${baseUrl}${user.profile_image}` : noUser}
                                         alt={user.first_name || "Untitled"}
                                         className="h-full w-full rounded-full object-cover transition-transform group-hover:scale-105"
                                     />

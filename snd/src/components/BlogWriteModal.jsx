@@ -87,6 +87,17 @@ export default function BlogCreationModal({ isOpen, onClose }) {
     });
   };
 
+  const validateImage = (file) => {
+    const allowedTypes = ['image/jpeg', 'image/png', 'image/jpg'];
+    if (file.size > 5 * 1024 * 1024) {
+      return 'Image size must be less than 5MB.(frontend)';
+    }
+    if (!allowedTypes.includes(file.type)) {
+      return 'Only JPEG, PNG, and JPG formats are allowed.(from front end)';
+    }
+    return null;
+  };
+
   const validateForm = () => {
     const newErrors = {};
     if (!formData.title.trim() || formData.title.length < 10) {
@@ -98,6 +109,9 @@ export default function BlogCreationModal({ isOpen, onClose }) {
     if (formData.tags.length === 0) {
       newErrors.tags = 'Please select a valid tag from the suggestions.';
     }
+    if (formData.image && validateImage(formData.image)) {
+        newErrors.image = validateImage(formData.image);
+      }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -254,6 +268,7 @@ export default function BlogCreationModal({ isOpen, onClose }) {
                 className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
               />
             </div>
+              {errors.image && <p className="text-red-500 text-sm">{errors.image}</p>}
           </div>
 
           {/* Submit Button */}

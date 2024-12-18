@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import axios from 'axios';
 import { X, Upload } from 'lucide-react';
 import { tagSuggestion, updateProfile } from '../api';
+import { isValidURL, validateImage } from '../util';
 
 export default function EditProfileModal({ isOpen, onClose, userData }) {
     const [formData, setFormData] = useState({
@@ -112,6 +113,35 @@ export default function EditProfileModal({ isOpen, onClose, userData }) {
     const handleSubmit = async (e) => {
   e.preventDefault();
   
+  // Validate LinkedIn and GitHub URLs
+  const linkedinError = isValidURL(formData.linkedin_url, "linkedin");
+  const githubError = isValidURL(formData.github_url, "github");
+
+  if (linkedinError) {
+      alert(linkedinError);
+      return;
+  }
+
+  if (githubError) {
+      alert(githubError);
+      return;
+  }
+
+    // Validate image
+    const profileImageError = validateImage(formData.profile_image);
+    const bannerImageError = validateImage(formData.banner_image);
+    console.log("1111111111111111111111111111111222222222222222",bannerImageError)
+
+    if (profileImageError) {
+        alert(profileImageError);
+        return;
+    }
+  
+    if (bannerImageError) {
+        alert(bannerImageError);
+        return;
+    }
+
   const submitData = new FormData();
 
   Object.keys(formData).forEach(key => {

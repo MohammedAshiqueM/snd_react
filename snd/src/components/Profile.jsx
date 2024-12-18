@@ -7,12 +7,12 @@ import { myProfile } from '../api';
 import { baseUrl } from '../constants/constant';
 import SideBar from './SideBar';
 import SecondNavbar from './SecondNavbar';
+import noUser from '../assets/Images/no_user.jpg'
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    // Retrieve state from localStorage if available
     const savedState = localStorage.getItem('isSidebarCollapsed');
     return savedState ? JSON.parse(savedState) : false;
   });
@@ -69,7 +69,6 @@ export default function ProfilePage() {
 
   const handleSidebarToggle = () => {
     setIsSidebarCollapsed((prevState) => {
-      // Save the state in localStorage whenever it changes
       const newState = !prevState;
       localStorage.setItem('isSidebarCollapsed', JSON.stringify(newState));
       return newState;
@@ -96,7 +95,9 @@ export default function ProfilePage() {
         <div className="absolute top-[-12rem] flex items-end">
           <div className="relative">
             <img
-              src={`${url}${profile_image}` || "/placeholder-avatar.svg"}
+            //   src={`${url}${profile_image}` || "/placeholder-avatar.svg"}
+              src={profile_image ? `${baseUrl}${profile_image}` : noUser}
+
               alt="Profile picture"
               className="h-[11rem] w-[11rem] rounded-lg border-4 border-white object-cover"
             />
