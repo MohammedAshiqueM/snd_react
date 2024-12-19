@@ -399,12 +399,28 @@ export const voteQuestion = async (pk, vote) => {
 }
 
 //post question
-export const usersList = async (params) => {
+export const usersList = async (data) => {
     try{
-        const response = await instance.get(`users/`,{params})
+        const params = new URLSearchParams(data).toString();
+
+        const response = await instance.get(`users/?${params}`)
+        console.log(response.data)
         return response.data
     } catch (error) {
         console.error("Error during listing users")
         throw error
     }
 }
+
+// export const getQuestion = async (data) => {
+//     try {
+//         // console.log("Fetching questions with Params:", data);
+
+//         const params = new URLSearchParams(data).toString();
+
+//         const response = await instance.get(`questions/?${params}`);
+//         return response.data;
+//     } catch (error) {
+//         console.error("Error during fetching the questions", error);
+//     }
+// };
