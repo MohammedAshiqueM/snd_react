@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { emailVerification, resentOtp } from '../api';
-import { getFromSession } from '../util';
+import { emailVerification, resentOtp } from '../../api';
+import { getFromSession } from '../../util';
 
 const Otp = () => {
   const [otpValues, setOtpValues] = useState(['', '', '', '', '']);

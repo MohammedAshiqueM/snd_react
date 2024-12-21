@@ -1,12 +1,13 @@
 import { useEffect, useState } from "react";
-import SideBar from "./SideBar";
-import NavBar from "./NavBar";
-import useSearchStore from "../store/useSearchStore";
-import { usersList } from "../api";
-import { baseUrl } from "../constants/constant";
-import noUser from "../assets/Images/no_user.jpg";
-import Paginator from "./Paginator";
-import useSkillsStore from "../store/useSkillStore";
+import SideBar from "../../components/SideBar";
+import NavBar from "../../components/NavBar";
+import useSearchStore from "../../store/useSearchStore";
+import { usersList } from "../../api";
+import { baseUrl } from "../../constants/constant";
+import noUser from "../../assets/Images/no_user.jpg";
+import Paginator from "../../components/Paginator";
+import useSkillsStore from "../../store/useSkillStore";
+import { useNavigate } from 'react-router-dom';
 
 function UsersList() {
   const [users, setUsers] = useState([]);
@@ -25,6 +26,7 @@ function UsersList() {
     setCurrentPage,
     setSearchContext,
   } = useSearchStore();
+  const navigate = useNavigate();
   const usersPerPage = 20;
   const url = baseUrl;
 
@@ -116,6 +118,8 @@ function UsersList() {
                   <div
                     key={user.id}
                     className="flex items-center space-x-3 p-3 rounded-lg hover:bg-[#2a2438]"
+                    onClick={() => navigate(`/users/details/${user.id}`)}
+
                   >
                     <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
                       <img

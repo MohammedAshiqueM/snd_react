@@ -1,16 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { Bell, Heart, MessageCircle, Search, Share2, ChevronUp, ChevronDown, Pen } from 'lucide-react';
-import { getBlogs, userSkills } from '../api';
+import { getBlogs, userSkills } from '../../api';
 import { useNavigate } from 'react-router-dom';
-import BlogWriteModal from './BlogWriteModal';
-import { baseUrl } from '../constants/constant';
-import useSearchStore from "../store/useSearchStore";
-import noUser from '../assets/Images/no_user.jpg';
-import blogDefault from '../assets/Images/blogDefault.png';
-import SideBar from './SideBar';
-import NavBar from './NavBar';
-import Paginator from './Paginator';
-import useSkillsStore from '../store/useSkillStore';
+import BlogWriteModal from '../../components/BlogWriteModal';
+import { baseUrl } from '../../constants/constant';
+import useSearchStore from "../../store/useSearchStore";
+import noUser from '../../assets/Images/no_user.jpg';
+import blogDefault from '../../assets/Images/blogDefault.png';
+import SideBar from '../../components/SideBar';
+import NavBar from '../../components/NavBar';
+import Paginator from '../../components/Paginator';
+import useSkillsStore from '../../store/useSkillStore';
 
 const Home = () => {
     const [votes, setVotes] = useState({});

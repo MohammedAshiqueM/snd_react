@@ -1,13 +1,13 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Star, Github, Mail, Edit, Pen, Linkedin } from 'lucide-react';
-import EditProfileModal from './EditProfileModal';
-import { myProfile } from '../api';
+import EditProfileModal from '../../components/EditProfileModal';
+import { myProfile } from '../../api';
 // import { baseUrl } from './constants/constant';
-import { baseUrl } from '../constants/constant';
-import SideBar from './SideBar';
-import SecondNavbar from './SecondNavbar';
-import noUser from '../assets/Images/no_user.jpg'
+import { baseUrl } from '../../constants/constant';
+import SideBar from '../../components/SideBar';
+import SecondNavbar from '../../components/SecondNavbar';
+import noUser from '../../assets/Images/no_user.jpg'
 
 export default function ProfilePage() {
   const [profile, setProfile] = useState(null);

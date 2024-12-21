@@ -1,10 +1,10 @@
 import { useState,useEffect } from 'react';
 import { Eye, EyeOff } from 'lucide-react';
-import SignupImage from '../assets/Images/sign_up.jpg';
-import { signupUser, resentOtp, auth } from '../api';
+import SignupImage from '../../assets/Images/sign_up.jpg';
+import { signupUser, resentOtp, auth } from '../../api';
 import { useNavigate } from 'react-router-dom';
-import { saveToSession } from '../util';
-import useAuthStore from '../store/useAuthStore';
+import { saveToSession } from '../../util';
+import useAuthStore from '../../store/useAuthStore';
 
 export default function SignUp() {
   const [formData, setFormData] = useState({

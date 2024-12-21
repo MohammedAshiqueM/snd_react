@@ -412,15 +412,16 @@ export const usersList = async (data) => {
     }
 }
 
-// export const getQuestion = async (data) => {
-//     try {
-//         // console.log("Fetching questions with Params:", data);
+//get user details
+export const userDetails = async (id) => {
+    try{
+        // const params = new URLSearchParams(data).toString();
 
-//         const params = new URLSearchParams(data).toString();
-
-//         const response = await instance.get(`questions/?${params}`);
-//         return response.data;
-//     } catch (error) {
-//         console.error("Error during fetching the questions", error);
-//     }
-// };
+        const response = await instance.get(`users/details/${id}`)
+        console.log(response.data)
+        return response.data
+    } catch (error) {
+        console.error("Error during listing users")
+        throw error
+    }
+}

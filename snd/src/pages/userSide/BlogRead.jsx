@@ -1,28 +1,28 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { blogRead, getAnswers, getComments, postAnswer, postComment, questionRead, voteQuestion,  } from '../api'; 
+import { blogRead, getComments, postComment, voteBlog,  } from '../../api'; 
 import { MessageCircle, Eye, ThumbsUp, ThumbsDown, Share2, Copy } from 'lucide-react'
-import { baseUrl } from '../constants/constant';
+import { baseUrl } from '../../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
-import SideBar from './SideBar';
-import SecondNavbar from './SecondNavbar';
-import noUser from '../assets/Images/no_user.jpg'
+import SideBar from '../../components/SideBar';
+import SecondNavbar from '../../components/SecondNavbar';
+import noUser from '../../assets/Images/no_user.jpg'
 
-export default function QuestionRead() {
-  const { pk } = useParams();
+export default function BlogRead() {
+  const { slug } = useParams();
   const [blog, setBlog] = useState(null);
   const [votes, setVotes] = useState(0);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
-//   const [error, setError] = useState(null);
-const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+  const [error, setError] = useState(null);
+  const [showComments, setShowComments] = useState(false);
+  const [userVote, setUserVote] = useState(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     const savedState = localStorage.getItem('isSidebarCollapsed');
     return savedState ? JSON.parse(savedState) : false;
   });
-  const [showComments, setShowComments] = useState(false);
-  const [validationError, setValidationError] = useState('');
-  const [userVote, setUserVote] = useState(null);
+
   const url = baseUrl;
   
   const handleSidebarToggle = () => {
@@ -36,7 +36,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
   const handleVote = async (voteType) => {
     try {
       const newVoteType = userVote === voteType ? null : voteType;
-      const response = await voteQuestion(pk, voteType);
+      const response = await voteBlog(slug, voteType);
   
       if (response.vote_count !== undefined) {
         setVotes(response.vote_count); // Update the vote count on the UI
@@ -46,22 +46,12 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
       console.error("Failed to vote:", err);
     }
   };
+  
 
-  const validateAnswer = () => {
+  const handleAddComment = async () => {
     if (!newComment.trim()) return;
-
-     if (newComment.length < 50) {
-         setValidationError('Answer must be at least 50 characters long.');
-             return false; 
-            } 
-             setValidationError('');
-            return true;
-        };
-        
-  const handleAddAnswer = async () => {
-    if (!validateAnswer()) return;
     try {
-      const addedComment = await postAnswer(pk, newComment);
+      const addedComment = await postComment(slug, newComment);
       setComments([addedComment, ...comments]);
       setNewComment('');
     } catch (err) {
@@ -76,9 +66,10 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
   useEffect(() => {
     async function loadBlog() {
       try {
-        const questionData = await questionRead(pk);
-        setBlog(questionData);
-        setVotes(questionData.data.vote_count || 0);
+        const blogData = await blogRead(slug);
+        setBlog(blogData);
+        setVotes(blogData.data.vote_count || 0);
+        setUserVote(blogData.data.user_vote);
       } catch (err) {
         setError('Failed to load blog');
       } finally {
@@ -86,9 +77,9 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
       }
     }
 
-    async function loadAnswers() {
+    async function loadComments() {
       try {
-        const commentsData = await getAnswers(pk);
+        const commentsData = await getComments(slug);
         setComments(commentsData.data);
       } catch (err) {
         console.error(err);
@@ -96,11 +87,12 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     }
 
     loadBlog();
-    loadAnswers();
-  }, [pk]);
+    loadComments();
+  }, [slug]);
   
   if (loading) return <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col"><SecondNavbar /></div>;
-//   if (error) return <div>{error}</div>;
+
+  if (error) return <div>{error}</div>;
 
   return (
     <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col">
@@ -109,11 +101,11 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
       {/* Main Content */}
       <main className={`flex-1 pt-12 transition-all duration-300`}>
       {/* Sidebar */}
-        <SideBar
+      <SideBar
             isCollapsed={isSidebarCollapsed}
             onToggle={handleSidebarToggle}
         />
-        <article className={`mx-auto flex-1 p-6 pt-12 transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-64'}`}> {/* max-w-4xl */}
+        <article className={`mx-auto flex-1 p-6 pt-12 transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-64'}`}>
           {/* Author details */}
           <div className="mb-8 flex items-center justify-between">
             <div className="flex items-center space-x-4">
@@ -146,6 +138,13 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
 
           {/* Blog Content */}
           <h1 className="mb-8 text-3xl font-bold">{blog.data.title}</h1>
+          {blog.data.image && (
+            <img 
+              src={`${url}${blog.data.image}`} 
+              alt={blog.data.title} 
+              className="mb-8 w-full rounded-lg max-w-[50rem] mx-auto" 
+            />
+          )}
           <div className="prose prose-invert max-w-none">
             <p className="mb-4 text-gray-300">{blog.data.body_content}</p>
           </div>
@@ -172,13 +171,14 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
                 <ThumbsDown className={`h-6 w-6 ${userVote === 'downvote' ? 'text-[#500000] fill-[#ff9494]' : 'text-gray-400'}`}  />
             </button>
             </div>
+
             <div className="flex items-center space-x-4">
               <button 
                 onClick={toggleComments}
                 className="flex items-center space-x-2 rounded-full bg-gray-800 px-4 py-2 hover:bg-gray-700"
               >
                 <MessageCircle className="h-5 w-5" />
-                <span>Answers</span>
+                <span>Comment</span>
               </button>
               <button className="flex items-center space-x-2 rounded-full bg-gray-800 px-4 py-2 hover:bg-gray-700">
                 <Share2 className="h-5 w-5" />
@@ -191,12 +191,12 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
             </div>
           </div>
 
-          {/* Answer Section */}
+          {/* Comments Section */}
           {showComments && (
             <div className="mt-12 border-t border-gray-800 pt-8">
-              <h3 className="mb-6 text-lg font-semibold">Answers</h3>
+              <h3 className="mb-6 text-lg font-semibold">Comments</h3>
               
-              {/* Answer Form */}
+              {/* Comment Form */}
               <div className="mb-8 rounded-lg bg-[#1A1B2E] p-4">
                 <textarea
                   placeholder="Write your thoughts..."
@@ -205,18 +205,17 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
                   value={newComment}
                   onChange={(e) => setNewComment(e.target.value)}
                 />
-                {validationError && ( <p className="text-red-500 text-sm mt-2">{validationError}</p> )}
                 <div className="mt-4 flex justify-end">
                   <button 
                     className="rounded-lg bg-blue-600 px-6 py-2 text-sm font-medium text-white hover:bg-blue-700"
-                    onClick={handleAddAnswer}
+                    onClick={handleAddComment}
                   >
                     Post
                   </button>
                 </div>
               </div>
 
-              {/* Answer List */}
+              {/* Comments List */}
               <div className="mt-4 space-y-4">
                 {comments.map((comment) => (
                   <div 
@@ -224,7 +223,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
                     className="border-b border-gray-700 pb-4 flex items-start space-x-4"
                   >
                     <div className="h-8 w-8 rounded-full bg-gray-700 overflow-hidden">
-                      <img 
+                      <img
                         src={comment.user.profile_image ? `${baseUrl}${comment.user.profile_image}` : noUser}
                         alt={comment.user.first_name}
                         className="w-full h-full object-cover" 

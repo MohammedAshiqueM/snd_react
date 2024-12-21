@@ -1,25 +1,27 @@
 import { useState } from 'react'
 import './App.css'
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
-import Login from './components/Login'
-import SignUp from './components/Signup';
-import Otp from './components/Otp';
-import Home from './components/Home';
+import Login from './pages/userSide/Login'
+import SignUp from './pages/userSide/Signup';
+import Otp from './pages/userSide/Otp';
+import Home from './pages/userSide/Home';
 import {ProtectedRoute} from './protectedRoute';
-import Launch from './components/Launch';
-import ProfileHeader from './components/profile';
+import Launch from './pages/userSide/Launch';
+import ProfileHeader from './pages/userSide/Profile';
 // import { initializeApp } from './auth';
 import React, { useEffect } from 'react';
-import ForgotPassword from './components/ForgetPassword';
-import ResetPassword from './components/ResetPassword';
-import BlogRead from './components/BlogRead';
+import ForgotPassword from './pages/userSide/ForgetPassword';
+import ResetPassword from './pages/userSide/ResetPassword';
+import BlogRead from './pages/userSide/BlogRead';
 import useAuthStore from './store/useAuthStore';
 import { AuthCall } from './AuthCall';
-import Questions from './components/Question';
-import SideBar from './components/SideBar';
+import Questions from './pages/userSide/Question';
 // import { SearchContextProvider } from './context/searchContext';
-import QuestionRead from './components/questionRead';
-import UsersList from './components/UsersList';
+import QuestionRead from './pages/userSide/QuestionRead';
+import UsersList from './pages/userSide/UsersList';
+import Dashboard from './pages/adminSide/dashboard';
+import LoginAdmin from './pages/adminSide/LoginAdmin';
+import UserDetails from './pages/userSide/UserDetails';
 
 function App() {
     const { setAuthStatus } = useAuthStore();
@@ -38,6 +40,7 @@ function App() {
         <div>
             {/* <SearchContextProvider> */}
           <Routes>
+            {/* User */}
             <Route path="/" element={<Launch />} />
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
@@ -51,6 +54,11 @@ function App() {
             <Route path="/questions" element={<Questions />} />
             <Route path="/question/:pk" element={<QuestionRead />} />
             <Route path="/users" element={<UsersList />} />
+            <Route path="/users/details/:pk" element={<UserDetails />} />
+
+            {/* admin */}
+            <Route path="/admin/login" element={<LoginAdmin />} />
+            <Route path="/admin/dashboard" element={<Dashboard />} />
           </Routes>
           {/* </SearchContextProvider> */}
         </div>

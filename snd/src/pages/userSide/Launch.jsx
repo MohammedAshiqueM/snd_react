@@ -1,7 +1,7 @@
 import React from 'react';
-import kabib from '../assets/Images/kabib.png'
-import islam from '../assets/Images/islam.png'
-import map from '../assets/Images/world.jpg'
+import kabib from '../../assets/Images/kabib.png'
+import islam from '../../assets/Images/islam.png'
+import map from '../../assets/Images/world.jpg'
 import { useNavigate } from 'react-router-dom';
 
 const Launch = () => {

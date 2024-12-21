@@ -2,15 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { Search, Home, Compass, User, Tag, Users, MessageSquare, FileQuestion, ChevronUp, ChevronDown, ChevronLeft, ChevronRight, Pen } from 'lucide-react';
-import SideBar from './SideBar';
-import NavBar from './NavBar';
-import QuestionWriteModal from './QuestionWriteModal';
-import useSearchStore from '../store/useSearchStore';
-import { getQuestion, userSkills } from '../api';
-import { baseUrl } from '../constants/constant';
-import { truncateText } from '../util';
-import Paginator from "./Paginator";
-import useSkillsStore from '../store/useSkillStore';
+import SideBar from '../../components/SideBar';
+import NavBar from '../../components/NavBar';
+import QuestionWriteModal from '../../components/QuestionWriteModal';
+import useSearchStore from '../../store/useSearchStore';
+import { getQuestion, userSkills } from '../../api';
+import { baseUrl } from '../../constants/constant';
+import { truncateText } from '../../util';
+import Paginator from "../../components/Paginator";
+import useSkillsStore from '../../store/useSkillStore';
 
 
 function Question() {
