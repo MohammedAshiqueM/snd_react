@@ -34,11 +34,11 @@ export function ToggleButton({ isCollapsed, onToggle }) {
     const [isOpen, setIsOpen] = useState(false);
   
     const navItems = [
-      { name: 'Dashbord', path: '/dashboard', icon: HomeIcon },
+      { name: 'Dashbord', path: '/admin/dashboard', icon: HomeIcon },
       { name: 'Discover', path: '/questions', icon: Compass },
       { name: 'Account', path: '/account', icon: User },
       { name: 'Tags', path: '/tags', icon: Tag },
-      { name: 'Users', path: '/users', icon: Users },
+      { name: 'Users', path: '/admin/users', icon: Users },
       { name: 'Messages', path: '/messages', icon: MessageSquare },
       { name: 'Requests', path: '/requests', icon: FileQuestion },
     ];

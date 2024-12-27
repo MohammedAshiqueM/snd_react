@@ -22,6 +22,8 @@ import UsersList from './pages/userSide/UsersList';
 import Dashboard from './pages/adminSide/dashboard';
 import LoginAdmin from './pages/adminSide/LoginAdmin';
 import UserDetails from './pages/userSide/UserDetails';
+import UsersAdmin from './pages/adminSide/usersAdmin';
+import { AdminProtectedRoute } from './adminProtectedRoute';
 
 function App() {
     const { setAuthStatus } = useAuthStore();
@@ -53,12 +55,12 @@ function App() {
             <Route path="/blogs/:slug" element={<BlogRead />} />
             <Route path="/questions" element={<Questions />} />
             <Route path="/question/:pk" element={<QuestionRead />} />
-            <Route path="/users" element={<UsersList />} />
+            <Route path="/users" element={<ProtectedRoute><UsersList /></ProtectedRoute>} />
             <Route path="/users/details/:pk" element={<UserDetails />} />
-
             {/* admin */}
-            <Route path="/admin/login" element={<LoginAdmin />} />
-            <Route path="/admin/dashboard" element={<Dashboard />} />
+            <Route path="/admin" element={<LoginAdmin />} />
+            <Route path="/admin/dashboard" element={<AdminProtectedRoute><Dashboard /></AdminProtectedRoute>} />
+            <Route path="/admin/users" element={<UsersAdmin />} />
           </Routes>
           {/* </SearchContextProvider> */}
         </div>

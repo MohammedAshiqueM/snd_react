@@ -1,24 +1,37 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Star, Github, Mail, Edit, Pen, Linkedin } from 'lucide-react';
-import EditProfileModal from '../../components/EditProfileModal';
-import { myProfile, userDetails } from '../../api';
+import { followUnfollow, myProfile, userDetails } from '../../api';
 // import { baseUrl } from './constants/constant';
 import { baseUrl } from '../../constants/constant';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import noUser from '../../assets/Images/no_user.jpg'
 import { useParams } from 'react-router-dom';
+import ReportModal from '../../components/ReportModal';
 
 export default function UserDetails() {
   const [profile, setProfile] = useState(null);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     const savedState = localStorage.getItem('isSidebarCollapsed');
     return savedState ? JSON.parse(savedState) : false;
   });
   const { pk } = useParams();
   const url = baseUrl
+  const handleFollowUnfollow = async () => {
+    try {
+      const response = await followUnfollow(pk);
+      setProfile((prevProfile) => ({
+        ...prevProfile,
+        isFollowing: !prevProfile.isFollowing,
+      }));
+    //   console.log(response.data.message);
+    } catch (error) {
+      console.error("Error following/unfollowing:", error);
+    }
+  };
+  
   useEffect(() => {
     const fetchProfile = async () => {
       try {
@@ -51,6 +64,7 @@ export default function UserDetails() {
     time_balance,
     followers_count,
     following_count,
+    isFollowing,
     last_active 
   } = profile;
 
@@ -112,7 +126,7 @@ export default function UserDetails() {
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold">{first_name} {last_name}</h1>
             <h6 className="absolute right-[3rem] flex items-center">
-              <button onClick={() => setIsEditModalOpen(true)} className="flex items-center hover:text-[#4D7EF2]">
+              <button onClick={() => setIsReportModalOpen(true)} className="flex items-center hover:text-[#4D7EF2]">
                 <Pen className="mr-1" /> Report
               </button>
             </h6>
@@ -120,8 +134,16 @@ export default function UserDetails() {
             <div className="flex items-center">
               {renderStars(rating)}
             </div>
-          </div>
+            <button
+                className={`rounded px-3 py-1 text-sm font-medium ${
+                    isFollowing ? "bg-[#840A0A] hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+                }`}
+                onClick={handleFollowUnfollow}
+            >
+                {isFollowing ? "Unfollow" : "Follow"}
+            </button>
 
+          </div>
           <div className="mt-4 flex gap-4">
             {github_url && (
               <a href={github_url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-gray-400 hover:text-white">
@@ -166,6 +188,11 @@ export default function UserDetails() {
       </div>
     </main>
   </div>
+  <ReportModal
+  isOpen={isReportModalOpen}
+  onClose={() => setIsReportModalOpen(false)}
+  userData={profile}
+  />
 </div>
 
   );

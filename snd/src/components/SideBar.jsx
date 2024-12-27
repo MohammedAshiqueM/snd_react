@@ -18,7 +18,7 @@ export function ToggleButton({ isCollapsed, onToggle }) {
     return (
       <button
         onClick={onToggle}
-        className={`fixed top-32 ${
+        className={`fixed top-16 ${
           isCollapsed ? 'left-16' : 'left-48'
         } bg-[#0D0E21] border border-gray-800 text-gray-400 hover:text-white z-40 rounded transition-all duration-300 hidden md:block`}
       >

@@ -26,9 +26,9 @@ const NavbarAdmin = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon
 
   // Map routes to contexts
   const pathToContextMap = {
-    "/home": "blogs",
-    "/questions": "questions",
-    "/users": "users",
+    // "/admin/home": "admin_blogs",
+    // "/admin/questions": "admin_questions",
+    "/admin/users": "admin_users",
   };
 
   useEffect(() => {

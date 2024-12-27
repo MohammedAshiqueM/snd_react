@@ -40,12 +40,13 @@ export default function LoginAdmin() {
       const response = await loginUser(formData);
       console.log("data is...",response.data)
       if (response.access_token && response.refresh_token) {
-        console.log("Login successful, tokens received:", response);
-        navigate('/home');
-      } else if (response.redirect === '/otp') {
-        console.log("User inactive, redirecting to OTP page.");
-        navigate('/otp');
-      } else {
+        if (response.role === 'admin') {
+            console.log("Admin login successful, tokens received:", response);
+            navigate('/admin/dashboard'); // Redirect to admin-specific page
+          } else {
+            setError('Not authorized to access admin login.');
+          }
+      }else {
         setError('Tokens missing in response');
       }
     } catch (err) {
@@ -55,7 +56,7 @@ export default function LoginAdmin() {
       console.log('Error during login:', err);
   
       if (err.detail === 'Invalid credentials') {
-        setError('Invalid email or password');
+        setError('Invalid admin code or password (fields are case sensitive');
       }else if (err.detail === 'User is blocked') {
         setError('User is blocked');
       }else if (err.detail === 'User is inactive. OTP has been resent.') {
@@ -95,9 +96,9 @@ export default function LoginAdmin() {
               {/* Email Input */}
               <div>
                 <input
-                  type="email"
+                //   type="email"
                   name="username"
-                  placeholder="Email"
+                  placeholder="Admin secret name"
                   value={formData.email}
                   onChange={handleChange}
                   required
@@ -109,7 +110,7 @@ export default function LoginAdmin() {
               <div className="relative">
                 <input
                   type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
+                  placeholder="Admin access code"
                   name="password"
                   value={formData.password}
                   onChange={handleChange}

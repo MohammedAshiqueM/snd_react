@@ -79,6 +79,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
         const questionData = await questionRead(pk);
         setBlog(questionData);
         setVotes(questionData.data.vote_count || 0);
+        setUserVote(questionData.data.user_vote);
       } catch (err) {
         setError('Failed to load blog');
       } finally {

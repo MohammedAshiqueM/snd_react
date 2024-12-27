@@ -1,34 +1,31 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import useAuthStore from './store/useAuthStore';
-import { auth } from './api'; // Assuming you have an API to verify authentication
+import { auth } from './api';
 
 export const ProtectedRoute = ({ children }) => {
-  const { isAuthenticated, loading, setAuthStatus, setUser } = useAuthStore();
+    const [loading, setLoading] = useState(true);
+    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  useEffect(() => {
-    // Only check authentication if `isAuthenticated` is null
-    if (isAuthenticated === null) {
-      (async () => {
-        try {
-          const response = await auth(); // Example: Call backend to verify token
-          if (response.success) {
-            setAuthStatus(true);
-            setUser(response.user);
-          } else {
-            setAuthStatus(false);
-          }
-        } catch (error) {
-          setAuthStatus(false);
-        }
-      })();
+    useEffect(() => {
+        const checkAuth = async () => {
+            try {
+                await auth(); // Validates session via cookie
+                setIsAuthenticated(true); // User is authenticated
+            } catch {
+                setIsAuthenticated(false); // User is not authenticated
+            } finally {
+                setLoading(false); // Stop loading
+            }
+        };
+
+        checkAuth();
+    }, []);
+
+    if (loading) {
+        return <div>Loading...</div>; // Show a loading state while checking authentication
     }
-  }, [isAuthenticated, setAuthStatus, setUser]);
 
-  if (loading || isAuthenticated === null) {
-    // Show loading state while checking auth
-    return <div>Loading...</div>;
-  }
-
-  return isAuthenticated ? children : <Navigate to="/login" />;
+    return isAuthenticated ? children : <Navigate to="/login" />;
 };
+
+// export default ProtectedRoute;
