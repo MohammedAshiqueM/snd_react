@@ -4,7 +4,7 @@ import loginImage from '../../assets/Images/login_image.jpg'
 import { auth, loginUser } from "../../api";
 import { useNavigate } from 'react-router-dom';
 import GoogleAuth from "../../components/GoogleAuth";
-import useAuthStore from "../../store/useAuthStore";
+import {useAuthStore} from "../../store/useAuthStore";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);

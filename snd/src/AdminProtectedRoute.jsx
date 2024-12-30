@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { Navigate } from 'react-router-dom';
-import useAuthStore from './store/useAuthStore';
+import {useAuthStore} from './store/useAuthStore';
 import { auth } from './api';
 
 

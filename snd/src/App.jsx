@@ -5,7 +5,7 @@ import Login from './pages/userSide/Login'
 import SignUp from './pages/userSide/Signup';
 import Otp from './pages/userSide/Otp';
 import Home from './pages/userSide/Home';
-import {ProtectedRoute} from './protectedRoute';
+import {AdminRoute, ProtectedRoute, UserRoute} from './protectedRoute';
 import Launch from './pages/userSide/Launch';
 import ProfileHeader from './pages/userSide/Profile';
 // import { initializeApp } from './auth';
@@ -13,8 +13,8 @@ import React, { useEffect } from 'react';
 import ForgotPassword from './pages/userSide/ForgetPassword';
 import ResetPassword from './pages/userSide/ResetPassword';
 import BlogRead from './pages/userSide/BlogRead';
-import useAuthStore from './store/useAuthStore';
-import { AuthCall } from './AuthCall';
+import {useAuthStore} from './store/useAuthStore';
+// import { AuthCall } from './AuthCall';
 import Questions from './pages/userSide/Question';
 // import { SearchContextProvider } from './context/searchContext';
 import QuestionRead from './pages/userSide/QuestionRead';
@@ -24,18 +24,32 @@ import LoginAdmin from './pages/adminSide/LoginAdmin';
 import UserDetails from './pages/userSide/UserDetails';
 import UsersAdmin from './pages/adminSide/usersAdmin';
 import { AdminProtectedRoute } from './adminProtectedRoute';
+import Reports from './pages/adminSide/Reports';
+import ReportsDetails from './pages/adminSide/ReportDetails';
 
 function App() {
-    const { setAuthStatus } = useAuthStore();
+    const { setAuthStatus,isAuthenticated } = useAuthStore();
+    const rehydrated = useAuthStore.persist.hasHydrated();
+
+    // useEffect(() => {
+    //     if (rehydrated) {
+    //         const initializeAuth = async () => {
+    //             const isAuthenticated = await AuthCall();
+    //             console.log('Auth status from API or localStorage:', isAuthenticated);
+    //             setAuthStatus(isAuthenticated);
+    //         };
+    //         initializeAuth();
+    //     }
+    // }, [rehydrated, setAuthStatus]);
 
     useEffect(() => {
-        const initializeAuth = async () => {
-        const isAuthenticated = await AuthCall();
-        setAuthStatus(isAuthenticated);
-        };
+        console.log('Rehydration state:', rehydrated);
+        console.log('Authenticated state:', isAuthenticated);
+    }, [rehydrated, isAuthenticated]);
 
-        initializeAuth();
-    }, []);
+    if (!rehydrated) {
+        return <p>Loading...</p>; // Prevent flickering during hydration
+    }
   return (
     <>
       <Router>
@@ -47,7 +61,7 @@ function App() {
             <Route path="/login" element={<Login />} />
             <Route path="/signup" element={<SignUp />} />
             <Route path="/otp" element={<Otp />} />
-            <Route path="/home" element={<ProtectedRoute><Home /></ProtectedRoute>} />
+            <Route path="/home" element={<UserRoute><Home /></UserRoute>} />
             <Route path="/profile" element={<ProfileHeader />} />
             <Route path="/forget-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword/>} />
@@ -59,8 +73,11 @@ function App() {
             <Route path="/users/details/:pk" element={<UserDetails />} />
             {/* admin */}
             <Route path="/admin" element={<LoginAdmin />} />
-            <Route path="/admin/dashboard" element={<AdminProtectedRoute><Dashboard /></AdminProtectedRoute>} />
+            <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<UsersAdmin />} />
+            <Route path="/admin/reports" element={<Reports />} />
+            <Route path="/admin/report/details" element={<ReportsDetails />} />
+
           </Routes>
           {/* </SearchContextProvider> */}
         </div>

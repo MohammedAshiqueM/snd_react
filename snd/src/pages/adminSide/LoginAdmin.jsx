@@ -4,7 +4,7 @@ import loginImage from '../../assets/Images/admin_login.jpg'
 import { auth, loginUser } from "../../api";
 import { useNavigate } from 'react-router-dom';
 import GoogleAuth from "../../components/GoogleAuth";
-import useAuthStore from "../../store/useAuthStore";
+import {useAuthStore} from "../../store/useAuthStore";
 
 export default function LoginAdmin() {
   const [loading, setLoading] = useState(false);
@@ -36,11 +36,11 @@ export default function LoginAdmin() {
     e.preventDefault();
     setLoading(true);
   
-    try {
+    // try {
       const response = await loginUser(formData);
-      console.log("data is...",response.data)
+      console.log("data is...",response)
       if (response.access_token && response.refresh_token) {
-        if (response.role === 'admin') {
+        if (response.user.role === 'admin') {
             console.log("Admin login successful, tokens received:", response);
             navigate('/admin/dashboard'); // Redirect to admin-specific page
           } else {
@@ -49,25 +49,25 @@ export default function LoginAdmin() {
       }else {
         setError('Tokens missing in response');
       }
-    } catch (err) {
-        if (err.status == 400){
-            navigate('/otp')
-        }
-      console.log('Error during login:', err);
+    // } catch (err) {
+    //     if (err.status == 400){
+    //         navigate('/otp')
+    //     }
+    //   console.log('Error during login:', err);
   
-      if (err.detail === 'Invalid credentials') {
-        setError('Invalid admin code or password (fields are case sensitive');
-      }else if (err.detail === 'User is blocked') {
-        setError('User is blocked');
-      }else if (err.detail === 'User is inactive. OTP has been resent.') {
-        setError('User inactive. Check your email for the OTP.');
-        navigate('/otp');
-      } else {
-        setError('An error occurred during login.');
-      }
-    } finally {
-      setLoading(false);
-    }
+    //   if (err.detail === 'Invalid credentials') {
+    //     setError('Invalid admin code or password (fields are case sensitive');
+    //   }else if (err.detail === 'User is blocked') {
+    //     setError('User is blocked');
+    //   }else if (err.detail === 'User is inactive. OTP has been resent.') {
+    //     setError('User inactive. Check your email for the OTP.');
+    //     navigate('/otp');
+    //   } else {
+    //     setError('An error occurred during login.');
+    //   }
+    // } finally {
+    //   setLoading(false);
+    // }
   };
   
 

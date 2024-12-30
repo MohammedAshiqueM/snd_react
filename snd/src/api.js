@@ -1,6 +1,6 @@
 import instance from './axios';
 // import useAdminStore from './store/useAdminStore';
-import useAuthStore from './store/useAuthStore';
+import {useAuthStore, useRoleStore} from './store/useAuthStore';
 import { clearAllCookies } from './util';
 import  Cookies  from 'js-cookie';
 
@@ -19,16 +19,20 @@ export const signupUser = async (userData) => {
 export const loginUser = async (userData) => {
     try {
         const response = await instance.post(`token/`, userData);
-        // localStorage.setItem('access_token', response.data.access_token);
-        // localStorage.setItem('refresh_token', response.data.refresh_token);
-        const { user,role } = response.data;
-
-        console.log("the user is ",user)
-        const { setAuthStatus, setUser } = useAuthStore.getState();
-        setAuthStatus(true);
-        setUser(user,role);
         
-        console.log("login rep",response)
+        // The user object contains the role
+        const { user } = response.data;
+        console.log("the user is ", user);
+        
+        const { setAuthStatus, setUser } = useAuthStore.getState();
+        const { setRole } = useRoleStore.getState();
+        
+        setAuthStatus(true);
+        setUser(user);
+        // Set role from user object
+        setRole(user.role);
+        
+        console.log("login rep", response);
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
@@ -158,24 +162,20 @@ export const resetPassword = async (data) => {
 //user authentication
 export const auth = async () => {
     try {
-        const response = await instance.get(`check/`, {
-            withCredentials: true, // Send cookies with the request
-        });
-
-        const { user, role } = response.data;
-        const { setAuthStatus, setUser } = useAuthStore.getState();
-
-        // Set user and authentication status in Zustand store
-        setAuthStatus(true);
-        setUser(user, role);
-
-        return response.data;
+      const response = await instance.get('check/');
+      const { isAuthenticated } = response.data;
+  
+      const { setAuthStatus } = useAuthStore.getState();
+      setAuthStatus(isAuthenticated);
+  
+      return response.data;
     } catch (error) {
-        const { clearAuth } = useAuthStore.getState();
-        clearAuth(); // Reset state on failure
-        throw error.response ? error.response.data : error.message;
+      const { clearAuth } = useAuthStore.getState();
+      clearAuth();
+      throw error.response ? error.response.data : error.message;
     }
-};
+  };
+  
 
 
 //Logout user
@@ -446,53 +446,3 @@ export const followUnfollow = async (pk) => {
         throw error
     }
 }
-
-//user authentication
-// export const adminAuth = async () => {
-//     try {
-//         console.log("Attempting authentication...");
-        
-//         const response = await instance.get(`ad/`, {
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             withCredentials: true
-//         });
-        
-//         console.log("Backend response on http only:", response);
-//         console.log("Response Headers:", response.headers);
-//         console.log("Cookies:", document.cookie);
-//         const { setAdminStatus, setUser } = useAdminStore.getState();
-//         setAdminStatus(true);
-//         return response;
-//     } catch (error) {
-//         console.error("Authentication Error:", error);
-//         console.error("Error Response:", error.response);
-//         throw error.response ? error.response.data : error.message;
-//     }
-// };
-
-// //user authentication
-// export const auth = async () => {
-//     try {
-//         console.log("Attempting authentication...");
-        
-//         const response = await instance.get(`auth/check/`, {
-//             headers: {
-//                 'Content-Type': 'application/json',
-//             },
-//             withCredentials: true
-//         });
-        
-//         console.log("Backend response on http only:", response);
-//         console.log("Response Headers:", response.headers);
-//         console.log("Cookies:", document.cookie);
-//         const { setAuthStatus, setUser } = useAuthStore.getState();
-//         setAuthStatus(true);
-//         return response;
-//     } catch (error) {
-//         console.error("Authentication Error:", error);
-//         console.error("Error Response:", error.response);
-//         throw error.response ? error.response.data : error.message;
-//     }
-// };

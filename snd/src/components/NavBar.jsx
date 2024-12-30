@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import { Bell, Search, ChevronLeft, ChevronRight, Pen } from "lucide-react";
-import useAuthStore from "../store/useAuthStore";
+import {useAuthStore} from "../store/useAuthStore";
 import useSearchStore from "../store/useSearchStore";
 import { baseUrl } from "../constants/constant";
 import { logoutUser, userSkills } from "../api";
