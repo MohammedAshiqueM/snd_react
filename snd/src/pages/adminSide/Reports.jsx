@@ -6,10 +6,12 @@ import { usersList } from "../../api";
 import Paginator from "../../components/Paginator";
 import useSkillsStore from "../../store/useSkillStore";
 import { reportList } from "../../adminApi";
+import { useNavigate } from 'react-router-dom';
 
 export default function Reports() {
   const [users, setUsers] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
+  const navigate = useNavigate();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     const savedState = localStorage.getItem("isSidebarCollapsed");
     return savedState ? JSON.parse(savedState) : false;
@@ -106,19 +108,21 @@ export default function Reports() {
               <table className="w-full">
                 <thead>
                   <tr className="border-b border-slate-600 text-left">
-                    <th className="pb-3 text-sm font-semibold text-slate-300">Name</th>
-                    <th className="pb-3 text-sm font-semibold text-slate-300">Reports</th>
-                    <th className="pb-3 text-sm font-semibold text-slate-300">Details</th>
-                    <th className="pb-3 text-sm font-semibold text-slate-300">Status</th>
+                    <th className="pb-3 text-m font-semibold text-slate-300">Name</th>
+                    <th className="pb-3 text-m font-semibold text-slate-300">Reports</th>
+                    <th className="pb-3 text-m font-semibold text-slate-300">Details</th>
+                    <th className="pb-3 text-m font-semibold text-slate-300">Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {users.map((user) => (
                     <tr key={user.id} className="border-b border-slate-600 last:border-none">
-                      <td className="py-3 text-sm text-slate-300">{user.reported_user__username}</td>
-                      <td className="py-3 text-sm text-slate-300">{user.report_count}</td>
+                      <td className="py-3 text-m text-slate-300">{user.reported_user__username}</td>
+                      <td className="py-3 text-m text-slate-300">{user.report_count}</td>
                       <td className="py-3">
-                        <button className="rounded bg-slate-600 px-4 py-1 text-xs text-slate-300 hover:bg-slate-500">
+                        <button className="rounded bg-slate-600 px-4 py-1 text-xs text-slate-300 hover:bg-slate-500"
+                        onClick={() => navigate(`/admin/report/details/${user.reported_user__id}`)}
+                        >
                           Details
                         </button>
                       </td>

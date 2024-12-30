@@ -76,7 +76,7 @@ function App() {
             <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<UsersAdmin />} />
             <Route path="/admin/reports" element={<Reports />} />
-            <Route path="/admin/report/details" element={<ReportsDetails />} />
+            <Route path="/admin/report/details/:pk" element={<ReportsDetails />} />
 
           </Routes>
           {/* </SearchContextProvider> */}
