@@ -5,7 +5,7 @@ import useSearchStore from "../../store/useSearchStore";
 import { usersList } from "../../api";
 import Paginator from "../../components/Paginator";
 import useSkillsStore from "../../store/useSkillStore";
-import { reportList } from "../../adminApi";
+import { blockUser, reportList } from "../../adminApi";
 import { useNavigate } from 'react-router-dom';
 
 export default function Reports() {
@@ -61,10 +61,29 @@ export default function Reports() {
     });
   };
 
-  const handleBlockToggle = (userId, status) => {
-    // Logic for blocking/unblocking user (API call)
-    console.log(`${status === "blocked" ? "Unblocking" : "Blocking"} user with ID:`, userId);
+  const handleBlockToggle = async (userId, currentStatus) => {
+    try {
+      const response = await blockUser(userId); // API call to toggle the block status
+      const updatedStatus = response.status === "blocked"; // Convert API response status to boolean
+  
+      // Update the user's block status in the state
+      setUsers((prevUsers) =>
+        prevUsers.map((user) =>
+          user.reported_user__id === userId
+            ? { ...user, reported_user__is_blocked: updatedStatus }
+            : user
+        )
+      );
+  
+      console.log(
+        `${updatedStatus ? "Blocked" : "Unblocked"} user with ID:`,
+        userId
+      );
+    } catch (error) {
+      console.error("Error updating user status:", error);
+    }
   };
+  
 
   useEffect(() => {
     setSearchContext("reports");
@@ -128,14 +147,14 @@ export default function Reports() {
                       </td>
                       <td className="py-3">
                         <button
-                          onClick={() => handleBlockToggle(user.id, user.status)}
+                          onClick={() => handleBlockToggle(user.reported_user__id, user.status)}
                           className={`rounded px-4 py-1 text-xs ${
-                            user.status === "blocked"
+                            user.reported_user__is_blocked
                               ? "bg-indigo-900 text-indigo-300 hover:bg-indigo-800"
                               : "bg-indigo-600 text-indigo-100 hover:bg-indigo-500"
                           }`}
                         >
-                          {user.status === "blocked" ? "Unblock" : "Block"}
+                          {user.reported_user__is_blocked ? "Unblock" : "Block"}
                         </button>
                       </td>
                     </tr>
