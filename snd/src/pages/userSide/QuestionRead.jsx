@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { blogRead, getAnswers, getComments, postAnswer, postComment, questionRead, voteQuestion,  } from '../../api'; 
+import { blogRead, followUnfollow, getAnswers, getComments, postAnswer, postComment, questionRead, voteQuestion,  } from '../../api'; 
 import { MessageCircle, Eye, ThumbsUp, ThumbsDown, Share2, Copy } from 'lucide-react'
 import { baseUrl } from '../../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
@@ -12,6 +12,7 @@ export default function QuestionRead() {
   const { pk } = useParams();
   const [blog, setBlog] = useState(null);
   const [votes, setVotes] = useState(0);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
@@ -44,6 +45,16 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
       }
     } catch (err) {
       console.error("Failed to vote:", err);
+    }
+  };
+
+  const handleFollowUnfollow = async (pk) => {
+    try {
+      const response = await followUnfollow(pk);
+      setIsFollowing(prevProfile => !prevProfile);
+    //   console.log(response.data.message);
+    } catch (error) {
+      console.error("Error following/unfollowing:", error);
     }
   };
 
@@ -80,6 +91,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
         setBlog(questionData);
         setVotes(questionData.data.vote_count || 0);
         setUserVote(questionData.data.user_vote);
+        setIsFollowing(questionData.data.is_following);
       } catch (err) {
         setError('Failed to load blog');
       } finally {
@@ -139,9 +151,15 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
                 <Eye className="h-5 w-5" />
                 <span>{blog.data.view_count} Views</span>
               </div>
-              <button className="rounded bg-blue-600 px-3 py-1 text-sm font-medium hover:bg-blue-700">
-                Follow
-              </button>
+              <button
+                className={`rounded px-3 py-1 text-sm font-medium ${
+                    isFollowing ? "bg-[#840A0A] hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+                }`}
+                onClick={()=>handleFollowUnfollow(blog.data.user.id)}
+
+            >
+                {isFollowing ? "Unfollow" : "Follow"}
+            </button>
             </div>
           </div>
 

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
-import { blogRead, getComments, postComment, voteBlog,  } from '../../api'; 
+import { blogRead, followUnfollow, getComments, postComment, voteBlog,  } from '../../api'; 
 import { MessageCircle, Eye, ThumbsUp, ThumbsDown, Share2, Copy } from 'lucide-react'
 import { baseUrl } from '../../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
@@ -11,6 +11,7 @@ import noUser from '../../assets/Images/no_user.jpg'
 export default function BlogRead() {
   const { slug } = useParams();
   const [blog, setBlog] = useState(null);
+  const [isFollowing, setIsFollowing] = useState(false);
   const [votes, setVotes] = useState(0);
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
@@ -46,7 +47,15 @@ export default function BlogRead() {
       console.error("Failed to vote:", err);
     }
   };
-  
+  const handleFollowUnfollow = async (pk) => {
+    try {
+      const response = await followUnfollow(pk);
+      setIsFollowing(prevProfile => !prevProfile);
+    //   console.log(response.data.message);
+    } catch (error) {
+      console.error("Error following/unfollowing:", error);
+    }
+  };
 
   const handleAddComment = async () => {
     if (!newComment.trim()) return;
@@ -70,6 +79,7 @@ export default function BlogRead() {
         setBlog(blogData);
         setVotes(blogData.data.vote_count || 0);
         setUserVote(blogData.data.user_vote);
+        setIsFollowing(blogData.data.is_following);
       } catch (err) {
         setError('Failed to load blog');
       } finally {
@@ -130,9 +140,15 @@ export default function BlogRead() {
                 <Eye className="h-5 w-5" />
                 <span>{blog.data.view_count} Views</span>
               </div>
-              <button className="rounded bg-blue-600 px-3 py-1 text-sm font-medium hover:bg-blue-700">
-                Follow
-              </button>
+              <button
+                className={`rounded px-3 py-1 text-sm font-medium ${
+                    isFollowing ? "bg-[#840A0A] hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+                }`}
+                onClick={()=>handleFollowUnfollow(blog.data.user.id)}
+
+            >
+                {isFollowing ? "Unfollow" : "Follow"}
+            </button>
             </div>
           </div>
 
