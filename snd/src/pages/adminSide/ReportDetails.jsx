@@ -6,7 +6,7 @@ import SidebarAdmin from "../../components/SidebarAdmin";
 import Paginator from "../../components/Paginator";
 import useSearchStore from "../../store/useSearchStore";
 import useSkillsStore from "../../store/useSkillStore";
-import { Loader2 } from "lucide-react"; // Import the loader icon
+import { Loader2 } from "lucide-react";
 
 const ReportDetails = () => {
   const { pk } = useParams();

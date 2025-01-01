@@ -63,10 +63,9 @@ export default function Reports() {
 
   const handleBlockToggle = async (userId, currentStatus) => {
     try {
-      const response = await blockUser(userId); // API call to toggle the block status
-      const updatedStatus = response.status === "blocked"; // Convert API response status to boolean
+      const response = await blockUser(userId);
+      const updatedStatus = response.status === "blocked";
   
-      // Update the user's block status in the state
       setUsers((prevUsers) =>
         prevUsers.map((user) =>
           user.reported_user__id === userId

@@ -1,42 +1,44 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { Star, Github, Mail, Edit, Pen, Linkedin } from 'lucide-react';
-import { followUnfollow, myProfile, userDetails } from '../../api';
+import { myProfile, userDetails } from '../../api';
 // import { baseUrl } from './constants/constant';
 import { baseUrl } from '../../constants/constant';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import noUser from '../../assets/Images/no_user.jpg'
 import { useParams } from 'react-router-dom';
-import ReportModal from '../../components/ReportModal';
+import SidebarAdmin from '../../components/SidebarAdmin';
+import NavbarAdmin from '../../components/NavbarAdmin';
+import { blockUser } from '../../adminApi';
 
-export default function UserDetails() {
+export default function UserDetailsAdmin() {
   const [profile, setProfile] = useState(null);
-  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isBlocked, setIsBlocked] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     const savedState = localStorage.getItem('isSidebarCollapsed');
     return savedState ? JSON.parse(savedState) : false;
   });
   const { pk } = useParams();
   const url = baseUrl
-  const handleFollowUnfollow = async () => {
+
+  const handleBlockToggle = async () => {
     try {
-      const response = await followUnfollow(pk);
-      setProfile((prevProfile) => ({
-        ...prevProfile,
-        isFollowing: !prevProfile.isFollowing,
-      }));
-    //   console.log(response.data.message);
+      const response = await blockUser(pk);
+      const updatedStatus = response.status === "blocked";
+      setIsBlocked(updatedStatus);
+      console.log(`${updatedStatus ? "Blocked" : "Unblocked"} user with ID:`, pk);
     } catch (error) {
-      console.error("Error following/unfollowing:", error);
+      console.error("Error updating user status:", error);
     }
   };
-  
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {
         const response = await userDetails(pk)
         setProfile(response);
+        setIsBlocked(response.is_blocked)
       } catch (error) {
         console.error('Failed to fetch profile:', error);
       }
@@ -65,9 +67,9 @@ export default function UserDetails() {
     followers,
     following,
     isFollowing,
-    last_active 
+    last_active,
+    is_blocked 
   } = profile;
-
   const renderStars = (rating) => {
     const totalStars = 5;
     const roundedRating = Math.round(rating);
@@ -92,9 +94,9 @@ export default function UserDetails() {
 
   return (
     <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col">
-  <SecondNavbar />
+  <NavbarAdmin />
   <div className={`flex-1 pt-4 transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-48'}`}>
-    <SideBar
+    <SidebarAdmin
         isCollapsed={isSidebarCollapsed}
         onToggle={handleSidebarToggle}
     />
@@ -126,21 +128,21 @@ export default function UserDetails() {
           <div className="flex items-center gap-4">
             <h1 className="text-2xl font-bold">{first_name} {last_name}</h1>
             <h6 className="absolute right-[3rem] flex items-center">
-              <button onClick={() => setIsReportModalOpen(true)} className="flex items-center hover:text-[#4D7EF2]">
-                <Pen className="mr-1" /> Report
-              </button>
+
             </h6>
             <span className="text-sm text-gray-400">@{username}</span>
             <div className="flex items-center">
               {renderStars(rating)}
             </div>
             <button
-                className={`rounded px-3 py-1 text-sm font-medium ${
-                    isFollowing ? "bg-[#840A0A] hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
+                onClick={handleBlockToggle}
+                className={`rounded px-4 py-1 text-xs ${
+                    isBlocked
+                    ? "bg-indigo-900 text-indigo-300 hover:bg-indigo-800"
+                    : "bg-indigo-600 text-indigo-100 hover:bg-indigo-500"
                 }`}
-                onClick={handleFollowUnfollow}
             >
-                {isFollowing ? "Unfollow" : "Follow"}
+                {isBlocked ? "Unblock" : "Block"}
             </button>
 
           </div>
@@ -188,11 +190,6 @@ export default function UserDetails() {
       </div>
     </main>
   </div>
-  <ReportModal
-  isOpen={isReportModalOpen}
-  onClose={() => setIsReportModalOpen(false)}
-  userData={profile}
-  />
 </div>
 
   );

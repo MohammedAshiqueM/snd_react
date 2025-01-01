@@ -41,3 +41,28 @@ export const blockUser = async (pk) => {
         throw error
     }
 }
+
+//list tags
+export const tagList = async (data) => {
+    try{
+        const params = new URLSearchParams(data).toString();
+        const response = await instance.get(`dashboard/tags/?${params}`)
+        console.log(response.data)
+        return response.data
+    } catch (error) {
+        console.error("Error during listing users")
+        throw error
+    }
+}
+
+//add tags
+export const addTag = async (data) => {
+    try{
+        const response = await instance.post(`dashboard/tag/add/`,data)
+        console.log(response.data)
+        return response.data
+    } catch (error) {
+        console.error("Error during listing users")
+        throw error
+    }
+}

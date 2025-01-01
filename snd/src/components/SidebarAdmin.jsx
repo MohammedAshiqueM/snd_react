@@ -37,7 +37,7 @@ export function ToggleButton({ isCollapsed, onToggle }) {
       { name: 'Dashbord', path: '/admin/dashboard', icon: HomeIcon },
       { name: 'Discover', path: '/questions', icon: Compass },
       { name: 'Account', path: '/account', icon: User },
-      { name: 'Tags', path: '/tags', icon: Tag },
+      { name: 'Tags', path: '/admin/tags', icon: Tag },
       { name: 'Users', path: '/admin/users', icon: Users },
       { name: 'Reports', path: '/admin/reports', icon: MessageSquare },
       { name: 'Requests', path: '/admin/requests', icon: FileQuestion },

@@ -116,7 +116,7 @@ function UsersAdmin() {
                   <div
                     key={user.id}
                     className="flex items-center space-x-3 p-3 rounded-lg hover:bg-[#5B6B86]"
-                    onClick={() => navigate(`/users/details/${user.id}`)}
+                    onClick={() => navigate(`/admin/user/details/${user.id}`)}
 
                   >
                     <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">

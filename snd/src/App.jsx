@@ -27,6 +27,7 @@ import { AdminProtectedRoute } from './adminProtectedRoute';
 import Reports from './pages/adminSide/Reports';
 import ReportsDetails from './pages/adminSide/ReportDetails';
 import TagsAdmin from './pages/adminSide/TagsAdmin';
+import UserDetailsAdmin from './pages/adminSide/UserDetalisAdmin';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -76,6 +77,7 @@ function App() {
             <Route path="/admin" element={<LoginAdmin />} />
             <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<UsersAdmin />} />
+            <Route path="/admin/user/details/:pk" element={<UserDetailsAdmin />} />
             <Route path="/admin/reports" element={<Reports />} />
             <Route path="/admin/report/details/:pk" element={<ReportsDetails />} />
             <Route path="/admin/tags" element={<TagsAdmin />} />
