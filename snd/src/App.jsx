@@ -26,6 +26,7 @@ import UsersAdmin from './pages/adminSide/usersAdmin';
 import { AdminProtectedRoute } from './adminProtectedRoute';
 import Reports from './pages/adminSide/Reports';
 import ReportsDetails from './pages/adminSide/ReportDetails';
+import TagsAdmin from './pages/adminSide/TagsAdmin';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -77,6 +78,7 @@ function App() {
             <Route path="/admin/users" element={<UsersAdmin />} />
             <Route path="/admin/reports" element={<Reports />} />
             <Route path="/admin/report/details/:pk" element={<ReportsDetails />} />
+            <Route path="/admin/tags" element={<TagsAdmin />} />
 
           </Routes>
           {/* </SearchContextProvider> */}
