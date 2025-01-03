@@ -4,7 +4,7 @@ import NavbarAdmin from "../../components/NavbarAdmin";
 import useSearchStore from "../../store/useSearchStore";
 import useSkillsStore from "../../store/useSkillStore";
 import Paginator from "../../components/Paginator";
-import { tagList } from "../../adminApi"; // Assume this fetches tags
+import { tagList } from "../../adminApi";
 import { useNavigate } from "react-router-dom";
 import { Copy } from 'lucide-react'
 import AddTagModal from "../../components/AddTagModal";

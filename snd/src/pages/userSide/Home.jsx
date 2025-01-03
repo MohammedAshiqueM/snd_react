@@ -11,6 +11,7 @@ import SideBar from '../../components/SideBar';
 import NavBar from '../../components/NavBar';
 import Paginator from '../../components/Paginator';
 import useSkillsStore from '../../store/useSkillStore';
+import Shimmer from './Shimmer';
 
 const Home = () => {
     const [votes, setVotes] = useState({});
@@ -25,6 +26,7 @@ const Home = () => {
     const [posts, setPosts] = useState([]);
     const [totalPages, setTotalPages] = useState(1);
     const { skills } = useSkillsStore();  
+    const [isLoading, setIsLoading] = useState(true);
 
     const blogsPerPage = 12;
 
@@ -43,6 +45,7 @@ const Home = () => {
 
     // Fetch blogs
     const fetchBlogs = async (page = currentPage, category = selectedCategory, query = searchQuery) => {
+        setIsLoading(true);
         try {
             const params = { page, limit: blogsPerPage, category, search: query };
             const response = await getBlogs(params);
@@ -52,6 +55,8 @@ const Home = () => {
             console.error("Error fetching blogs:", err);
             setPosts([]);
             setTotalPages(1);
+        }finally {
+            setIsLoading(false);
         }
     };
 
@@ -119,9 +124,15 @@ const Home = () => {
                 <main
                     className={`flex-1 p-4 pt-40 transition-all duration-300 ${
                         isSidebarCollapsed ? 'ml-16' : 'ml-48'
-                      }`}
+                    }`}
                 >
-                    {posts.length > 0 ? (
+                    {isLoading ? (
+                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                            {Array.from({ length: blogsPerPage }).map((_, index) => (
+                                <Shimmer key={index} />
+                            ))}
+                        </div>
+                    ) : posts.length > 0 ? (
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {posts.map((post, i) => (
                                 <div
@@ -148,44 +159,54 @@ const Home = () => {
                                                 </span>
                                             ))}
                                         </div>
-                                        <div className="mt-4 flex items-center justify-between">
-                                            <div className="flex items-center gap-2">
-                                                <div className="h-6 w-6 rounded-full bg-gray-700">
-                                                    <img
-                                                        src={post.user?.profile_image ? `${baseUrl}${post.user.profile_image}` : noUser}
-                                                        alt={post.user?.first_name || 'Unknown'}
-                                                        className="h-full w-full rounded-full"
-                                                    />
-                                                </div>
-                                                <span className="text-sm text-gray-400">{post.user?.first_name || 'Unknown Author'}</span>
+                                        <div className="mt-4 flex items-center justify-between flex-wrap">
+                                        <div className="flex items-center gap-2 max-w-full">
+                                            <div className="h-6 w-6 rounded-full bg-gray-700 flex-shrink-0">
+                                                <img
+                                                    src={post.user?.profile_image ? `${baseUrl}${post.user.profile_image}` : noUser}
+                                                    alt={post.user?.first_name || 'Unknown'}
+                                                    className="h-full w-full rounded-full"
+                                                />
                                             </div>
-                                            <div className="flex items-center gap-3 text-gray-400">
-                                                <div className="flex items-center gap-0.5 bg-[#1A1B2E] rounded-md p-0.5">
-                                                    <button
-                                                        onClick={() => handleVote(post.id, 1)}
-                                                        className={`p-1 rounded ${votes[post.id] === 1 ? 'text-blue-500 bg-blue-500/10' : 'hover:bg-[#2A2B3E]'}`}
-                                                    >
-                                                        <ChevronUp className="h-4 w-4" />
-                                                    </button>
-                                                    <span className="text-xs px-1 min-w-[24px] text-center">
-                                                        {(post.vote_count || 0) + (votes[post.id] || 0)}
-                                                    </span>
-                                                    <button
-                                                        onClick={() => handleVote(post.id, -1)}
-                                                        className={`p-1 rounded ${votes[post.id] === -1 ? 'text-red-500 bg-red-500/10' : 'hover:bg-[#2A2B3E]'}`}
-                                                    >
-                                                        <ChevronDown className="h-4 w-4" />
-                                                    </button>
-                                                </div>
-                                                <button className="flex items-center gap-1 hover:text-white">
-                                                    <MessageCircle className="h-4 w-4" />
-                                                    <span className="text-xs">{post.comments || 0}</span>
-                                                </button>
-                                                <button className="hover:text-white">
-                                                    <Share2 className="h-4 w-4" />
-                                                </button>
-                                            </div>
+                                            <span 
+                                                className="text-sm text-gray-400 truncate max-w-[200px] overflow-hidden"
+                                                title={post.user?.first_name || 'Unknown Author'}
+                                            >
+                                                {post.user?.first_name || 'Unknown Author'}
+                                            </span>
                                         </div>
+                                        <div className="flex items-center gap-3 text-gray-400">
+                                            <div className="flex items-center gap-0.5 bg-[#1A1B2E] rounded-md p-0.5">
+                                                <button
+                                                    onClick={() => handleVote(post.id, 1)}
+                                                    className={`p-1 rounded ${
+                                                        votes[post.id] === 1 ? 'text-blue-500 bg-blue-500/10' : 'hover:bg-[#2A2B3E]'
+                                                    }`}
+                                                >
+                                                    <ChevronUp className="h-4 w-4" />
+                                                </button>
+                                                <span className="text-xs px-1 min-w-[24px] text-center">
+                                                    {(post.vote_count || 0) + (votes[post.id] || 0)}
+                                                </span>
+                                                <button
+                                                    onClick={() => handleVote(post.id, -1)}
+                                                    className={`p-1 rounded ${
+                                                        votes[post.id] === -1 ? 'text-red-500 bg-red-500/10' : 'hover:bg-[#2A2B3E]'
+                                                    }`}
+                                                >
+                                                    <ChevronDown className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                            <button className="flex items-center gap-1 hover:text-white">
+                                                <MessageCircle className="h-4 w-4" />
+                                                <span className="text-xs">{post.comment_count || 0}</span>
+                                            </button>
+                                            <button className="hover:text-white">
+                                                <Share2 className="h-4 w-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+
                                     </div>
                                 </div>
                             ))}

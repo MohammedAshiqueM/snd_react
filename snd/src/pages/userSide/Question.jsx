@@ -11,11 +11,14 @@ import { baseUrl } from '../../constants/constant';
 import { truncateText } from '../../util';
 import Paginator from "../../components/Paginator";
 import useSkillsStore from '../../store/useSkillStore';
+import Shimmer from './Shimmer';
+import QuestionShimmer from '../../components/QuestionShimmer';
 
 
 function Question() {
   const [questions, setQuestions] = useState([]);
   const [votes, setVotes] = useState({});
+  const [isLoading, setIsLoading] = useState(true);
   const [totalPages, setTotalPages] = useState(1);
   const { skills } = useSkillsStore();  
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -37,6 +40,7 @@ function Question() {
   const questionsPerPage = 12;
 
   const fetchQuestions = async (page, category, query) => {
+    setIsLoading(true);
     try {
       const params = {
         page,
@@ -51,7 +55,9 @@ function Question() {
       console.error(err);
       setQuestions([]);
       setTotalPages(1);
-    }
+    }finally {
+        setIsLoading(false);
+      }
   };
 
   const handleVote = (questionId, voteType) => {
@@ -119,9 +125,14 @@ function Question() {
             onToggle={handleSidebarToggle   }
         />
         <main className="flex-1 p-4">
-          <div className={`flex-1 p-4 pt-40 transition-all duration-300 ${
-                        isSidebarCollapsed ? 'ml-16' : 'ml-48'
-                      }`}>
+        <div className={`flex-1 p-4 pt-40 transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-48'}`}>
+          {isLoading ? (
+            <div className="flex flex-col gap-4">
+            {Array.from({ length: questionsPerPage }).map((_, index) => (
+              <QuestionShimmer key={index} />
+            ))}
+          </div>
+          ) : (     
             <div className="flex flex-col gap-4"> 
             {questions.map((question) => (
               <div key={question.id} 
@@ -133,13 +144,13 @@ function Question() {
                 <div className="flex items-start space-x-4">
                   <div className="text-center">
                     <div className="font-bold">{question.votes}</div>
-                    <div className="text-sm text-gray-500">votes</div>
+                    <div className="text-sm text-gray-500">vote {question.vote_count}</div>
                     <div className="mt-2">
-                      <span className="text-green-500">✓</span> {question.answers}
+                      {question.answered?<span className="text-green-500">✓</span>:<span></span>}
                     </div>
-                    <div className="text-sm text-gray-500">answer</div>
+                    {question.answers_count?<div className="text-sm text-gray-500">{question.answers_count} answer</div>:<div className="text-sm text-gray-500">No answers</div>}
                     <div className="mt-2">{question.views}</div>
-                    <div className="text-sm text-gray-500">views</div>
+                    <div className="text-sm text-gray-500">{question.view_count} views</div>
                   </div>
                   <div className="flex-1">
                     <h2 className="text-blue-400 hover:text-blue-300 cursor-pointer mb-2">
@@ -177,7 +188,9 @@ function Question() {
               </div>
             ))}
             </div>
-          </div>
+            )}
+
+        </div>
           <Paginator
             currentPage={currentPage} 
             totalPages={totalPages} 

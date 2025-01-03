@@ -23,7 +23,6 @@ export const ProtectedRoute = ({ children, requiredRole }) => {
           setAuthStatus(false);
         }
       } else if (isAuthenticated && user && !role) {
-        // Set role from user data if authenticated but role is not set
         setRole(user.role);
       }
     };
@@ -31,21 +30,18 @@ export const ProtectedRoute = ({ children, requiredRole }) => {
     initializeAuth();
   }, [isAuthenticated, setAuthStatus, user, role, setRole]);
 
-  // Show loading state while we're waiting for authentication or role
   if (loading || isAuthenticated === null || (isAuthenticated && !role)) {
     return <div>Loading...</div>;
   }
 
-  // Handle unauthenticated state
   if (!isAuthenticated) {
     return <Navigate to="/login" />;
   }
 
   console.log('Current role:', role, 'Required role:', requiredRole);
 
-  // Only check role after we're sure we have one
   if (requiredRole && role && role !== requiredRole) {
-    return <Navigate to="/home" replace />; // Redirect to dashboard instead of /unauthorized
+    return <Navigate to="/home" replace />;
   }
 
   return children;

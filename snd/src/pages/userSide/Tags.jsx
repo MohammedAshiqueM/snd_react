@@ -1,107 +1,154 @@
-'use client'
-
+import { useEffect, useState } from "react";
+import useSearchStore from "../../store/useSearchStore";
+import useSkillsStore from "../../store/useSkillStore";
+import Paginator from "../../components/Paginator";
+import { tagList } from "../../adminApi";
 import { Copy } from 'lucide-react'
-
-const languages = [
-  {
-    title: "Javascript",
-    description: "For questions about programming in ECMAScript (JavaScript/JS) and its different dialects/implementations (except for ActionScript). Note..."
-  },
-  {
-    title: "Python",
-    description: "For questions about programming in ECMAScript (JavaScript/JS) and its different dialects/implementations (except for ActionScript). Note..."
-  },
-  {
-    title: "Java",
-    description: "For questions about programming in ECMAScript (JavaScript/JS) and its different dialects/implementations (except for ActionScript). Note..."
-  },
-  {
-    title: "C#",
-    description: "For questions about programming in ECMAScript (JavaScript/JS) and its different dialects/implementations (except for ActionScript). Note..."
-  }
-]
+import NavBar from "../../components/NavBar";
+import SideBar from "../../components/SideBar";
 
 export default function Tags() {
-  return (
-    <div className="min-h-screen bg-gray-900 text-gray-100">
-      {/* Header */}
-      <header className="border-b border-gray-800 p-4">
-        <div className="flex items-center justify-between max-w-7xl mx-auto">
-          <h1 className="text-xl font-mono">{'</>'} Snd</h1>
-          <div className="flex items-center gap-4">
-            <div className="relative">
-              <input
-                type="search"
-                placeholder="Search"
-                className="bg-gray-800 rounded-md px-4 py-2 pl-10 w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
-              <span className="absolute left-3 top-2.5 text-gray-400">🔍</span>
-            </div>
-            <button className="bg-gray-800 px-3 py-1 rounded-md">Ctrl + K</button>
-          </div>
-        </div>
-      </header>
+    const [tags, setTags] = useState([]);
+  const [totalPages, setTotalPages] = useState(1);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    const savedState = localStorage.getItem("isSidebarCollapsed");
+    return savedState ? JSON.parse(savedState) : false;
+  });
+  const {
+    searchQuery,
+    selectedCategory,
+    currentPage,
+    setSelectedCategory,
+    setCurrentPage,
+    setSearchContext,
+  } = useSearchStore();
+  const { skills } = useSkillsStore();
+  const tagsPerPage = 20;
 
-      <div className="flex">
-        {/* Sidebar */}
-        <aside className="w-64 h-[calc(100vh-64px)] p-4 border-r border-gray-800">
-          <nav className="space-y-2">
-            {['Dashboard', 'Users', 'Reports', 'Tags', 'Posts', 'Questions'].map((item) => (
-              <a
-                key={item}
-                href="#"
-                className="block px-4 py-2 rounded-md hover:bg-gray-800 transition-colors"
-              >
-                {item}
-              </a>
-            ))}
-          </nav>
-        </aside>
+  const fetchTags = async (page, category, query) => {
+    setIsLoading(true);
+    setError(null);
+
+    try {
+      const params = {
+        page,
+        limit: tagsPerPage,
+        category,
+        search: query,
+      };
+      const data = await tagList(params);
+      setTags(data.results || []);
+      setTotalPages(
+        data.total_pages || (data.count ? Math.ceil(data.count / tagsPerPage) : 1)
+      );
+    } catch (err) {
+      setError("Failed to fetch tags. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePageChange = (newPage) => {
+    if (newPage < 1 || newPage > totalPages) return;
+    setCurrentPage(newPage);
+  };
+
+  const handleSidebarToggle = () => {
+    setIsSidebarCollapsed((prevState) => {
+      const newState = !prevState;
+      localStorage.setItem("isSidebarCollapsed", JSON.stringify(newState));
+      return newState;
+    });
+  };
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      const fetchWithCategory = async () => {
+        if (searchQuery) {
+          const matchingCategory = skills.find((skill) =>
+            skill.toLowerCase().includes(searchQuery.toLowerCase())
+          );
+          const categoryToFetch = matchingCategory || "All";
+          
+          if (selectedCategory !== categoryToFetch) {
+            setSelectedCategory(categoryToFetch);
+          }
+          await fetchTags(currentPage, categoryToFetch, searchQuery);
+        } else {
+          await fetchTags(currentPage, selectedCategory, "");
+        }
+      };
+
+      fetchWithCategory();
+    }, 300);
+
+    return () => clearTimeout(timeoutId);
+}, [currentPage, selectedCategory, searchQuery, skills]);
+
+  useEffect(() => {
+    setSearchContext("tags");
+  }, [setSearchContext]);
+  return (
+    <div className="min-h-screen bg-[#0A0B1A] text-gray-100">
+      <NavBar />
+      <div className="flex flex-1">
+        <SideBar
+          isCollapsed={isSidebarCollapsed}
+          onToggle={handleSidebarToggle}
+        />
 
         {/* Main Content */}
-        <main className="flex-1 p-6">
+        <main 
+        className={`flex-1 p-4 transition-all duration-300 ${
+            isSidebarCollapsed ? "ml-20" : "ml-64"
+          } pt-32`}
+        >
           <div className="flex justify-between items-center mb-6">
-            <h2 className="text-xl font-semibold">56 Questions</h2>
-            <button className="bg-indigo-600 px-4 py-2 rounded-md hover:bg-indigo-700 transition-colors">
-              Add Tag
-            </button>
+          <div className="text-sm text-gray-500 mb-4">
+              {tags.length} tags {searchQuery && `matching "${searchQuery}"`}
+            </div>
           </div>
 
           {/* Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {[...languages, ...languages, ...languages].map((lang, index) => (
-              <div
-                key={index}
-                className="bg-gray-800 p-4 rounded-lg relative group hover:ring-2 hover:ring-gray-700 transition-all"
-              >
-                <button className="absolute right-2 top-2 p-2 bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity">
-                  <Copy className="w-4 h-4" />
-                </button>
-                <h3 className="text-lg font-semibold mb-2">{lang.title}</h3>
-                <p className="text-sm text-gray-400">{lang.description}</p>
-              </div>
-            ))}
-          </div>
-
+          {isLoading ? (
+            <div className="text-white text-center py-4">Loading...</div>
+            ) : error ? (
+            <p className="text-red-500 text-center">{error}</p>
+            ) : tags.length ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {tags.map((tag) => (
+                <div
+                    key={tag.id}
+                    className="bg-gray-800 p-4 rounded-lg relative group hover:ring-2 hover:ring-gray-700 transition-all"
+                >
+                    {/* Copy Button */}
+                    <button
+                    className="absolute right-2 top-2 p-2 bg-gray-700 rounded-md opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => navigator.clipboard.writeText(tag.name)}
+                    >
+                    <Copy className="w-4 h-4 text-white" />
+                    </button>
+                    
+                    {/* Tag Name and Description */}
+                    <h3 className="text-lg font-semibold mb-2">{tag.name}</h3>
+                    <p className="text-sm text-gray-400">
+                    {tag.about || "No description available."}
+                    </p>
+                </div>
+                ))}
+            </div>
+            ) : (
+            <p className="text-center">No tags found.</p>
+            )}
           {/* Pagination */}
-          <div className="flex justify-center mt-6 gap-2">
-            <button className="p-2 rounded-md bg-gray-800 hover:bg-gray-700">
-              {'<'}
-            </button>
-            {[1, 2, 3, 4, 5].map((page) => (
-              <button
-                key={page}
-                className={`p-2 rounded-md hover:bg-gray-700 min-w-[40px] ${
-                  page === 1 ? 'bg-gray-700' : 'bg-gray-800'
-                }`}
-              >
-                {page}
-              </button>
-            ))}
-            <button className="p-2 rounded-md bg-gray-800 hover:bg-gray-700">
-              {'>'}
-            </button>
-          </div>
+          <Paginator
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={handlePageChange}
+            />
         </main>
       </div>
     </div>

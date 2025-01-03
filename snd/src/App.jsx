@@ -28,6 +28,8 @@ import Reports from './pages/adminSide/Reports';
 import ReportsDetails from './pages/adminSide/ReportDetails';
 import TagsAdmin from './pages/adminSide/TagsAdmin';
 import UserDetailsAdmin from './pages/adminSide/UserDetalisAdmin';
+import Tags from './pages/userSide/Tags';
+import Shimmer from './pages/userSide/Shimmer';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -73,6 +75,9 @@ function App() {
             <Route path="/question/:pk" element={<QuestionRead />} />
             <Route path="/users" element={<ProtectedRoute><UsersList /></ProtectedRoute>} />
             <Route path="/users/details/:pk" element={<UserDetails />} />
+            <Route path="/tags" element={<Tags />} />
+            <Route path="/shimmer" element={<Shimmer />} />
+
             {/* admin */}
             <Route path="/admin" element={<LoginAdmin />} />
             <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
