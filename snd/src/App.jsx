@@ -30,6 +30,8 @@ import TagsAdmin from './pages/adminSide/TagsAdmin';
 import UserDetailsAdmin from './pages/adminSide/UserDetalisAdmin';
 import Tags from './pages/userSide/Tags';
 import Shimmer from './pages/userSide/Shimmer';
+import Chat from './pages/userSide/Chat';
+import { NotificationProvider } from './components/NotificationContext';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -55,6 +57,7 @@ function App() {
         return <p>Loading...</p>; // Prevent flickering during hydration
     }
   return (
+    <NotificationProvider>
     <>
       <Router>
         <div>
@@ -76,7 +79,8 @@ function App() {
             <Route path="/users" element={<ProtectedRoute><UsersList /></ProtectedRoute>} />
             <Route path="/users/details/:pk" element={<UserDetails />} />
             <Route path="/tags" element={<Tags />} />
-            <Route path="/shimmer" element={<Shimmer />} />
+            <Route path="/chat" element={<Chat />} />
+            {/* <Route path="/shimmer" element={<Shimmer />} /> */}
 
             {/* admin */}
             <Route path="/admin" element={<LoginAdmin />} />
@@ -92,6 +96,7 @@ function App() {
         </div>
       </Router>
     </>
+    </NotificationProvider>
   )
 }
 

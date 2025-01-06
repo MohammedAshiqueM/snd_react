@@ -12,6 +12,7 @@ import NavBar from '../../components/NavBar';
 import Paginator from '../../components/Paginator';
 import useSkillsStore from '../../store/useSkillStore';
 import Shimmer from './Shimmer';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const Home = () => {
     const [votes, setVotes] = useState({});
@@ -27,7 +28,7 @@ const Home = () => {
     const [totalPages, setTotalPages] = useState(1);
     const { skills } = useSkillsStore();  
     const [isLoading, setIsLoading] = useState(true);
-
+    const { isAuthenticated, loading: authLoading } = useAuthStore();
     const blogsPerPage = 12;
 
     // Voting logic
@@ -85,21 +86,33 @@ const Home = () => {
         setSearchContext("blogs");
     }, []);
     
-    useEffect(() => {
-        if (searchQuery) {
-            const matchingCategory = skills.find(skill =>
-                skill.toLowerCase().includes(searchQuery.toLowerCase())
-            );
-    
-            const categoryToFetch = matchingCategory || "All";
-            if (selectedCategory !== categoryToFetch) {
-                setSelectedCategory(categoryToFetch);
+    // In your Home component, modify the useEffect like this:
+useEffect(() => {
+    const initializeData = async () => {
+        setIsLoading(true);
+        try {
+            if (searchQuery) {
+                const matchingCategory = skills.find(skill =>
+                    skill.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+                const categoryToFetch = matchingCategory || "All";
+                if (selectedCategory !== categoryToFetch) {
+                    setSelectedCategory(categoryToFetch);
+                }
+                await fetchBlogs(1, categoryToFetch, searchQuery);
+            } else {
+                await fetchBlogs(1, selectedCategory, "");
             }
-            fetchBlogs(1, categoryToFetch, searchQuery);
-        } else {
-            fetchBlogs(1, selectedCategory, "");
+        } catch (error) {
+            console.error("Error initializing data:", error);
+        } finally {
+            setIsLoading(false);
         }
-    }, [searchQuery, selectedCategory, skills]);
+    };
+
+    setSearchContext("blogs");
+    initializeData();
+}, [searchQuery, selectedCategory, skills]);
     
     
 
@@ -126,7 +139,7 @@ const Home = () => {
                         isSidebarCollapsed ? 'ml-16' : 'ml-48'
                     }`}
                 >
-                    {isLoading ? (
+                    {(isLoading || authLoading)  ? (
                         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {Array.from({ length: blogsPerPage }).map((_, index) => (
                                 <Shimmer key={index} />

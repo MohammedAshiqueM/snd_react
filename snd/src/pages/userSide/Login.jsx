@@ -16,7 +16,7 @@ export default function Login() {
     password: '',
   });
   const navigate = useNavigate();
-  const { isAuthenticated,user } = useAuthStore();
+  const { isAuthenticated,setAuthStatus  } = useAuthStore();
 
   
   useEffect(() => {
@@ -26,7 +26,7 @@ export default function Login() {
       
       setLoading(false);
   
-  }, [navigate]);
+  }, [isAuthenticated,navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -41,6 +41,7 @@ export default function Login() {
       console.log("data is...",response.data)
       if (response.access_token && response.refresh_token) {
         console.log("Login successful, tokens received:", response);
+        setAuthStatus(true, response.user);
         navigate('/home');
       } else if (response.redirect === '/otp') {
         console.log("User inactive, redirecting to OTP page.");
