@@ -161,12 +161,12 @@ const PrivateChatContacts = ({
                     {contact.last_message}
                   </p>
                 )}
-                {contact.unread_count > 0 && (
+                {/* {contact.unread_count > 0 && (
                   <span className="bg-blue-600 text-white text-xs rounded-full 
                                  px-2 py-1 ml-2">
                     {contact.unread_count}
                   </span>
-                )}
+                )} */}
               </div>
             </div>
           </div>

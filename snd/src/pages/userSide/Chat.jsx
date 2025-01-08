@@ -2,7 +2,7 @@ import React, { useEffect, useState, useRef, useCallback } from "react";
 import SecondNavbar from "../../components/SecondNavbar";
 import SideBar from "../../components/SideBar";
 import { usersList } from "../../api";
-import { allUsers, chat, markMessagesAsRead } from "../../wsApi";
+import { allUsers, chat, markMessagesAsRead, onlineStatus } from "../../wsApi";
 import { useAuthStore } from "../../store/useAuthStore";
 import debounce from 'lodash/debounce';
 import PrivateChatContacts from "../../components/PrivateChatContacts";
@@ -158,10 +158,32 @@ const removeNotification = (index) => {
     }
   };
   
+  const fetchOnlineUsers = useCallback(async () => {
+    try {
+      const response  = await onlineStatus();
+      if (response && response.online_users) {
+        setOnlineUsers(new Set(response.online_users)); // Convert array to Set
+      }
+    } catch (error) {
+      console.error("Failed to fetch online users:", error);
+    }
+  }, []);
 
   useEffect(() => {
-    fetchContacts(page);
-  }, [page]);
+    fetchOnlineUsers(); // Fetch online users on initial load
+    fetchContacts(page); // Fetch initial contact list
+  }, [fetchOnlineUsers, page]);
+
+  useEffect(() => {
+    // Update the online status in the contacts whenever the onlineUsers state changes
+    setContacts((prevContacts) =>
+      prevContacts.map((contact) => ({
+        ...contact,
+        isOnline: onlineUsers.has(contact.id),
+      }))
+    );
+  }, [onlineUsers]);
+
 
   // Enhanced WebSocket connection
   const connectWebSocket = useCallback((wsUrl) => {
@@ -174,11 +196,26 @@ const removeNotification = (index) => {
   
       socketRef.current.onopen = () => {
         setConnectionStatus("connected");
+        socketRef.current.send(JSON.stringify({
+            type: 'request_online_status'
+          }));
       };
   
       socketRef.current.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
+          console.log("WebSocket message received:", data); // Debugging line
+          if (data.type === 'online_status') {
+            setOnlineUsers(new Set(data.online_users));
+            // Update contacts with online status
+            setContacts(prevContacts => 
+              prevContacts.map(contact => ({
+                ...contact,
+                isOnline: data.online_users.includes(contact.id)
+              }))
+            );
+          }
+          
           if (data.type === 'notification') {
             if (!selectedContact || selectedContact.id !== data.sender_id) {
                 addNotification({

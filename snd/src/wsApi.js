@@ -45,3 +45,51 @@ export const markMessagesAsRead = async (id) => {
         throw error
     }
 }
+
+export const onlineStatus = async () => {
+    try{
+
+        const response = await instance.get(`onlilne-status/`)
+        console.log(response.data)
+        return response.data
+    } catch (error) {
+        console.error("Error during listing users")
+        throw error
+    }
+}
+
+export const notifications = async () => {
+    try{
+
+        const response = await instance.get(`notifications/unread_count/`)
+        console.log(response.data)
+        return response.data
+    } catch (error) {
+        console.error("Error during listing users")
+        throw error
+    }
+}
+
+export const addNotifications = async (id) => {
+    try{
+
+        const response = await instance.get(`notifications/${id}/mark_read/`)
+        console.log(response.data)
+        return response.data
+    } catch (error) {
+        console.error("Error during listing users")
+        throw error
+    }
+}
+
+export const markAllNotifications = async (id) => {
+    try{
+
+        const response = await instance.get(`notifications/mark_all_read/`)
+        console.log(response.data)
+        return response.data
+    } catch (error) {
+        console.error("Error during listing users")
+        throw error
+    }
+}
