@@ -32,6 +32,7 @@ import Tags from './pages/userSide/Tags';
 import Shimmer from './pages/userSide/Shimmer';
 import Chat from './pages/userSide/Chat';
 import { NotificationProvider } from './components/NotificationContext';
+import { WebSocketProvider } from './components/WebSocketContext';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -57,8 +58,8 @@ function App() {
         return <p>Loading...</p>; // Prevent flickering during hydration
     }
   return (
+      <>
     <NotificationProvider>
-    <>
       <Router>
         <div>
             {/* <SearchContextProvider> */}
@@ -81,8 +82,8 @@ function App() {
             <Route path="/tags" element={<Tags />} />
             <Route path="/chat" element={<Chat />} />
             {/* <Route path="/shimmer" element={<Shimmer />} /> */}
-
             {/* admin */}
+
             <Route path="/admin" element={<LoginAdmin />} />
             <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
             <Route path="/admin/users" element={<UsersAdmin />} />
@@ -95,8 +96,8 @@ function App() {
           {/* </SearchContextProvider> */}
         </div>
       </Router>
-    </>
     </NotificationProvider>
+    </>
   )
 }
 

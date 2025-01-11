@@ -10,13 +10,14 @@ export default function LoginAdmin() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState(null);
+  
 //   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
   const navigate = useNavigate();
-  const { isAuthenticated,user } = useAuthStore();
+  const { isAuthenticated,setAuthStatus } = useAuthStore();
 
   
   useEffect(() => {
@@ -42,6 +43,7 @@ export default function LoginAdmin() {
       if (response.access_token && response.refresh_token) {
         if (response.user.role === 'admin') {
             console.log("Admin login successful, tokens received:", response);
+            setAuthStatus(true, response.user);
             navigate('/admin/dashboard'); // Redirect to admin-specific page
           } else {
             setError('Not authorized to access admin login.');

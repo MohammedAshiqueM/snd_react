@@ -5,6 +5,9 @@ import { auth, loginUser } from "../../api";
 import { useNavigate } from 'react-router-dom';
 import GoogleAuth from "../../components/GoogleAuth";
 import {useAuthStore} from "../../store/useAuthStore";
+import { useNotifications } from "../../components/NotificationContext";
+import { notificationHandshake } from "../../wsApi";
+import { WebSocketManager, wsManager } from "../../websocketManager";
 
 export default function Login() {
   const [loading, setLoading] = useState(false);
@@ -17,7 +20,7 @@ export default function Login() {
   });
   const navigate = useNavigate();
   const { isAuthenticated,setAuthStatus  } = useAuthStore();
-
+  const { connectNotificationSocket } = useNotifications();
   
   useEffect(() => {
         if (isAuthenticated) {
@@ -40,7 +43,35 @@ export default function Login() {
       const response = await loginUser(formData);
       console.log("data is...",response.data)
       if (response.access_token && response.refresh_token) {
-        console.log("Login successful, tokens received:", response);
+        // Initialize notification handler first
+        const notificationHandler = {
+          addNotification: (notification) => {
+            // Add notification to UI state
+            setError(`New message from ${notification.sender}: ${notification.message}`);
+          },
+          removeNotification: (notificationId) => {
+            // Remove notification from UI state
+          },
+          markAsRead: async (senderId) => {
+            try {
+              await markMessagesAsRead(senderId);
+            } catch (error) {
+              console.error('Error marking as read:', error);
+            }
+          }
+        };
+
+        // Initialize WebSocket manager with handler
+        const wsManager = new WebSocketManager(notificationHandler);
+        
+        // Now connect WebSocket
+        try {
+          const res = await notificationHandshake(response.user.id);
+          await wsManager.connect(res);
+        } catch (error) {
+          console.error("Failed to initialize notifications:", error);
+        }
+        
         setAuthStatus(true, response.user);
         navigate('/home');
       } else if (response.redirect === '/otp') {

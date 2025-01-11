@@ -56,7 +56,7 @@ const useRoleStore = create((set) => ({
 const useAuthStore = create(
   persist(
     (set, get) => ({
-      isAuthenticated: false,
+      isAuthenticated: null,
       user: null,
       loading: false,
       lastActivity: null,

@@ -21,6 +21,20 @@ export const chat = async (user_id) => {
     }
 };
 
+export const notificationHandshake = async () => {
+    try {
+        const currentUser = useAuthStore.getState().user?.id; // Get current user's ID from Zustand store
+        console.log("current user",currentUser)
+        if (!currentUser) {
+            throw new Error("User is not authenticated or user ID is missing.");
+        }
+
+        const response = await instance.get(`notification-handshake/${currentUser}/`);
+        return response.data;
+    } catch (error) {
+        throw error.response ? error.response.data : error.message;
+    }
+};
 //list all users
 export const allUsers = async () => {
     try{

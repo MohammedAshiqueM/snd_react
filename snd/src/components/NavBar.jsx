@@ -7,6 +7,7 @@ import { baseUrl } from "../constants/constant";
 import { logoutUser, userSkills } from "../api";
 import noUser from "../assets/Images/no_user.jpg";
 import useSkillsStore from "../store/useSkillStore";
+import WebSocketNotification from "./WebSocketNotification";
 
 const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pen }) => {
   const { user, clearAuth } = useAuthStore();
@@ -79,6 +80,12 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
     try {
       await logoutUser();
       clearAuth();
+      if (socket) {
+        socket.close(1000, 'User logged out');
+        setSocket(null);
+      }
+      setNotifications([]);
+      setUnreadCount(0);
       alert("Logged out successfully!");
       navigate("/");
     } catch (err) {
@@ -139,9 +146,13 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
           <button className="text-gray-400 mr-4" onClick={handleLogout}>
             Logout
           </button>
+          
           <div className="flex items-center gap-4">
             <button className="rounded-full p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
               <Bell className="h-5 w-5" />
+            </button>
+            <button className="rounded-full p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
+            <WebSocketNotification userId={user.id} />
             </button>
             <a href="/profile">
               <div className="h-8 w-8 rounded-full bg-gray-700">

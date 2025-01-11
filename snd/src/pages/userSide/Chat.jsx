@@ -43,6 +43,7 @@ export default function Chat() {
   const contactsContainerRef = useRef(null);
   const messageContainerRef = useRef(null);
   const [activeNotification, setActiveNotification] = useState(null);
+  const [wsInitialized, setWsInitialized] = useState(false);
 //   const { addNotification } = useNotifications();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     return JSON.parse(localStorage.getItem("isSidebarCollapsed") || "false");
@@ -187,13 +188,13 @@ const removeNotification = (index) => {
 
   // Enhanced WebSocket connection
   const connectWebSocket = useCallback((wsUrl) => {
-    if (socketRef.current?.readyState === WebSocket.OPEN) {
-      socketRef.current.close();
+    if (socketRef.current?.readyState === WebSocket.OPEN || wsInitialized) {
+      socketRef.current?.close();
     }
   
     try {
       socketRef.current = new WebSocket(wsUrl);
-  
+      setWsInitialized(true);
       socketRef.current.onopen = () => {
         setConnectionStatus("connected");
         socketRef.current.send(JSON.stringify({
@@ -204,46 +205,66 @@ const removeNotification = (index) => {
       socketRef.current.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
-          console.log("WebSocket message received:", data); // Debugging line
-          if (data.type === 'online_status') {
-            setOnlineUsers(new Set(data.online_users));
-            // Update contacts with online status
-            setContacts(prevContacts => 
-              prevContacts.map(contact => ({
-                ...contact,
-                isOnline: data.online_users.includes(contact.id)
-              }))
-            );
-          }
+          console.log("WebSocket message received:", data);
+        //   console.log("WebSocket message received:", data); // Debugging line
+        //   if (data.type === 'online_status') {
+        //     setOnlineUsers(new Set(data.online_users));
+        //     // Update contacts with online status
+        //     setContacts(prevContacts => 
+        //       prevContacts.map(contact => ({
+        //         ...contact,
+        //         isOnline: data.online_users.includes(contact.id)
+        //       }))
+        //     );
+        //   }
           
-          if (data.type === 'notification') {
-            if (!selectedContact || selectedContact.id !== data.sender_id) {
-                addNotification({
-                    sender: data.sender,
-                    message: data.message,
-                    sender_id: data.sender_id,
-                    timestamp: new Date(),
-                });
+        //   if (data.type === 'notification') {
+        //     if (!selectedContact || selectedContact.id !== data.sender_id) {
+        //         addNotification({
+        //             sender: data.sender,
+        //             message: data.message,
+        //             sender_id: data.sender_id,
+        //             timestamp: new Date(),
+        //         });
 
-                updateContactWithNewMessage(
-                    data.sender_id,
-                    data.message,
-                    new Date().toISOString(),
-                    data.sender_id
-                );
-            }
-        }
+        //         updateContactWithNewMessage(
+        //             data.sender_id,
+        //             data.message,
+        //             new Date().toISOString(),
+        //             data.sender_id
+        //         );
+        //     }
+        // }
           switch (data.type) {
-            case 'notification':
+            // case 'online_status':
+            //   setOnlineUsers(new Set(data.online_users));
+            //   setContacts(prevContacts => 
+            //     prevContacts.map(contact => ({
+            //       ...contact,
+            //       isOnline: data.online_users.includes(contact.id)
+            //     }))
+            //   );
+            //   break;
+
+            case 'notification_message':
               // Only show notification if we're not in the chat with the sender
               if (!selectedContact || selectedContact.id !== data.sender_id) {
-                addNotification({
+                setNotifications(prev => {
+                  const isDuplicate = prev.some(
+                    n => n.sender_id === data.sender_id && 
+                        n.message === data.message && 
+                        Math.abs(new Date(n.timestamp) - new Date()) < 1000
+                  );
+                  if (isDuplicate) return prev;
+                  
+                  return [...prev, {
                     sender: data.sender,
                     message: data.message,
                     sender_id: data.sender_id,
                     timestamp: new Date(),
                     isRead: false
-                  });
+                  }];
+                });
                 
                 // Update contact's unread count
                 updateContactWithNewMessage(
@@ -279,45 +300,56 @@ const removeNotification = (index) => {
               break;
   
             default:
-              const isSentByMe = data.sender_id === user.id;
-              const newMessage = {
-                text: data.message,
-                username: isSentByMe ? user.username : selectedContact.username,
-                isSent: isSentByMe,
-                timestamp: new Date(data.timestamp),
-              };
-  
-              setMessages((prev) => [...prev, newMessage]);
-  
-              if (!isSentByMe) {
-                const shouldIncrementUnread = selectedContact?.id !== data.sender_id;
-                updateContactWithNewMessage(
-                  data.sender_id,
-                  data.message,
-                  data.timestamp,
-                  data.sender_id,
-                  shouldIncrementUnread
-                );
+                if (data.message && data.sender_id) {
+                    const isSentByMe = data.sender_id === user.id;
+                    const newMessage = {
+                      text: data.message,
+                      username: isSentByMe ? user.username : selectedContact?.username,
+                      isSent: isSentByMe,
+                      timestamp: new Date(data.timestamp || Date.now()),
+                    };
+    
+                    setMessages(prev => {
+                      // Prevent duplicate messages
+                      const isDuplicate = prev.some(
+                        m => m.text === newMessage.text && 
+                            m.username === newMessage.username &&
+                            Math.abs(m.timestamp - newMessage.timestamp) < 1000
+                      );
+                      return isDuplicate ? prev : [...prev, newMessage];
+                    });
+    
+                    if (!isSentByMe) {
+                      updateContactWithNewMessage(
+                        data.sender_id,
+                        data.message,
+                        data.timestamp || new Date().toISOString(),
+                        data.sender_id
+                      );
+                    }
+                    scrollToBottom();
+                  }
               }
-              scrollToBottom();
-          }
-        } catch (error) {
-          console.error("Error processing WebSocket message:", error);
-        }
-      };
+            } catch (error) {
+              console.error("Error processing WebSocket message:", error);
+            }
+          };
   
       socketRef.current.onclose = (event) => {
         setConnectionStatus("disconnected");
+        setWsInitialized(false);
         // Optional: Implement reconnection logic here
       };
   
       socketRef.current.onerror = (error) => {
         console.error("WebSocket error:", error);
         setConnectionStatus("error");
+        setWsInitialized(false);
       };
     } catch (error) {
       console.error("Failed to connect WebSocket:", error);
       setConnectionStatus("error");
+      setWsInitialized(false);
     }
   }, [user, selectedContact, updateContactWithNewMessage, scrollToBottom]);
   
@@ -326,6 +358,8 @@ const removeNotification = (index) => {
     return () => {
       if (socketRef.current) {
         socketRef.current.close();
+        socketRef.current = null;
+        setWsInitialized(false);
       }
     };
   }, []);
@@ -336,16 +370,16 @@ const removeNotification = (index) => {
   
     try {
         // Mark messages as read before loading chat
-        if (contact.unread_count > 0) {
-          await markMessagesAsRead(contact.id);
+        // if (contact.unread_count > 0) {
+        //   await markMessagesAsRead(contact.id);
           
-          // Update contacts immediately to remove unread count
-          setContacts((prevContacts) =>
-            prevContacts.map((c) =>
-              c.id === contact.id ? { ...c, unread_count: 0 } : c
-            )
-          );
-        }
+        //   // Update contacts immediately to remove unread count
+        //   setContacts((prevContacts) =>
+        //     prevContacts.map((c) =>
+        //       c.id === contact.id ? { ...c, unread_count: 0 } : c
+        //     )
+        //   );
+        // }
     
         const response = await chat(contact.id);
         connectWebSocket(response.websocket_url);

@@ -3,9 +3,12 @@ import { GoogleOAuthProvider, GoogleLogin } from '@react-oauth/google';
 import { googleSignin } from '../api';
 import { useNavigate } from 'react-router-dom'
 import Cookies from 'js-cookie';
+import { useAuthStore } from '../store/useAuthStore';
 
 const GoogleAuth = () => {
     const navigate = useNavigate();
+  const { isAuthenticated,setAuthStatus  } = useAuthStore();
+
   const handleSuccess = async (credentialResponse) => {
     const { credential } = credentialResponse;
     if (credential) {
@@ -14,6 +17,7 @@ const GoogleAuth = () => {
       try {
         const data = await googleSignin(credential);
         console.log('Server response:', data);
+        setAuthStatus(true, data.user);
         if (data?.user) navigate('/home');
     } catch (error) {
         console.error('Login failed:', error);

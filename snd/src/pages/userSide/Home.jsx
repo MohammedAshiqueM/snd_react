@@ -47,6 +47,7 @@ const Home = () => {
     // Fetch blogs
     const fetchBlogs = async (page = currentPage, category = selectedCategory, query = searchQuery) => {
         setIsLoading(true);
+        
         try {
             const params = { page, limit: blogsPerPage, category, search: query };
             const response = await getBlogs(params);
