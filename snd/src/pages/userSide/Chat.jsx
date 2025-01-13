@@ -44,6 +44,8 @@ export default function Chat() {
   const messageContainerRef = useRef(null);
   const [activeNotification, setActiveNotification] = useState(null);
   const [wsInitialized, setWsInitialized] = useState(false);
+  const [activeRoomId, setActiveRoomId] = useState(null);
+
 //   const { addNotification } = useNotifications();
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     return JSON.parse(localStorage.getItem("isSidebarCollapsed") || "false");
@@ -184,71 +186,82 @@ const removeNotification = (index) => {
       }))
     );
   }, [onlineUsers]);
+  
+  // Add cleanup on component unmount
+  useEffect(() => {
+    return () => {
+      if (socketRef.current) {
+        socketRef.current.close();
+        socketRef.current = null;
+        setWsInitialized(false);
+      }
+    };
+  }, []);
 
+  const handleContactSelect = useCallback(async (contact) => {
+      setMessages([]);
+    setSelectedContact(contact);
 
-  // Enhanced WebSocket connection
-  const connectWebSocket = useCallback((wsUrl) => {
-    if (socketRef.current?.readyState === WebSocket.OPEN || wsInitialized) {
-      socketRef.current?.close();
-    }
+    const newRoomId = generateRoomId(user.id, contact.id);
+    setActiveRoomId(newRoomId);
+
   
     try {
-      socketRef.current = new WebSocket(wsUrl);
+
+        if (socketRef.current) {
+            socketRef.current.close();
+            socketRef.current = null;
+          }
+    
+      const response = await chat(contact.id);
+      const selectedContactInfo = contact;
+      
+      const ws = new WebSocket(response.websocket_url);
+      socketRef.current = ws;
       setWsInitialized(true);
-      socketRef.current.onopen = () => {
+  
+      ws.onopen = () => {
         setConnectionStatus("connected");
-        socketRef.current.send(JSON.stringify({
-            type: 'request_online_status'
+        ws.send(JSON.stringify({
+            type: 'mark_read_for_sender',
+            sender_id: contact.id
           }));
+          
+        ws.send(JSON.stringify({
+          type: 'request_online_status'
+        }));
       };
   
-      socketRef.current.onmessage = (e) => {
+      ws.onmessage = (e) => {
         try {
           const data = JSON.parse(e.data);
           console.log("WebSocket message received:", data);
-        //   console.log("WebSocket message received:", data); // Debugging line
-        //   if (data.type === 'online_status') {
-        //     setOnlineUsers(new Set(data.online_users));
-        //     // Update contacts with online status
-        //     setContacts(prevContacts => 
-        //       prevContacts.map(contact => ({
-        //         ...contact,
-        //         isOnline: data.online_users.includes(contact.id)
-        //       }))
-        //     );
-        //   }
+            
+          const messageRoomId = generateRoomId(
+            data.sender_id || user.id,
+            data.receiver_id || selectedContactInfo.id
+          );
           
-        //   if (data.type === 'notification') {
-        //     if (!selectedContact || selectedContact.id !== data.sender_id) {
-        //         addNotification({
-        //             sender: data.sender,
-        //             message: data.message,
-        //             sender_id: data.sender_id,
-        //             timestamp: new Date(),
-        //         });
+          if (messageRoomId !== newRoomId) {
+            console.log("Message for different room, ignoring");
+            return;
+          }
 
-        //         updateContactWithNewMessage(
-        //             data.sender_id,
-        //             data.message,
-        //             new Date().toISOString(),
-        //             data.sender_id
-        //         );
-        //     }
-        // }
           switch (data.type) {
-            // case 'online_status':
-            //   setOnlineUsers(new Set(data.online_users));
-            //   setContacts(prevContacts => 
-            //     prevContacts.map(contact => ({
-            //       ...contact,
-            //       isOnline: data.online_users.includes(contact.id)
-            //     }))
-            //   );
-            //   break;
-
+            case 'chat_history':
+              const formattedHistory = data.messages.map((msg) => ({
+                text: msg.content,
+                username: msg.sender_id === user.id ? user.username : selectedContactInfo.username,
+                isSent: msg.sender_id === user.id,
+                timestamp: new Date(msg.timestamp),
+                roomId: generateRoomId(msg.sender_id, msg.receiver_id),
+              }));
+              setMessages(formattedHistory);
+              scrollToBottom();
+              break;
+  
             case 'notification_message':
-              // Only show notification if we're not in the chat with the sender
-              if (!selectedContact || selectedContact.id !== data.sender_id) {
+              if (!selectedContactInfo || selectedContactInfo.id !== data.sender_id) {
                 setNotifications(prev => {
                   const isDuplicate = prev.some(
                     n => n.sender_id === data.sender_id && 
@@ -266,33 +279,15 @@ const removeNotification = (index) => {
                   }];
                 });
                 
-                // Update contact's unread count
                 updateContactWithNewMessage(
                   data.sender_id,
                   data.message,
                   new Date().toISOString(),
-                  data.sender_id,
-                //   true
+                  data.sender_id
                 );
-
-                // Auto-dismiss notification after 5 seconds
-                // setTimeout(() => {
-                //   setActiveNotification(null);
-                // }, 5000);
               }
               break;
-
-            case 'chat_history':
-              const formattedHistory = data.messages.map((msg) => ({
-                text: msg.content,
-                username: msg.sender_id === user.id ? user.username : selectedContact.username,
-                isSent: msg.sender_id === user.id,
-                timestamp: new Date(msg.timestamp),
-              }));
-              setMessages(formattedHistory);
-              scrollToBottom();
-              break;
-              
+  
             case 'online_status':
               if (Array.isArray(data.online_users)) {
                 setOnlineUsers(new Set(data.online_users));
@@ -300,95 +295,63 @@ const removeNotification = (index) => {
               break;
   
             default:
-                if (data.message && data.sender_id) {
-                    const isSentByMe = data.sender_id === user.id;
-                    const newMessage = {
-                      text: data.message,
-                      username: isSentByMe ? user.username : selectedContact?.username,
-                      isSent: isSentByMe,
-                      timestamp: new Date(data.timestamp || Date.now()),
-                    };
-    
-                    setMessages(prev => {
-                      // Prevent duplicate messages
-                      const isDuplicate = prev.some(
-                        m => m.text === newMessage.text && 
-                            m.username === newMessage.username &&
-                            Math.abs(m.timestamp - newMessage.timestamp) < 1000
-                      );
-                      return isDuplicate ? prev : [...prev, newMessage];
-                    });
-    
-                    if (!isSentByMe) {
-                      updateContactWithNewMessage(
-                        data.sender_id,
-                        data.message,
-                        data.timestamp || new Date().toISOString(),
-                        data.sender_id
-                      );
-                    }
-                    scrollToBottom();
-                  }
-              }
-            } catch (error) {
-              console.error("Error processing WebSocket message:", error);
-            }
-          };
+              if (data.message && data.sender_id) {
+                const isSentByMe = data.sender_id === user.id;
+                const newMessage = {
+                  text: data.message,
+                  username: isSentByMe ? user.username : selectedContactInfo.username,
+                  isSent: isSentByMe,
+                  timestamp: new Date(data.timestamp || Date.now()),
+                  roomId: messageRoomId,
+                };
   
-      socketRef.current.onclose = (event) => {
-        setConnectionStatus("disconnected");
-        setWsInitialized(false);
-        // Optional: Implement reconnection logic here
+                setMessages(prev => {
+                  const isDuplicate = prev.some(
+                    m => m.text === newMessage.text && 
+                        m.username === newMessage.username &&
+                        Math.abs(m.timestamp - newMessage.timestamp) < 1000 &&
+                        m.roomId === newMessage.roomId
+                  );
+                  return isDuplicate ? prev : [...prev, newMessage];
+                });
+  
+                if (!isSentByMe) {
+                  updateContactWithNewMessage(
+                    data.sender_id,
+                    data.message,
+                    data.timestamp || new Date().toISOString(),
+                    data.sender_id
+                  );
+                }
+                scrollToBottom();
+              }
+          }
+        } catch (error) {
+          console.error("Error processing WebSocket message:", error);
+        }
       };
   
-      socketRef.current.onerror = (error) => {
+      ws.onclose = () => {
+        setConnectionStatus("disconnected");
+        setWsInitialized(false);
+      };
+  
+      ws.onerror = (error) => {
         console.error("WebSocket error:", error);
         setConnectionStatus("error");
         setWsInitialized(false);
       };
+  
     } catch (error) {
-      console.error("Failed to connect WebSocket:", error);
-      setConnectionStatus("error");
-      setWsInitialized(false);
+      console.error("Error selecting contact:", error);
     }
-  }, [user, selectedContact, updateContactWithNewMessage, scrollToBottom]);
+  }, [user, scrollToBottom, updateContactWithNewMessage]);
   
-  // Add cleanup on component unmount
-  useEffect(() => {
-    return () => {
-      if (socketRef.current) {
-        socketRef.current.close();
-        socketRef.current = null;
-        setWsInitialized(false);
-      }
-    };
-  }, []);
-
-  const handleContactSelect = useCallback(async (contact) => {
-    setSelectedContact(contact);
-    setMessages([]);
+  const generateRoomId = (user1_id, user2_id) => {
+    const sorted_ids = [user1_id, user2_id].sort((a, b) => a - b);
+    return `room_${sorted_ids[0]}_${sorted_ids[1]}`;
+  };
   
-    try {
-        // Mark messages as read before loading chat
-        // if (contact.unread_count > 0) {
-        //   await markMessagesAsRead(contact.id);
-          
-        //   // Update contacts immediately to remove unread count
-        //   setContacts((prevContacts) =>
-        //     prevContacts.map((c) =>
-        //       c.id === contact.id ? { ...c, unread_count: 0 } : c
-        //     )
-        //   );
-        // }
-    
-        const response = await chat(contact.id);
-        connectWebSocket(response.websocket_url);
-      } catch (error) {
-        console.error("Error selecting contact:", error);
-      }
-    }, [connectWebSocket]);
-  
-
   const sendMessage = useCallback((e) => {
     e.preventDefault();
     if (!message.trim() || connectionStatus !== "connected" || !selectedContact) return;
