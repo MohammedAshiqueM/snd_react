@@ -36,17 +36,20 @@ export const notificationHandshake = async () => {
     }
 };
 //list all users
-export const allUsers = async () => {
-    try{
-
-        const response = await instance.get(`all-users/`)
-        console.log(response.data)
-        return response.data
+export const allUsers = async ({ page = 1, search = '' }) => {
+    try {
+      const response = await instance.get(`all-users/`, {
+        params: {
+          page,
+          search
+        }
+      });
+      return response.data;
     } catch (error) {
-        console.error("Error during listing users")
-        throw error
+      console.error("Error during listing users:", error);
+      throw error;
     }
-}
+  };
 
 export const markMessagesAsRead = async (id) => {
     try{
