@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import noUser from '../../assets/Images/no_user.jpg'
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function QuestionRead() {
   const { pk } = useParams();
@@ -16,6 +17,9 @@ export default function QuestionRead() {
   const [comments, setComments] = useState([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(true);
+  const [isOwner, setIsOwner] = useState(false);
+
+  const { user } = useAuthStore();
 //   const [error, setError] = useState(null);
 const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     const savedState = localStorage.getItem('isSidebarCollapsed');
@@ -92,6 +96,13 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
         setVotes(questionData.data.vote_count || 0);
         setUserVote(questionData.data.user_vote);
         setIsFollowing(questionData.data.is_following);
+        // console.log(questionData)
+        if (questionData.data.user.username === user.username) {
+            setIsOwner(true);
+          } else {
+            setIsOwner(false);
+
+          }
       } catch (err) {
         setError('Failed to load blog');
       } finally {
@@ -111,7 +122,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
     loadBlog();
     loadAnswers();
   }, [pk]);
-  
+
   if (loading) return <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col"><SecondNavbar /></div>;
 //   if (error) return <div>{error}</div>;
 
@@ -151,7 +162,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
                 <Eye className="h-5 w-5" />
                 <span>{blog.data.view_count} Views</span>
               </div>
-              <button
+              {!isOwner && <button
                 className={`rounded px-3 py-1 text-sm font-medium ${
                     isFollowing ? "bg-[#840A0A] hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
                 }`}
@@ -159,7 +170,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
 
             >
                 {isFollowing ? "Unfollow" : "Follow"}
-            </button>
+            </button>}
             </div>
           </div>
 

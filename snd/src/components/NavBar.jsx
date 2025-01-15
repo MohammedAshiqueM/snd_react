@@ -30,6 +30,7 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
     "/home": "blogs",
     "/questions": "questions",
     "/users": "users",
+    "/requests": "requests",
   };
 
   useEffect(() => {
@@ -97,6 +98,7 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
   // Update search context based on route
   useEffect(() => {
     setSearchContext(pathToContextMap[location.pathname] || "blogs");
+    console.log("......................................",user.profile_image)
   }, [location.pathname, setSearchContext]);
 
 //   useEffect(() => {
@@ -148,15 +150,16 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
           </button>
           
           <div className="flex items-center gap-4">
-            <button className="rounded-full p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
+            {/* <button className="rounded-full p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
               <Bell className="h-5 w-5" />
-            </button>
+            </button> */}
             <button className="rounded-full p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
             <WebSocketNotification userId={user.id} />
             </button>
             <a href="/profile">
               <div className="h-8 w-8 rounded-full bg-gray-700">
                 {user && (
+                    
                   <img
                     src={user.profile_image ? `${baseUrl}${user.profile_image}` : noUser}
                     alt={user.first_name || "Untitled"}

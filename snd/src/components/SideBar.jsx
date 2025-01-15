@@ -35,12 +35,13 @@ export function ToggleButton({ isCollapsed, onToggle }) {
   
     const navItems = [
       { name: 'Home', path: '/home', icon: HomeIcon },
-      { name: 'Discover', path: '/questions', icon: Compass },
+      { name: 'Questions', path: '/questions', icon: Compass },
+      { name: 'Requests', path: '/requests', icon: Compass },
       { name: 'Account', path: '/account', icon: User },
       { name: 'Tags', path: '/tags', icon: Tag },
       { name: 'Users', path: '/users', icon: Users },
       { name: 'Messages', path: '/chat', icon: MessageSquare },
-      { name: 'Requests', path: '/requests', icon: FileQuestion },
+      { name: 'Session', path: '/session', icon: FileQuestion },
     ];
   
     return (

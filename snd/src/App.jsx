@@ -33,6 +33,8 @@ import Shimmer from './pages/userSide/Shimmer';
 import Chat from './pages/userSide/Chat';
 import { NotificationProvider } from './components/NotificationContext';
 import { WebSocketProvider } from './components/WebSocketContext';
+import SessionRequest from './pages/userSide/SessionRequest';
+import SessionDetails from './pages/userSide/SessionDetails';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -59,44 +61,49 @@ function App() {
     }
   return (
       <>
-    <NotificationProvider>
-      <Router>
-        <div>
-            {/* <SearchContextProvider> */}
-          <Routes>
-            {/* User */}
-            <Route path="/" element={<Launch />} />
-            <Route path="/login" element={<Login />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="/otp" element={<Otp />} />
-            <Route path="/home" element={<UserRoute><Home /></UserRoute>} />
-            <Route path="/profile" element={<ProfileHeader />} />
-            <Route path="/forget-password" element={<ForgotPassword />} />
-            <Route path="/reset-password" element={<ResetPassword/>} />
-            <Route path="/read" element={<BlogRead/>} />
-            <Route path="/blogs/:slug" element={<BlogRead />} />
-            <Route path="/questions" element={<Questions />} />
-            <Route path="/question/:pk" element={<QuestionRead />} />
-            <Route path="/users" element={<ProtectedRoute><UsersList /></ProtectedRoute>} />
-            <Route path="/users/details/:pk" element={<UserDetails />} />
-            <Route path="/tags" element={<Tags />} />
-            <Route path="/chat" element={<Chat />} />
-            {/* <Route path="/shimmer" element={<Shimmer />} /> */}
-            {/* admin */}
+    <WebSocketProvider>
+        <NotificationProvider>
+            <Router>
+                <div>
+                    {/* <SearchContextProvider> */}
+                    <Routes>
+                        {/* User */}
+                        <Route path="/" element={<Launch />} />
+                        <Route path="/login" element={<Login />} />
+                        <Route path="/signup" element={<SignUp />} />
+                        <Route path="/otp" element={<Otp />} />
+                        <Route path="/home" element={<UserRoute><Home /></UserRoute>} />
+                        <Route path="/profile" element={<ProfileHeader />} />
+                        <Route path="/forget-password" element={<ForgotPassword />} />
+                        <Route path="/reset-password" element={<ResetPassword/>} />
+                        <Route path="/read" element={<BlogRead/>} />
+                        <Route path="/blogs/:slug" element={<BlogRead />} />
+                        <Route path="/questions" element={<Questions />} />
+                        <Route path="/question/:pk" element={<QuestionRead />} />
+                        <Route path="/users" element={<ProtectedRoute><UsersList /></ProtectedRoute>} />
+                        <Route path="/users/details/:pk" element={<UserDetails />} />
+                        <Route path="/tags" element={<Tags />} />
+                        <Route path="/chat" element={<Chat />} />
+                        <Route path="/requests" element={<SessionRequest />} />
+                        <Route path="/requests/:pk" element={<SessionDetails />} />
 
-            <Route path="/admin" element={<LoginAdmin />} />
-            <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
-            <Route path="/admin/users" element={<UsersAdmin />} />
-            <Route path="/admin/user/details/:pk" element={<UserDetailsAdmin />} />
-            <Route path="/admin/reports" element={<Reports />} />
-            <Route path="/admin/report/details/:pk" element={<ReportsDetails />} />
-            <Route path="/admin/tags" element={<TagsAdmin />} />
+                        {/* <Route path="/shimmer" element={<Shimmer />} /> */}
+                        {/* admin */}
 
-          </Routes>
-          {/* </SearchContextProvider> */}
-        </div>
-      </Router>
-    </NotificationProvider>
+                        <Route path="/admin" element={<LoginAdmin />} />
+                        <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
+                        <Route path="/admin/users" element={<UsersAdmin />} />
+                        <Route path="/admin/user/details/:pk" element={<UserDetailsAdmin />} />
+                        <Route path="/admin/reports" element={<Reports />} />
+                        <Route path="/admin/report/details/:pk" element={<ReportsDetails />} />
+                        <Route path="/admin/tags" element={<TagsAdmin />} />
+
+                    </Routes>
+                    {/* </SearchContextProvider> */}
+                </div>
+            </Router>
+        </NotificationProvider>
+    </WebSocketProvider>
     </>
   )
 }

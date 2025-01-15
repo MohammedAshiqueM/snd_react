@@ -7,6 +7,7 @@ import { formatDistanceToNow } from 'date-fns';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import noUser from '../../assets/Images/no_user.jpg'
+import { useAuthStore } from '../../store/useAuthStore';
 
 export default function BlogRead() {
   const { slug } = useParams();
@@ -23,6 +24,9 @@ export default function BlogRead() {
     const savedState = localStorage.getItem('isSidebarCollapsed');
     return savedState ? JSON.parse(savedState) : false;
   });
+  const [isOwner, setIsOwner] = useState(false);
+  const { user } = useAuthStore();
+
 
   const url = baseUrl;
   
@@ -80,6 +84,12 @@ export default function BlogRead() {
         setVotes(blogData.data.vote_count || 0);
         setUserVote(blogData.data.user_vote);
         setIsFollowing(blogData.data.is_following);
+        if (blogData.data.user.username === user.username) {
+            setIsOwner(true);
+          } else {
+            setIsOwner(false);
+
+          }
       } catch (err) {
         setError('Failed to load blog');
       } finally {
@@ -140,7 +150,7 @@ export default function BlogRead() {
                 <Eye className="h-5 w-5" />
                 <span>{blog.data.view_count} Views</span>
               </div>
-              <button
+              {!isOwner && <button
                 className={`rounded px-3 py-1 text-sm font-medium ${
                     isFollowing ? "bg-[#840A0A] hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
                 }`}
@@ -148,7 +158,7 @@ export default function BlogRead() {
 
             >
                 {isFollowing ? "Unfollow" : "Follow"}
-            </button>
+            </button>}
             </div>
           </div>
 

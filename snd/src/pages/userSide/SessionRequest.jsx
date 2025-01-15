@@ -1,177 +1,147 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { Tag, Clock, UserCheck, Calendar, ChevronUp, ChevronDown } from 'lucide-react';
+import { Tag, Clock, UserCheck, Calendar, ChevronUp, ChevronDown, MoreVertical } from 'lucide-react';
+// import { 
+//   DropdownMenu, 
+//   DropdownMenuContent, 
+//   DropdownMenuItem, 
+//   DropdownMenuTrigger 
+// } from '@/components/ui/dropdown-menu';
 import SideBar from '../../components/SideBar';
 import NavBar from '../../components/NavBar';
 import useSearchStore from '../../store/useSearchStore';
-import { getRequests, getUserRequests } from '../../api';
+import { getRequests, getUserRequests, updateRequest } from '../../api';
 import Paginator from "../../components/Paginator";
 import useSkillsStore from '../../store/useSkillStore';
 import RequestShimmer from '../../components/RequestShimmer';
 import SessionRequestModal from '../../components/SessionRequestModal';
 import { truncateText } from '../../util';
+import StatusDropdown from '../../components/StatusDropdown';
+import { useAuthStore } from '../../store/useAuthStore';
+
 
 const TabButton = ({ active, onClick, children }) => (
-  <button
-    onClick={onClick}
-    className={`px-6 py-3 text-lg font-semibold rounded-t-lg transition-colors duration-200 ${
-      active 
-        ? 'bg-[#1A1B2E] text-blue-400 border-t-2 border-blue-400' 
-        : 'bg-transparent text-gray-400 hover:text-gray-300'
-    }`}
-  >
-    {children}
-  </button>
-);
-
-const StatusBadge = ({ status }) => {
-  const statusStyles = {
-    DRAFT: 'bg-gray-500',
-    PENDING: 'bg-yellow-500',
-    SCHEDULED: 'bg-green-500',
-    COMPLETED: 'bg-blue-500',
-    CANCELLED: 'bg-red-500'
-  };
-
-  return (
-    <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${statusStyles[status]}`}>
-      {status.charAt(0) + status.slice(1).toLowerCase()}
-    </span>
-  );
-};
-
-const RequestCard = ({ request }) => {
-  const navigate = useNavigate();
-  const isOwner = request.user?.username === localStorage.getItem('username');
-  const canSchedule = !isOwner && request.status === 'PENDING';
-
-  const handleClick = (e) => {
-    // Prevent navigation if clicking action buttons
-    if (e.target.tagName === 'BUTTON') {
-      e.stopPropagation();
-      return;
-    }
-    navigate(`/requests/${request.id}`);
-  };
-
-  const handlePublish = async (e) => {
-    e.stopPropagation();
-    try {
-        const response = await updateRequest(request.id, { status: 'PENDING' });
-        // Handle success - you might want to refresh the list
-      } catch (error) {
-        console.error('Error publishing request:', error);
-      }
-  };
-
-  const handleSchedule = async (e) => {
-    e.stopPropagation();
-    navigate(`/schedule/${request.id}`);
-  };
-
-  const handleCancel = async (e) => {
-    e.stopPropagation();
-    // Add your cancel logic here
-  };
-
-  const handleEdit = (e) => {
-    e.stopPropagation();
-    onEdit(request);
-  };
-  return (
-    <div 
-      className="border border-gray-700 bg-[#1A1B2E] rounded-lg p-6 relative hover:border-blue-400 transition-colors duration-200 cursor-pointer"
-      onClick={handleClick}
+    <button
+      onClick={onClick}
+      className={`px-6 py-3 text-lg font-semibold rounded-t-lg transition-colors duration-200 ${
+        active 
+          ? 'bg-[#1A1B2E] text-blue-400 border-t-2 border-blue-400' 
+          : 'bg-transparent text-gray-400 hover:text-gray-300'
+      }`}
     >
-      <div className="flex justify-between items-start mb-4">
-        <h2 className="text-xl font-semibold text-blue-400 hover:text-blue-300">
-          {request.title}
-        </h2>
-        <StatusBadge status={request.status} />
-      </div>
+      {children}
+    </button>
+  );
+  
+  const RequestCard = ({ request, onStatusUpdate, onEdit }) => {
+    const [updateLoading, setUpdateLoading] = useState(false);
+  const [error, setError] = useState(null);
+    const { user } = useAuthStore();
+    const navigate = useNavigate();
+    const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+    const isOwner = request?.user?.username === user.username;
 
-      <p className="text-gray-300 mb-6 whitespace-pre-wrap">
-        {truncateText(request.body_content, 200)}
-      </p>
-
-      <div className="flex flex-wrap gap-2 mb-4">
-        {request.tags.map((tagObj, index) => (
-          <span 
-            key={index}
-            className="flex items-center gap-1 px-3 py-1 text-sm rounded-full bg-blue-900/50 text-blue-400"
-          >
-            <Tag size={14} />
-            {tagObj.tag.name}
-          </span>
-        ))}
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-        <div className="flex items-center gap-2 text-gray-400">
-          <Clock size={16} />
-          <span>{request.duration_minutes} minutes</span>
+    const canSchedule = !isOwner && request.status === 'PENDING';
+  
+    const handleClick = (e) => {
+      if (e.target.closest('.status-badge') || e.target.closest('button')) {
+        e.stopPropagation();
+        return;
+      }
+      navigate(`/requests/${request.id}`);
+    };
+  
+    const handleStatusChange = async (newStatus) => {
+        
+        setUpdateLoading(true);
+        setError(null);
+        
+        try {
+            await updateRequest(request.id, { status: newStatus });
+            // Call the onStatusUpdate prop to update parent state
+            onStatusUpdate(request.id, newStatus);
+            setShowStatusDropdown(false);
+        } catch (error) {
+            console.error('Error updating status:', error);
+            setError('Failed to update status. Please try again.');
+        } finally {
+            setUpdateLoading(false);
+        }
+      };
+    
+    return (
+      <div 
+        className="border border-gray-700 bg-[#1A1B2E] rounded-lg p-6 relative hover:border-blue-400 transition-colors duration-200 cursor-pointer"
+        onClick={handleClick}
+      >
+        <div className="flex justify-between items-start mb-4">
+          <h2 className="text-xl font-semibold text-blue-400 hover:text-blue-300">
+            {request.title}
+          </h2>
+          <div className="status-badge" onClick={e => e.stopPropagation()}>
+          <StatusDropdown
+                currentStatus={request.status}
+                onStatusChange={handleStatusChange}
+                isOwner={isOwner}
+                />
+       </div>
         </div>
-        <div className="flex items-center gap-2 text-gray-400">
-          <Calendar size={16} />
-          <span>
-            Preferred: {new Date(request.preferred_time).toLocaleString()}
-          </span>
-        </div>
-      </div>
-
-      <div className="flex items-center gap-2 text-gray-400 mb-4">
-        <UserCheck size={16} />
-        <span>
-          Requested by {request.user?.username} {' '}
-          {formatDistanceToNow(new Date(request.created_at))} ago
-        </span>
-      </div>
-
-      {request.status === 'PENDING' && !isOwner && (
-        <div className="mb-4 p-4 rounded-lg bg-blue-900/20 border border-blue-500 text-blue-100">
-          This request is open for scheduling. If you have the required skills,
-          you can propose a time to help!
-        </div>
-      )}
-
-<div className="flex justify-end gap-4">
-        {isOwner && request.status === 'DRAFT' && (
-          <>
-            <button
-              onClick={handleEdit}
-              className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
+  
+        <p className="text-gray-300 mb-6 whitespace-pre-wrap">
+          {truncateText(request.body_content, 24)}
+        </p>
+  
+        <div className="flex flex-wrap gap-2 mb-4">
+          {request.tags.map((tagObj, index) => (
+            <span 
+              key={index}
+              className="flex items-center gap-1 px-3 py-1 text-sm rounded-full bg-blue-900/50 text-blue-400"
             >
-              Edit Request
-            </button>
+              <Tag size={14} />
+              {tagObj.tag.name}
+            </span>
+          ))}
+        </div>
+  
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+          <div className="flex items-center gap-2 text-gray-400">
+            <Clock size={16} />
+            <span>{request.duration_minutes} minutes</span>
+          </div>
+          <div className="flex items-center gap-2 text-gray-400">
+            <Calendar size={16} />
+            <span>
+              Preferred: {new Date(request.preferred_time).toLocaleString()}
+            </span>
+          </div>
+        </div>
+  
+        <div className="flex items-center gap-2 text-gray-400 mb-4">
+          <UserCheck size={16} />
+          <span>
+            Requested by {request.user?.username} {' '}
+            {formatDistanceToNow(new Date(request.created_at))} ago
+          </span>
+        </div>
+  
+        <div className="flex justify-end gap-4">
+          {canSchedule && (
             <button
-              onClick={handlePublish}
+              onClick={(e) => {
+                e.stopPropagation();
+                navigate(`/schedule/${request.id}`);
+              }}
               className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
             >
-              Publish Request
+              Propose Schedule
             </button>
-          </>
-        )}
-        {canSchedule && (
-          <button
-            onClick={handleSchedule}
-            className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
-          >
-            Propose Schedule
-          </button>
-        )}
-        {isOwner && ['DRAFT', 'PENDING'].includes(request.status) && (
-          <button
-            onClick={handleCancel}
-            className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-          >
-            Cancel Request
-          </button>
-        )}
+          )}
+        </div>
       </div>
-    </div>
-  );
-};
+    );
+  };
+  
 
 function SessionRequest() {
   const [activeTab, setActiveTab] = useState('my-requests');
@@ -242,6 +212,24 @@ function SessionRequest() {
       setIsLoading(false);
     }
   };
+  const handleStatusUpdate = (requestId, newStatus) => {
+    const updateRequestsList = (list) => {
+      return list.map(req => 
+        req.id === requestId ? { ...req, status: newStatus } : req
+      );
+    };
+
+    if (activeTab === 'my-requests') {
+      setUserRequests(updateRequestsList(userRequests));
+    } else {
+      setRequests(updateRequestsList(requests));
+    }
+  };
+
+  const handleEdit = (request) => {
+    setEditingRequest(request);
+    setIsEditModalOpen(true);
+  };
 
   const handlePageChange = (newPage) => {
     if (activeTab === 'explore') {
@@ -298,7 +286,10 @@ function SessionRequest() {
     <div className="min-h-screen bg-[#0A0B1A] text-gray-300 flex flex-col">
       <NavBar 
         searchQuery={searchQuery}
-        onWriteClick={() => setIsEditModalOpen(true)} 
+        onWriteClick={() => {
+          setEditingRequest(null);
+          setIsEditModalOpen(true);
+        }}
         writeButtonLabel="Request"
       />
       <div className="flex flex-1">
@@ -350,7 +341,12 @@ function SessionRequest() {
                   <>
                     <div className="space-y-6">
                       {userRequests.map((request) => (
-                        <RequestCard key={request.id} request={request} />
+                        <RequestCard 
+                          key={request.id} 
+                          request={request}
+                          onStatusUpdate={handleStatusUpdate}
+                          onEdit={handleEdit}
+                        />
                       ))}
                     </div>
                     <Paginator 
@@ -364,7 +360,12 @@ function SessionRequest() {
                 <>
                   <div className="space-y-6">
                     {requests.map((request) => (
-                      <RequestCard key={request.id} request={request} />
+                      <RequestCard 
+                        key={request.id} 
+                        request={request}
+                        onStatusUpdate={handleStatusUpdate}
+                        onEdit={handleEdit}
+                      />
                     ))}
                   </div>
                   <Paginator 
@@ -380,7 +381,12 @@ function SessionRequest() {
       </div>
       <SessionRequestModal
         isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
+        onClose={() => {
+          setIsEditModalOpen(false);
+          setEditingRequest(null);
+        }}
+        initialData={editingRequest}
+        mode={editingRequest ? 'edit' : 'create'}
       />
     </div>
   );

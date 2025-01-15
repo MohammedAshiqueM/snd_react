@@ -446,3 +446,64 @@ export const followUnfollow = async (pk) => {
         throw error
     }
 }
+
+//Get question
+export const getRequests = async (data) => {
+    try {
+        // console.log("Fetching questions with Params:", data);
+
+        const params = new URLSearchParams(data).toString();
+
+        const response = await instance.get(`requests/?${params}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error during fetching the questions", error);
+    }
+};
+
+//Get question
+export const getUserRequests = async (data) => {
+    try {
+        // console.log("Fetching questions with Params:", data);
+
+        const params = new URLSearchParams(data).toString();
+
+        const response = await instance.get(`requests/my/?${params}`);
+        return response.data;
+    } catch (error) {
+        console.error("Error during fetching the questions", error);
+    }
+};
+
+//Create Session
+export const createSession = async (userData) => {
+    try {
+      const response = await instance.post('requests/', userData,);
+      return response.data;
+    } catch (error) {
+      console.error('Error during question creation:', error);
+  
+      throw error.response || error; 
+    }
+  };
+
+//Get session details
+export const sessionDetails = async (pk) => {
+    try{
+        const response = await instance.get(`requests/${pk}/`)
+        return response.data
+    } catch (error) {
+        console.error("Error during get the requests")
+        throw error
+    }
+}
+
+export const updateRequest = async (pk,data) => {
+    try{
+        const response = await instance.patch(`requests/${pk}/`,data)
+        return response.data
+    } catch (error) {
+        console.error("Error during get the requests")
+        throw error
+    }
+}
