@@ -110,3 +110,69 @@ export const markAllNotifications = async (id) => {
         throw error
     }
 }
+
+//Create Session
+export const createPropose = async (userData) => {
+    try {
+      const response = await instance.post('propose/', userData,);
+      return response.data;
+    } catch (error) {
+      console.error('Error during question creation:', error);
+  
+      throw error.response || error; 
+    }
+  };
+
+//Create Session
+export const classList = async (userData) => {
+    try {
+      const response = await instance.get('propose/', userData,);
+      return response.data;
+    } catch (error) {
+      console.error('Error during question creation:', error);
+  
+      throw error.response || error; 
+    }
+  };
+
+
+export const getSchedulesForRequest = async (requestId) => {
+    const response = await instance.get(`requests/${requestId}/propose/`);
+    return response.data;
+  };
+  
+export const updateScheduleStatus = async (scheduleId, status) => {
+    const response = await instance.patch(`propose/${scheduleId}/`, { status });
+    return response.data;
+};
+
+export const sendProposes = async (data) => {
+
+    console.log("Fetching send proposal with Params:", data);
+
+    const params = new URLSearchParams(data).toString();
+
+    const response = await instance.get(`propose/send/?${params}`);
+    return response.data;
+  };
+  
+export const receivedProposes = async (data) => {
+    const params = new URLSearchParams(data).toString();
+
+    const response = await instance.get(`propose/receved/?${params}`);
+    return response.data;
+};
+  
+export const learningSession = async (data) => {
+    const params = new URLSearchParams(data).toString();
+
+    const response = await instance.get(`schedules/learning/?${params}`);
+    return response.data;
+};
+
+export const teachingSession = async (data) => {
+    const params = new URLSearchParams(data).toString();
+
+    const response = await instance.get(`schedules/teaching/?${params}`);
+    return response.data;
+};

@@ -1,103 +1,113 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { formatDistanceToNow } from 'date-fns';
-import { Tag, Clock, UserCheck, Calendar, ChevronUp, ChevronDown } from 'lucide-react';
-import SideBar from '../../components/SideBar';
-import NavBar from '../../components/NavBar';
-import useSearchStore from '../../store/useSearchStore';
-import { getRequests, getUserRequests } from '../../api';
-import Paginator from "../../components/Paginator";
-import useSkillsStore from '../../store/useSkillStore';
-import RequestShimmer from '../../components/RequestShimmer';
-import SessionRequestModal from '../../components/SessionRequestModal';
-import { truncateText } from '../../util';
+import React, { useState } from 'react';
+import { Tag, Clock, UserCheck, Calendar } from 'lucide-react';
 
-const TabButton = ({ active, onClick, children }) => (
-  <button
-    onClick={onClick}
-    className={`px-6 py-3 text-lg font-semibold rounded-t-lg transition-colors duration-200 ${
-      active 
-        ? 'bg-[#1A1B2E] text-blue-400 border-t-2 border-blue-400' 
-        : 'bg-transparent text-gray-400 hover:text-gray-300'
-    }`}
-  >
-    {children}
-  </button>
-);
-
-const StatusBadge = ({ status }) => {
-  const statusStyles = {
-    DRAFT: 'bg-gray-500',
-    PENDING: 'bg-yellow-500',
-    SCHEDULED: 'bg-green-500',
-    COMPLETED: 'bg-blue-500',
-    CANCELLED: 'bg-red-500'
-  };
-
-  return (
-    <span className={`px-3 py-1 rounded-full text-sm font-medium text-white ${statusStyles[status]}`}>
-      {status.charAt(0) + status.slice(1).toLowerCase()}
-    </span>
-  );
-};
-
-const RequestCard = ({ request }) => {
+const RequestCard = ({ request, onStatusUpdate, onEdit }) => {
+  const [updateLoading, setUpdateLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const { user } = useAuthStore();
   const navigate = useNavigate();
-  const isOwner = request.user?.username === localStorage.getItem('username');
-  const canSchedule = !isOwner && request.status === 'PENDING';
+  const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  const isOwner = request?.user?.username === user.username;
+  const canSchedule = !isOwner && request.status === "PE";
+  const hasProposedSchedule = request.schedule_proposals?.some(
+    proposal => proposal.user.username === user.username
+  );
 
   const handleClick = (e) => {
-    // Prevent navigation if clicking action buttons
-    if (e.target.tagName === 'BUTTON') {
+    if (e.target.closest(".status-badge") || e.target.closest("button")) {
       e.stopPropagation();
       return;
     }
     navigate(`/requests/${request.id}`);
   };
 
-  const handlePublish = async (e) => {
-    e.stopPropagation();
+  const handleStatusChange = async (newStatus) => {
+    setUpdateLoading(true);
+    setError(null);
+
     try {
-        const response = await updateRequest(request.id, { status: 'PENDING' });
-        // Handle success - you might want to refresh the list
-      } catch (error) {
-        console.error('Error publishing request:', error);
-      }
+      await updateRequest(request.id, { status: newStatus });
+      onStatusUpdate(request.id, newStatus);
+      setShowStatusDropdown(false);
+    } catch (error) {
+      console.error("Error updating status:", error);
+      setError("Failed to update status. Please try again.");
+    } finally {
+      setUpdateLoading(false);
+    }
   };
 
-  const handleSchedule = async (e) => {
-    e.stopPropagation();
-    navigate(`/schedule/${request.id}`);
+  const renderScheduleButton = () => {
+    if (isOwner) {
+      return <ProposalCount count={request.schedule_proposals_count} />;
+    }
+
+    if (hasProposedSchedule) {
+      return (
+        <div className="px-4 py-2 rounded-lg bg-gray-600 text-gray-300">
+          Schedule sent
+        </div>
+      );
+    }
+
+    if (canSchedule) {
+      return (
+        <>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsScheduleModalOpen(true);
+            }}
+            className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
+          >
+            Propose Schedule
+          </button>
+          {isScheduleModalOpen && (
+            <ScheduleProposal
+              isOpen={isScheduleModalOpen}
+              onClose={() => setIsScheduleModalOpen(false)}
+              requestId={request.id}
+              onScheduleProposed={() => {
+                setIsScheduleModalOpen(false);
+              }}
+            />
+          )}
+        </>
+      );
+    }
+
+    return null;
   };
 
-  const handleCancel = async (e) => {
-    e.stopPropagation();
-    // Add your cancel logic here
-  };
-
-  const handleEdit = (e) => {
-    e.stopPropagation();
-    onEdit(request);
-  };
   return (
-    <div 
+    <div
       className="border border-gray-700 bg-[#1A1B2E] rounded-lg p-6 relative hover:border-blue-400 transition-colors duration-200 cursor-pointer"
       onClick={handleClick}
     >
+      {/* Header Section */}
       <div className="flex justify-between items-start mb-4">
         <h2 className="text-xl font-semibold text-blue-400 hover:text-blue-300">
           {request.title}
         </h2>
-        <StatusBadge status={request.status} />
+        <div className="status-badge" onClick={(e) => e.stopPropagation()}>
+          <StatusDropdown
+            currentStatus={request.status}
+            onStatusChange={handleStatusChange}
+            isOwner={isOwner}
+          />
+        </div>
       </div>
 
+      {/* Content Section */}
       <p className="text-gray-300 mb-6 whitespace-pre-wrap">
-        {truncateText(request.body_content, 200)}
+        {truncateText(request.body_content, 24)}
       </p>
 
+      {/* Tags Section */}
       <div className="flex flex-wrap gap-2 mb-4">
         {request.tags.map((tagObj, index) => (
-          <span 
+          <span
             key={index}
             className="flex items-center gap-1 px-3 py-1 text-sm rounded-full bg-blue-900/50 text-blue-400"
           >
@@ -107,6 +117,7 @@ const RequestCard = ({ request }) => {
         ))}
       </div>
 
+      {/* Details Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
         <div className="flex items-center gap-2 text-gray-400">
           <Clock size={16} />
@@ -120,270 +131,24 @@ const RequestCard = ({ request }) => {
         </div>
       </div>
 
+      {/* User Info */}
       <div className="flex items-center gap-2 text-gray-400 mb-4">
         <UserCheck size={16} />
         <span>
-          Requested by {request.user?.username} {' '}
+          Requested by {request.user?.username}{" "}
           {formatDistanceToNow(new Date(request.created_at))} ago
         </span>
       </div>
 
-      {request.status === 'PENDING' && !isOwner && (
-        <div className="mb-4 p-4 rounded-lg bg-blue-900/20 border border-blue-500 text-blue-100">
-          This request is open for scheduling. If you have the required skills,
-          you can propose a time to help!
-        </div>
-      )}
-
-<div className="flex justify-end gap-4">
-        {isOwner && request.status === 'DRAFT' && (
-          <>
-            <button
-              onClick={handleEdit}
-              className="px-4 py-2 rounded-lg bg-blue-500 text-white hover:bg-blue-600 transition-colors"
-            >
-              Edit Request
-            </button>
-            <button
-              onClick={handlePublish}
-              className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
-            >
-              Publish Request
-            </button>
-          </>
-        )}
-        {canSchedule && (
-          <button
-            onClick={handleSchedule}
-            className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
-          >
-            Propose Schedule
-          </button>
-        )}
-        {isOwner && ['DRAFT', 'PENDING'].includes(request.status) && (
-          <button
-            onClick={handleCancel}
-            className="px-4 py-2 rounded-lg bg-red-500 text-white hover:bg-red-600 transition-colors"
-          >
-            Cancel Request
-          </button>
-        )}
+      {/* Schedule Button/Status */}
+      <div
+        className="flex justify-end gap-4 mt-4"
+        onClick={(e) => e.stopPropagation()}
+      >
+        {renderScheduleButton()}
       </div>
     </div>
   );
 };
 
-function SessionRequest() {
-  const [activeTab, setActiveTab] = useState('my-requests');
-  const [requests, setRequests] = useState([]);
-  const [userRequests, setUserRequests] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [totalPages, setTotalPages] = useState(1);
-  const [userRequestsTotalPages, setUserRequestsTotalPages] = useState(1);
-  const [userRequestsCurrentPage, setUserRequestsCurrentPage] = useState(1);
-  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
-  const [editingRequest, setEditingRequest] = useState(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    const savedState = localStorage.getItem('isSidebarCollapsed');
-    return savedState ? JSON.parse(savedState) : false;
-  });
-
-  const navigate = useNavigate();
-  const { skills } = useSkillsStore();
-  const { 
-    searchQuery, 
-    selectedCategory, 
-    currentPage, 
-    setSelectedCategory, 
-    setCurrentPage, 
-    setSearchContext 
-  } = useSearchStore();
-
-  const requestsPerPage = 5;
-
-  const fetchRequests = async (page, category, query) => {
-    setIsLoading(true);
-    try {
-      const params = { 
-        page, 
-        page_size: requestsPerPage, 
-        category, 
-        search: query 
-      };
-      const response = await getRequests(params);
-      setRequests(response.results);
-      setTotalPages(Math.ceil(response.count / requestsPerPage));
-    } catch (err) {
-      console.error(err);
-      setRequests([]);
-      setTotalPages(1);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const fetchUserRequests = async (page = 1) => {
-    setIsLoading(true);
-    try {
-      const params = {
-        page,
-        page_size: requestsPerPage,
-        search: searchQuery,
-        category: selectedCategory !== 'All' ? selectedCategory : ''
-      };
-      const response = await getUserRequests(params);
-      setUserRequests(response.results);
-      setUserRequestsTotalPages(Math.ceil(response.count / requestsPerPage));
-    } catch (err) {
-      console.error(err);
-      setUserRequests([]);
-      setUserRequestsTotalPages(1);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const handlePageChange = (newPage) => {
-    if (activeTab === 'explore') {
-      if (newPage < 1 || newPage > totalPages) return;
-      setCurrentPage(newPage);
-      fetchRequests(newPage, selectedCategory, searchQuery);
-    } else {
-      if (newPage < 1 || newPage > userRequestsTotalPages) return;
-      setUserRequestsCurrentPage(newPage);
-      fetchUserRequests(newPage);
-    }
-  };
-
-  const handleSidebarToggle = () => {
-    setIsSidebarCollapsed((prevState) => {
-      const newState = !prevState;
-      localStorage.setItem('isSidebarCollapsed', JSON.stringify(newState));
-      return newState;
-    });
-  };
-
-  useEffect(() => {
-    const storedSidebarState = localStorage.getItem('isSidebarCollapsed');
-    if (storedSidebarState !== null) {
-      setIsSidebarCollapsed(JSON.parse(storedSidebarState));
-      setSearchContext('requests');
-    }
-  }, []);
-
-  useEffect(() => {
-    if (searchQuery) {
-      const matchingCategory = skills.find(
-        skill => skill.toLowerCase().includes(searchQuery.toLowerCase())
-      );
-      const categoryToFetch = matchingCategory || "All";
-      if (selectedCategory !== categoryToFetch) {
-        setSelectedCategory(categoryToFetch);
-      }
-      fetchRequests(1, categoryToFetch, searchQuery);
-    } else {
-      fetchRequests(1, selectedCategory, "");
-    }
-  }, [searchQuery, selectedCategory, skills]);
-
-  useEffect(() => {
-    if (activeTab === 'my-requests') {
-      fetchUserRequests(userRequestsCurrentPage);
-    } else {
-      fetchRequests(currentPage, selectedCategory, searchQuery);
-    }
-  }, [activeTab, currentPage, userRequestsCurrentPage, searchQuery, selectedCategory]);
-
-  return (
-    <div className="min-h-screen bg-[#0A0B1A] text-gray-300 flex flex-col">
-      <NavBar 
-        searchQuery={searchQuery}
-        onWriteClick={() => setIsEditModalOpen(true)} 
-        writeButtonLabel="Request"
-      />
-      <div className="flex flex-1">
-        <SideBar isCollapsed={isSidebarCollapsed} onToggle={handleSidebarToggle} />
-        <main className="flex-1">
-          <div className={`p-4 pt-40 transition-all duration-300 ${
-            isSidebarCollapsed ? 'ml-16' : 'ml-48'
-          }`}>
-            <div className="flex gap-2 mb-6 border-b border-gray-700">
-              <TabButton 
-                active={activeTab === 'explore'} 
-                onClick={() => {
-                  setActiveTab('explore');
-                  setCurrentPage(1);
-                }}
-              >
-                Explore Requests
-              </TabButton>
-              <TabButton 
-                active={activeTab === 'my-requests'} 
-                onClick={() => {
-                  setActiveTab('my-requests');
-                  setUserRequestsCurrentPage(1);
-                }}
-              >
-                My Requests
-              </TabButton>
-            </div>
-
-            <div className="space-y-6">
-              {isLoading ? (
-                <div className="flex flex-col gap-4">
-                  {Array.from({ length: requestsPerPage }).map((_, index) => (
-                    <RequestShimmer key={index} />
-                  ))}
-                </div>
-              ) : activeTab === 'my-requests' ? (
-                userRequests.length === 0 ? (
-                  <div className="text-center py-12">
-                    <p className="text-gray-500 text-lg">You have no active requests.</p>
-                    <button 
-                      onClick={() => setActiveTab('explore')}
-                      className="mt-4 text-blue-400 hover:text-blue-300 transition-colors duration-200"
-                    >
-                      Explore other requests →
-                    </button>
-                  </div>
-                ) : (
-                  <>
-                    <div className="space-y-6">
-                      {userRequests.map((request) => (
-                        <RequestCard key={request.id} request={request} />
-                      ))}
-                    </div>
-                    <Paginator 
-                      currentPage={userRequestsCurrentPage}
-                      totalPages={userRequestsTotalPages}
-                      onPageChange={handlePageChange}
-                    />
-                  </>
-                )
-              ) : (
-                <>
-                  <div className="space-y-6">
-                    {requests.map((request) => (
-                      <RequestCard key={request.id} request={request} />
-                    ))}
-                  </div>
-                  <Paginator 
-                    currentPage={currentPage}
-                    totalPages={totalPages}
-                    onPageChange={handlePageChange}
-                  />
-                </>
-              )}
-            </div>
-          </div>
-        </main>
-      </div>
-      <SessionRequestModal
-        isOpen={isEditModalOpen}
-        onClose={() => setIsEditModalOpen(false)}
-      />
-    </div>
-  );
-}
-
-export default SessionRequest;
+export default RequestCard;

@@ -2,12 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
 import { Tag, Clock, UserCheck, Calendar, ChevronUp, ChevronDown, MoreVertical } from 'lucide-react';
-// import { 
-//   DropdownMenu, 
-//   DropdownMenuContent, 
-//   DropdownMenuItem, 
-//   DropdownMenuTrigger 
-// } from '@/components/ui/dropdown-menu';
+
 import SideBar from '../../components/SideBar';
 import NavBar from '../../components/NavBar';
 import useSearchStore from '../../store/useSearchStore';
@@ -19,6 +14,8 @@ import SessionRequestModal from '../../components/SessionRequestModal';
 import { truncateText } from '../../util';
 import StatusDropdown from '../../components/StatusDropdown';
 import { useAuthStore } from '../../store/useAuthStore';
+import ScheduleProposal from '../../components/ScheduleProposal';
+import { ProposalCount } from './ProposedSchedules';
 
 
 const TabButton = ({ active, onClick, children }) => (
@@ -36,16 +33,15 @@ const TabButton = ({ active, onClick, children }) => (
   
   const RequestCard = ({ request, onStatusUpdate, onEdit }) => {
     const [updateLoading, setUpdateLoading] = useState(false);
-  const [error, setError] = useState(null);
+    const [error, setError] = useState(null);
     const { user } = useAuthStore();
     const navigate = useNavigate();
     const [showStatusDropdown, setShowStatusDropdown] = useState(false);
+    const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
     const isOwner = request?.user?.username === user.username;
-
-    const canSchedule = !isOwner && request.status === 'PENDING';
-  
+    const canSchedule = !isOwner && request.status === "PE" && !request?.has_proposed;
     const handleClick = (e) => {
-      if (e.target.closest('.status-badge') || e.target.closest('button')) {
+      if (e.target.closest(".status-badge") || e.target.closest("button")) {
         e.stopPropagation();
         return;
       }
@@ -53,48 +49,49 @@ const TabButton = ({ active, onClick, children }) => (
     };
   
     const handleStatusChange = async (newStatus) => {
-        
-        setUpdateLoading(true);
-        setError(null);
-        
-        try {
-            await updateRequest(request.id, { status: newStatus });
-            // Call the onStatusUpdate prop to update parent state
-            onStatusUpdate(request.id, newStatus);
-            setShowStatusDropdown(false);
-        } catch (error) {
-            console.error('Error updating status:', error);
-            setError('Failed to update status. Please try again.');
-        } finally {
-            setUpdateLoading(false);
-        }
-      };
-    
+      setUpdateLoading(true);
+      setError(null);
+  
+      try {
+        await updateRequest(request.id, { status: newStatus });
+        onStatusUpdate(request.id, newStatus);
+        setShowStatusDropdown(false);
+      } catch (error) {
+        console.error("Error updating status:", error);
+        setError("Failed to update status. Please try again.");
+      } finally {
+        setUpdateLoading(false);
+      }
+    };
+  
     return (
-      <div 
+      <div
         className="border border-gray-700 bg-[#1A1B2E] rounded-lg p-6 relative hover:border-blue-400 transition-colors duration-200 cursor-pointer"
         onClick={handleClick}
       >
+        {/* Header Section */}
         <div className="flex justify-between items-start mb-4">
           <h2 className="text-xl font-semibold text-blue-400 hover:text-blue-300">
             {request.title}
           </h2>
-          <div className="status-badge" onClick={e => e.stopPropagation()}>
-          <StatusDropdown
-                currentStatus={request.status}
-                onStatusChange={handleStatusChange}
-                isOwner={isOwner}
-                />
-       </div>
+          <div className="status-badge" onClick={(e) => e.stopPropagation()}>
+            <StatusDropdown
+              currentStatus={request.status}
+              onStatusChange={handleStatusChange}
+              isOwner={isOwner}
+            />
+          </div>
         </div>
   
+        {/* Content Section */}
         <p className="text-gray-300 mb-6 whitespace-pre-wrap">
           {truncateText(request.body_content, 24)}
         </p>
   
+        {/* Tags Section */}
         <div className="flex flex-wrap gap-2 mb-4">
           {request.tags.map((tagObj, index) => (
-            <span 
+            <span
               key={index}
               className="flex items-center gap-1 px-3 py-1 text-sm rounded-full bg-blue-900/50 text-blue-400"
             >
@@ -104,6 +101,7 @@ const TabButton = ({ active, onClick, children }) => (
           ))}
         </div>
   
+        {/* Details Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
           <div className="flex items-center gap-2 text-gray-400">
             <Clock size={16} />
@@ -117,30 +115,56 @@ const TabButton = ({ active, onClick, children }) => (
           </div>
         </div>
   
+        {/* User Info */}
         <div className="flex items-center gap-2 text-gray-400 mb-4">
           <UserCheck size={16} />
           <span>
-            Requested by {request.user?.username} {' '}
+            Requested by {request.user?.username}{" "}
             {formatDistanceToNow(new Date(request.created_at))} ago
           </span>
         </div>
-  
-        <div className="flex justify-end gap-4">
+        {isOwner && (
+        <ProposalCount count={request.schedule_proposals_count} />
+      )}
+        {/* Schedule List */}
+        <div
+          className="flex justify-end gap-4 mt-4"
+          onClick={(e) => e.stopPropagation()} // Prevent parent click
+        >
           {canSchedule && (
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                navigate(`/schedule/${request.id}`);
-              }}
-              className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
-            >
-              Propose Schedule
-            </button>
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsScheduleModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
+              >
+                Propose Schedule
+              </button>
+              {isScheduleModalOpen && (
+                <ScheduleProposal
+                  isOpen={isScheduleModalOpen}
+                  onClose={() => setIsScheduleModalOpen(false)}
+                  requestId={request.id}
+                  onScheduleProposed={() => {
+                    setIsScheduleModalOpen(false);
+                  }}
+                />
+              )}
+            </>
           )}
+        
+          {
+            request.has_proposed && <div className={`px-3 py-1 rounded-md text-sm bg-green-900/50 text-green-400`}>
+                    Scheduled
+            </div>
+          }
         </div>
       </div>
     );
   };
+  
   
 
 function SessionRequest() {
@@ -300,15 +324,6 @@ function SessionRequest() {
           }`}>
             <div className="flex gap-2 mb-6 border-b border-gray-700">
               <TabButton 
-                active={activeTab === 'explore'} 
-                onClick={() => {
-                  setActiveTab('explore');
-                  setCurrentPage(1);
-                }}
-              >
-                Explore Requests
-              </TabButton>
-              <TabButton 
                 active={activeTab === 'my-requests'} 
                 onClick={() => {
                   setActiveTab('my-requests');
@@ -316,6 +331,15 @@ function SessionRequest() {
                 }}
               >
                 My Requests
+              </TabButton>
+              <TabButton 
+                active={activeTab === 'explore'} 
+                onClick={() => {
+                  setActiveTab('explore');
+                  setCurrentPage(1);
+                }}
+              >
+                Explore Requests
               </TabButton>
             </div>
 
@@ -388,6 +412,7 @@ function SessionRequest() {
         initialData={editingRequest}
         mode={editingRequest ? 'edit' : 'create'}
       />
+      
     </div>
   );
 }

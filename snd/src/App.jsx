@@ -35,6 +35,9 @@ import { NotificationProvider } from './components/NotificationContext';
 import { WebSocketProvider } from './components/WebSocketContext';
 import SessionRequest from './pages/userSide/SessionRequest';
 import SessionDetails from './pages/userSide/SessionDetails';
+import ProposedRequests from './pages/userSide/ProposedRequests';
+import Sessions from './pages/userSide/Sessions';
+import VideoMeet from './pages/userSide/VideoMeet';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -86,6 +89,9 @@ function App() {
                         <Route path="/chat" element={<Chat />} />
                         <Route path="/requests" element={<SessionRequest />} />
                         <Route path="/requests/:pk" element={<SessionDetails />} />
+                        <Route path="/schedules" element={<ProposedRequests />} />
+                        <Route path="/sessions" element={<Sessions />} />
+                        <Route path="/video" element={<VideoMeet />} />
 
                         {/* <Route path="/shimmer" element={<Shimmer />} /> */}
                         {/* admin */}

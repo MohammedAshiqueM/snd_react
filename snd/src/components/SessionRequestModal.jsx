@@ -11,7 +11,7 @@ export default function SessionRequestModal({ isOpen, onClose, initialData, mode
     preferred_time: initialData?.preferred_time ? 
       new Date(initialData.preferred_time).toISOString().slice(0, 16) : 
       new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString().slice(0, 16),
-    auto_publish: initialData ? initialData.status === 'PD' : false
+    auto_publish: initialData ? initialData.status === 'PE' : false
   });
 
   const [imagePreview, setImagePreview] = useState(null);
@@ -114,6 +114,10 @@ export default function SessionRequestModal({ isOpen, onClose, initialData, mode
     if (!validateForm()) return;
 
     const submitData = new FormData();
+
+    const newStatus = formData.auto_publish ? 'PE' : 'DR';
+    submitData.append('status', newStatus);
+
     Object.keys(formData).forEach(key => {
       if (key === 'tags') {
         submitData.append(key, JSON.stringify(formData[key]));
@@ -125,14 +129,11 @@ export default function SessionRequestModal({ isOpen, onClose, initialData, mode
     setLoading(true);
     try {
         let response;
-      if (mode === 'edit') {
-        // For edit mode, determine if status should change
-        const newStatus = formData.auto_publish ? 'PD' : 'DR';
-        submitData.append('status', newStatus);
+        if (mode === 'edit') {
         response = await updateRequest(initialData.id, submitData);
-      } else {
+        } else {
         response = await createSession(submitData);
-      }
+        }
       
       if (onSuccess) {
         onSuccess(response);

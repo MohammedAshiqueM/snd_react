@@ -31,6 +31,7 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
     "/questions": "questions",
     "/users": "users",
     "/requests": "requests",
+    "/schedules":"schedules"
   };
 
   useEffect(() => {

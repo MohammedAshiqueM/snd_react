@@ -11,15 +11,15 @@ const StatusDropdown = ({ currentStatus, onStatusChange, isOwner }) => {
       icon: '📝',
       label: 'Draft',
       description: 'Request is in draft mode',
-      allowedTransitions: ['PE', 'CN']
+      allowedTransitions: ['PE', 'CA']
     },
     'PE': {
       color: 'bg-amber-500',
       hoverColor: 'hover:bg-amber-600',
       icon: '⏳',
-      label: 'Pending',
+      label: 'Publish',
       description: 'Waiting for someone to accept',
-      allowedTransitions: ['CN']
+      allowedTransitions: ['CA']
     },
     'AC': {
       color: 'bg-emerald-500',
@@ -31,13 +31,13 @@ const StatusDropdown = ({ currentStatus, onStatusChange, isOwner }) => {
     },
     'RJ': {
       color: 'bg-rose-500',
-      hoverColor: 'hover:bg-rose-600',
+      hoverColor: 'hover:bg-rose-400',
       icon: '❌',
       label: 'Rejected',
       description: 'Request has been rejected',
       allowedTransitions: []
     },
-    'CN': {
+    'CA': {
       color: 'bg-neutral-600',
       hoverColor: 'hover:bg-neutral-700',
       icon: '🚫',
@@ -45,12 +45,20 @@ const StatusDropdown = ({ currentStatus, onStatusChange, isOwner }) => {
       description: 'Request has been cancelled',
       allowedTransitions: []
     },
-    'CP': {
+    'CO': {
       color: 'bg-sky-500',
       hoverColor: 'hover:bg-sky-600',
       icon: '✅',
       label: 'Completed',
       description: 'Session has been completed',
+      allowedTransitions: []
+    },
+    'SC': {
+      color: 'bg-sky-500',
+      hoverColor: 'hover:bg-sky-600',
+      icon: '📰',
+      label: 'Scheduled',
+      description: 'Session is scheduled',
       allowedTransitions: []
     }
   };

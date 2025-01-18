@@ -10,6 +10,9 @@ import { useAuthStore } from '../../store/useAuthStore';
 import { Edit2, MoreVertical } from 'lucide-react';
 import SessionRequestModal from '../../components/SessionRequestModal';
 import StatusDropdown from '../../components/StatusDropdown';
+import ProposedSchedules from './ProposedSchedules';
+import { getSchedulesForRequest } from '../../wsApi';
+import ScheduleProposal from '../../components/ScheduleProposal';
 
 export default function SessionDetails() {
   const { pk } = useParams();
@@ -27,6 +30,9 @@ export default function SessionDetails() {
   const [showStatusDropdown, setShowStatusDropdown] = useState(false);
   const [updateLoading, setUpdateLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [schedules, setSchedules] = useState([]);
+  const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
+  
   const navigate = useNavigate();
   const handleStatusChange = async (newStatus) => {
     setUpdateLoading(true);
@@ -46,7 +52,17 @@ export default function SessionDetails() {
       setUpdateLoading(false);
     }
   };
-
+ 
+  const handleScheduleStatusUpdate = async (scheduleId, newStatus) => {
+    try {
+      await updateScheduleStatus(scheduleId, newStatus);
+      // Refresh schedules after update
+    //   const updatedSchedules = await getSchedulesForRequest(pk);
+    //   setSchedules(updatedSchedules);
+    } catch (error) {
+      console.error('Error updating schedule status:', error);
+    }
+  };
    const handleEditSuccess = (updatedData) => {
     setBlog(prev => ({
       ...prev,
@@ -55,6 +71,7 @@ export default function SessionDetails() {
     setIsEditModalOpen(false);
   };
    const isOwner = blog?.user?.username === user.username;
+   const canSchedule = !isOwner && blog?.status === "PE" && !(blog?.has_proposed);
    
   const handleSidebarToggle = () => {
     setIsSidebarCollapsed((prevState) => {
@@ -77,7 +94,9 @@ export default function SessionDetails() {
     async function loadBlog() {
       try {
         const sessionData = await sessionDetails(pk);
+        
         setBlog(sessionData);
+
         // Set the initial follow status from the API response
         setIsFollowing(sessionData.is_following);
       } catch (err) {
@@ -89,6 +108,7 @@ export default function SessionDetails() {
 
     loadBlog();
   }, [pk]);
+  
   
   if (loading) return <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col"><SecondNavbar /></div>;
   if (!blog) return null;
@@ -124,7 +144,7 @@ export default function SessionDetails() {
               </div>
             </div>
             <div className="flex items-center space-x-4">
-              {isOwner && <button
+              {!isOwner && <button
                 className={`rounded px-3 py-1 text-sm font-medium ${
                   isFollowing ? "bg-[#840A0A] hover:bg-red-700" : "bg-blue-600 hover:bg-blue-700"
                 }`}
@@ -155,6 +175,44 @@ export default function SessionDetails() {
           <div className="prose prose-invert max-w-none">
             <p className="mb-4 text-gray-300">{blog.body_content}</p>
           </div>
+          {isOwner && (
+          <ProposedSchedules
+            schedules={schedules}
+            onStatusUpdate={handleScheduleStatusUpdate}
+            requestId={pk}
+          />
+        )}
+        {canSchedule && (
+            <>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsScheduleModalOpen(true);
+                }}
+                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
+              >
+                Propose Schedule
+              </button>
+              {!isOwner && isScheduleModalOpen && (
+                <ScheduleProposal
+                  isOpen={isScheduleModalOpen}
+                  onClose={() => setIsScheduleModalOpen(false)}
+                  requestId={blog.id}
+                  onScheduleProposed={() => {
+                    setIsScheduleModalOpen(false);
+                    // Add any refresh logic here if needed
+                  }}
+                />
+              )}
+            </>
+          )}
+          {
+            blog.has_proposed && <div className="px-3 py-1 rounded-md text-sm bg-green-900/50 text-green-400" style={{ maxWidth: 'fit-content' }}>
+            Scheduled
+        </div>
+        
+          }
+        
         </article>
       </main>
       {isEditModalOpen && (

@@ -488,8 +488,10 @@ export const createSession = async (userData) => {
   };
 
 //Get session details
-export const sessionDetails = async (pk) => {
+export const sessionDetails = async (pk,data) => {
     try{
+        const params = new URLSearchParams(data).toString();
+
         const response = await instance.get(`requests/${pk}/`)
         return response.data
     } catch (error) {
