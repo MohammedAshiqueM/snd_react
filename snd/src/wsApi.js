@@ -176,3 +176,15 @@ export const teachingSession = async (data) => {
     const response = await instance.get(`schedules/teaching/?${params}`);
     return response.data;
 };
+
+export const joinMeet = async (schedule_id) => {
+    console.log("here inside")
+    const response = await instance.post(`meeting/${schedule_id}/join/`);
+    return response.data;
+};
+
+export const verifyMeet = async (schedule_id) => {
+    console.log("here inside")
+    const response = await instance.get(`meeting/${schedule_id}/verify/`);
+    return response.data;
+};

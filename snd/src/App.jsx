@@ -91,7 +91,7 @@ function App() {
                         <Route path="/requests/:pk" element={<SessionDetails />} />
                         <Route path="/schedules" element={<ProposedRequests />} />
                         <Route path="/sessions" element={<Sessions />} />
-                        <Route path="/video" element={<VideoMeet />} />
+                        <Route path="/meeting-room/:meeting_id" element={<VideoMeet />} />
 
                         {/* <Route path="/shimmer" element={<Shimmer />} /> */}
                         {/* admin */}

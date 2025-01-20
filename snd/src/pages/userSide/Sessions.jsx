@@ -4,7 +4,7 @@ import { formatDistanceToNow, formatDistance } from 'date-fns';
 import { Tag, Clock, UserCheck, Calendar, MessageSquare, Video } from 'lucide-react';
 import RequestShimmer from '../../components/RequestShimmer';
 import useSearchStore from '../../store/useSearchStore';
-import { learningSession, teachingSession } from '../../wsApi';
+import { joinMeet, learningSession, teachingSession } from '../../wsApi';
 import SideBar from '../../components/SideBar';
 import NavBar from '../../components/NavBar';
 import SessionRequestModal from '../../components/SessionRequestModal';
@@ -23,7 +23,26 @@ const TabButton = ({ active, onClick, children }) => (
   </button>
 );
 
-const JoinButton = ({ scheduledTime }) => {
+const handleJoin = async (id) => {
+    try {
+      const data = await joinMeet(id);
+      
+      // Check if we received the expected response format
+      if (data && data.meeting_id) {
+        // Open meeting in new window/tab with the received meeting ID
+        window.open(`/meeting-room/${data.meeting_id}`, '_blank');
+      } else {
+        console.error('Invalid meeting response format:', data);
+        alert('Unable to join meeting: Invalid response format');
+      }
+    } catch (error) {
+      console.error('Failed to join meeting:', error);
+      alert('Unable to join meeting. Please try again later.');
+    }
+  };
+
+const JoinButton = ({ scheduleProps }) => {
+    const { scheduledTime, id } = scheduleProps;
     const [timeLeft, setTimeLeft] = useState('');
     const [canJoin, setCanJoin] = useState(false);
     const [countdown, setCountdown] = useState('');
@@ -79,7 +98,7 @@ const JoinButton = ({ scheduledTime }) => {
               ? 'bg-blue-600 hover:bg-blue-700 text-white'
               : 'bg-gray-700 text-gray-400 cursor-not-allowed'
           }`}
-          onClick={() => canJoin && window.open('/meeting-room', '_blank')}
+          onClick={() => handleJoin(id)}
           disabled={!canJoin}
         >
           <Video size={16} />
@@ -151,7 +170,8 @@ const ScheduleCard = ({ schedule }) => {
           Created {formatDistanceToNow(new Date(schedule.request.created_at))} ago
         </div>
         {schedule.status === 'AC' && (
-          <JoinButton scheduledTime={schedule.scheduled_time} />
+          <JoinButton scheduleProps={{ scheduledTime: schedule.scheduled_time, id: schedule.id }} />
+
         )}
       </div>
     </div>
