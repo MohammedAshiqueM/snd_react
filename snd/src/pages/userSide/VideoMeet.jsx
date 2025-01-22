@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Code, ChevronUp, ChevronDown, Maximize2, Minimize2, Send, X } from 'lucide-react';
 import { verifyMeet } from '../../wsApi';
 import { useParams } from 'react-router-dom';
+import ChatSection from '../../components/ChatSection';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const VideoMeeting = ({ scheduleId, onError }) => {
     const localVideoRef = useRef();
@@ -23,7 +25,12 @@ const VideoMeeting = ({ scheduleId, onError }) => {
     const [newMessage, setNewMessage] = useState('');
     const messagesEndRef = useRef(null);
     const [isChatOpen, setIsChatOpen] = useState(false);
-
+    const reconnectAttempts = useRef(0);
+    const MAX_RECONNECT_ATTEMPTS = 3;
+    const reconnectTimeoutRef = useRef(null);
+    const [isInitiator, setIsInitiator] = useState(false);
+    const [wsReady, setWsReady] = useState(false);
+    const { user } = useAuthStore();
     const logInfo = (message, data = '') => {
         console.log(`[VideoMeeting] ${message}`, data);
     };
@@ -31,6 +38,19 @@ const VideoMeeting = ({ scheduleId, onError }) => {
     const logError = (error, context) => {
         console.error(`[VideoMeeting] ${context}:`, error);
         setConnectionStatus(`error: ${context}`);
+    };
+    
+    const handleSendMessage = (e) => {
+        e.preventDefault();
+        if (newMessage.trim() && webSocketRef.current?.readyState === WebSocket.OPEN) {
+            const messageData = {
+                type: 'chat',
+                text: newMessage.trim(),
+            };
+            
+            webSocketRef.current.send(JSON.stringify(messageData));
+            setNewMessage('');
+        }
     };
 
     const processIceCandidateQueue = async () => {
@@ -152,6 +172,116 @@ const VideoMeeting = ({ scheduleId, onError }) => {
         }
     };
 
+    const initializeWebSocket = async (url, isReconnecting = false) => {
+        return new Promise((resolve, reject) => {
+            try {
+                const ws = new WebSocket(url);
+                
+                const timeout = setTimeout(() => {
+                    ws.close();
+                    reject(new Error('WebSocket connection timeout'));
+                }, 10000);
+
+                ws.onopen = () => {
+                    clearTimeout(timeout);
+                    reconnectAttempts.current = 0;
+                    setWsReady(true);
+                    
+                    // If reconnecting, we need to re-establish the peer connection
+                    if (isReconnecting && peerConnectionRef.current) {
+                        handleReconnection();
+                    }
+                    
+                    resolve(ws);
+                };
+
+                ws.onmessage = async (event) => {
+                    try {
+                        const data = JSON.parse(event.data);
+                        
+                        if (data.type === 'initiator') {
+                            setIsInitiator(data.isInitiator);
+                        }
+                        
+                        await handleWebSocketMessage(event);
+                    } catch (err) {
+                        logError(err, 'ws-message-handling');
+                    }
+                };
+
+                ws.onerror = (error) => {
+                    clearTimeout(timeout);
+                    logError(error, 'websocket-error');
+                    reject(error);
+                };
+
+                ws.onclose = () => {
+                    setWsReady(false);
+                    handleWebSocketClosure();
+                };
+            } catch (err) {
+                reject(err);
+            }
+        });
+    };
+
+    const handleWebSocketClosure = async () => {
+        if (reconnectAttempts.current < MAX_RECONNECT_ATTEMPTS) {
+            setConnectionStatus('reconnecting');
+            reconnectAttempts.current += 1;
+            
+            // Exponential backoff for reconnection attempts
+            const backoffTime = Math.min(1000 * Math.pow(2, reconnectAttempts.current), 10000);
+            
+            reconnectTimeoutRef.current = setTimeout(async () => {
+                try {
+                    const verifyResponse = await verifyMeet(meeting_id);
+                    if (verifyResponse.valid) {
+                        const ws = await initializeWebSocket(verifyResponse.websocket_url, true);
+                        webSocketRef.current = ws;
+                    }
+                } catch (err) {
+                    logError(err, 'reconnection-failed');
+                    setConnectionStatus('failed');
+                }
+            }, backoffTime);
+        } else {
+            setConnectionStatus('failed');
+        }
+    };
+
+    const handleReconnection = async () => {
+        try {
+            // Close existing peer connection
+            if (peerConnectionRef.current) {
+                peerConnectionRef.current.close();
+            }
+
+            // Create new peer connection
+            const pc = createPeerConnection();
+            peerConnectionRef.current = pc;
+
+            // Add existing tracks
+            if (mediaStream) {
+                mediaStream.getTracks().forEach(track => {
+                    pc.addTrack(track, mediaStream);
+                });
+            }
+
+            // If we were the initiator, create a new offer
+            if (isInitiator && webSocketRef.current?.readyState === WebSocket.OPEN) {
+                const offer = await pc.createOffer();
+                await pc.setLocalDescription(offer);
+                webSocketRef.current.send(JSON.stringify({
+                    type: 'offer',
+                    offer: offer
+                }));
+            }
+        } catch (err) {
+            logError(err, 'reconnection-handling');
+        }
+    };
+
     const handleWebSocketMessage = async (event) => {
         try {
             const data = JSON.parse(event.data);
@@ -160,13 +290,19 @@ const VideoMeeting = ({ scheduleId, onError }) => {
             switch (data.type) {
                 case 'joined':
                     // Only initiate offer if we're the first peer
-                    if (!peerConnectionRef.current.remoteDescription) {
-                        const offer = await peerConnectionRef.current.createOffer();
-                        await peerConnectionRef.current.setLocalDescription(offer);
-                        webSocketRef.current.send(JSON.stringify({
-                            type: 'offer',
-                            offer: offer
-                        }));
+                    if (isInitiator) {
+                        setTimeout(async () => {
+                            try {
+                                const offer = await peerConnectionRef.current.createOffer();
+                                await peerConnectionRef.current.setLocalDescription(offer);
+                                webSocketRef.current?.send(JSON.stringify({
+                                    type: 'offer',
+                                    offer: offer
+                                }));
+                            } catch (err) {
+                                logError(err, 'create-initial-offer');
+                            }
+                        }, 1000);
                     }
                     break;
 
@@ -219,6 +355,16 @@ const VideoMeeting = ({ scheduleId, onError }) => {
                             logError(err, 'handle-candidate');
                         }
                         break;
+                    case 'chat':
+                        const messageData = {
+                            id: messages.length + 1,
+                            sender_id: data.sender_id,
+                            sender_name: data.sender_name,
+                            text: data.text,
+                            time: data.time
+                        };
+                        setMessages(prev => [...prev, messageData])
+                        break;
             }
         } catch (err) {
             logError(err, 'handle-websocket-message');
@@ -236,36 +382,23 @@ const VideoMeeting = ({ scheduleId, onError }) => {
                     throw new Error('Meeting verification failed');
                 }
 
-                // Create and setup WebSocket
-                const ws = new WebSocket(verifyResponse.websocket_url);
-                webSocketRef.current = ws;
-                
-                // Create peer connection first
+                // Initialize peer connection first
                 const pc = createPeerConnection();
                 peerConnectionRef.current = pc;
 
-                // Then get media stream
+                // Set up media stream
                 const stream = await setupMediaStream();
-
-                // Add tracks only after both peer connection and stream are ready
+                
+                // Initialize WebSocket with timeout
+                const ws = await initializeWebSocket(verifyResponse.websocket_url);
+                webSocketRef.current = ws;
+                
+                // Add tracks only after WebSocket is ready
                 stream.getTracks().forEach(track => {
-                    const sender = pc.addTrack(track, stream);
-                    // Monitor sender state
-                    sender.onended = () => logError(new Error(`Sender ended for ${track.kind}`), 'sender-ended');
+                    pc.addTrack(track, stream);
                 });
 
-                // Only now set up WebSocket handlers
-                ws.onopen = () => {
-                    ws.send(JSON.stringify({ type: 'join', meeting_id }));
-                    setConnectionStatus('connecting');
-                };
-                ws.onmessage = handleWebSocketMessage;
-                ws.onerror = (error) => {
-                    logError(error, 'websocket-error');
-                    setConnectionStatus('error');
-                };
-                ws.onclose = () => setConnectionStatus('disconnected');
-
+                setConnectionStatus('connecting');
             } catch (error) {
                 logError(error, 'initialization');
                 setConnectionStatus('error');
@@ -276,6 +409,10 @@ const VideoMeeting = ({ scheduleId, onError }) => {
         initializeMeeting();
 
         return () => {
+            setWsReady(false);
+            if (reconnectTimeoutRef.current) {
+                clearTimeout(reconnectTimeoutRef.current);
+            }
             if (mediaStream) {
                 mediaStream.getTracks().forEach(track => track.stop());
             }
@@ -287,6 +424,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
             }
         };
     }, [meeting_id]);
+
 
   const toggleAudio = () => {
     if (mediaStream) {
@@ -344,21 +482,21 @@ const VideoMeeting = ({ scheduleId, onError }) => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSendMessage = (e) => {
-    e.preventDefault();
-    if (newMessage.trim()) {
-      const now = new Date();
-      const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
+//   const handleSendMessage = (e) => {
+//     e.preventDefault();
+//     if (newMessage.trim()) {
+//       const now = new Date();
+//       const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
       
-      setMessages(prev => [...prev, {
-        id: prev.length + 1,
-        sender: 'You',
-        text: newMessage.trim(),
-        time
-      }]);
-      setNewMessage('');
-    }
-  };
+//       setMessages(prev => [...prev, {
+//         id: prev.length + 1,
+//         sender: 'You',
+//         text: newMessage.trim(),
+//         time
+//       }]);
+//       setNewMessage('');
+//     }
+//   };
 
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
@@ -371,189 +509,128 @@ const VideoMeeting = ({ scheduleId, onError }) => {
   };
 
   return (
-    <div className="h-screen bg-gray-900 flex flex-col">
+    <div className="h-screen w-full bg-gray-900 flex overflow-hidden">
 
-    <div className={`relative flex-1 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-2/3' : 'w-full'}`}>
-        {/* Add connection status display */}
-        {connectionStatus !== 'connected' && (
-                <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800/90 px-6 py-3 rounded-full text-white z-10 flex items-center space-x-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
-                    <span className="text-sm font-medium">
-                        {connectionStatus}
-                    </span>
+<div className={`flex-1 relative transition-all duration-300 ${sidebarOpen ? 'w-1/2' : 'w-full'}`}>
+                {/* Connection Status */}
+                {connectionStatus !== 'connected' && (
+                    <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-gray-800/90 px-6 py-3 rounded-full text-white z-10 flex items-center space-x-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse"></div>
+                        <span className="text-sm font-medium">{connectionStatus}</span>
+                    </div>
+                )}
+
+                {/* Remote Video */}
+                <div className={`h-full relative ${sidebarOpen ? 'rounded-l-2xl overflow-hidden' : ''}`}>
+                    <video
+                        ref={remoteVideoRef}
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        playsInline
+                    />
                 </div>
-            )}
-      <div className="flex-1 relative">
-        {/* Remote video (main view) */}
-        <video
-          ref={remoteVideoRef}
-          className="w-full h-full object-cover"
-          autoPlay
-          playsInline
-        />
-        
-        {/* Local video (picture-in-picture) */}
-        <div className="absolute top-4 right-4 w-48 h-36 bg-black rounded-lg overflow-hidden ring-1 ring-gray-700">
-          <video
-            ref={localVideoRef}
-            className="w-full h-full object-cover"
-            autoPlay
-            playsInline
-            muted
-          />
-        </div>
 
-        {/* Controls */}
-        <div className="absolute bottom-8 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-gray-800/90 px-8 py-4 rounded-full">
-          <button
-            onClick={toggleAudio}
-            className={`p-4 rounded-full transition-colors duration-200 ${
-              isMuted ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-600 hover:bg-gray-700'
-            }`}
-          >
-            {isMuted ? <MicOff className="text-white" /> : <Mic className="text-white" />}
-          </button>
-          
-          <button
-            onClick={toggleVideo}
-            className={`p-4 rounded-full transition-colors duration-200 ${
-              isVideoOff ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-600 hover:bg-gray-700'
-            }`}
-          >
-            {isVideoOff ? <VideoOff className="text-white" /> : <Video className="text-white" />}
-          </button>
-          
-          <button
-            onClick={endCall}
-            className="p-4 rounded-full bg-red-500 hover:bg-red-600 transition-colors duration-200"
-          >
-            <PhoneOff className="text-white" />
-          </button>
-          <div className="w-px h-8 bg-gray-600"></div>
+                {/* Local Video */}
+                <div className={`absolute ${sidebarOpen ? 'top-4 left-4' : 'top-4 right-4'} w-48 h-36 bg-black rounded-lg overflow-hidden ring-1 ring-gray-700 transition-all duration-300`}>
+                    <video
+                        ref={localVideoRef}
+                        className="w-full h-full object-cover"
+                        autoPlay
+                        playsInline
+                        muted
+                    />
+                </div>
 
-          {/* <button
-            onClick={() => toggleSidebar('chat')}
-            className={`p-4 rounded-full transition-colors duration-200 ${
-              activeTab === 'chat' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-600 hover:bg-gray-700'
-            }`}
-          >
-            <MessageSquare className="text-white" />
-          </button> */}
+                {/* Controls */}
+                <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-gray-800/90 px-4 py-2 rounded-full shadow-lg">
+                    <button
+                        onClick={toggleAudio}
+                        className={`p-4 rounded-full transition-all duration-200 ${
+                            isMuted ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-600 hover:bg-gray-700'
+                        }`}
+                    >
+                        {isMuted ? <MicOff className="text-white w-5 h-5" /> : <Mic className="text-white w-5 h-5" />}
+                    </button>
+                    
+                    <button
+                        onClick={toggleVideo}
+                        className={`p-4 rounded-full transition-all duration-200 ${
+                            isVideoOff ? 'bg-red-500 hover:bg-red-600' : 'bg-gray-600 hover:bg-gray-700'
+                        }`}
+                    >
+                        {isVideoOff ? <VideoOff className="text-white w-5 h-5" /> : <Video className="text-white w-5 h-5 " />}
+                    </button>
+                    
+                    <button
+                        onClick={endCall}
+                        className="p-4 rounded-full bg-red-500 hover:bg-red-600 transition-all duration-200"
+                    >
+                        <PhoneOff className="text-white w-5 h-5" />
+                    </button>
 
-          <button
-            onClick={() => toggleSidebar('code')}
-            className={`p-4 rounded-full transition-colors duration-200 ${
-              activeTab === 'code' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-600 hover:bg-gray-700'
-            }`}
-          >
-            <Code className="text-white" />
-          </button>
+                    <div className="w-px h-8 bg-gray-600"></div>
 
-          <button
-            onClick={toggleFullscreen}
-            className="p-4 rounded-full bg-gray-600 hover:bg-gray-700 transition-colors duration-200"
-          >
-            {isFullscreen ? <Minimize2 className="text-white" /> : <Maximize2 className="text-white" />}
-          </button>
-        </div>
-      </div>
+                    <button
+                        onClick={() => toggleSidebar('code')}
+                        className={`p-4 rounded-full transition-all duration-200 ${
+                            activeTab === 'code' ? 'bg-blue-500 hover:bg-blue-600' : 'bg-gray-600 hover:bg-gray-700'
+                        }`}
+                    >
+                        <Code className="text-white w-5 h-5" />
+                    </button>
 
+                    <button
+                        onClick={toggleFullscreen}
+                        className="p-4 rounded-full bg-gray-600 hover:bg-gray-700 transition-all duration-200"
+                    >
+                        {isFullscreen ? <Minimize2 className="text-white w-5 h-5" /> : <Maximize2 className="text-white w-5 h-5" />}
+                    </button>
+                </div>
+            </div>
+
+            {/* Sidebar */}
+            <div className={`bg-gray-800 transition-all duration-300 ease-in-out ${
+                sidebarOpen ? 'w-1/2' : 'w-0'
+            } overflow-hidden`}>
+                {sidebarOpen && (
+                    <div className="h-full flex flex-col">
+                        <div className="p-4 border-b border-gray-700 flex justify-between items-center">
+                            <h2 className="text-white font-medium">Code Editor</h2>
+                            <button
+                                onClick={() => toggleSidebar(activeTab)}
+                                className="p-2 hover:bg-gray-700 rounded-full transition-colors duration-200"
+                            >
+                                <X className="text-gray-400 hover:text-white w-4 h-4" />
+                            </button>
+                        </div>
+                        
+                        <div className="flex-1 p-4">
+                            <div className="h-full bg-gray-900 rounded-lg p-4">
+                                <div className="h-full flex flex-col">
+                                    <div className="flex-1 font-mono text-gray-300">
+                                        {/* Code editor content would go here */}
+                                        <pre className="p-4">
+                                            // Your code here...
+                                        </pre>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
       {/* Chat Popup */}
-      <div className={`fixed left-4 bottom-28 w-80 bg-gray-800 rounded-lg shadow-lg transition-transform duration-300 ${
-        isChatOpen ? 'transform translate-y-0' : 'transform translate-y-full'
-      }`}>
-        {/* Chat Header */}
-        <div className="flex justify-between items-center p-4 border-b border-gray-700">
-          <h3 className="text-white font-medium">Chat</h3>
-          <button
-            onClick={toggleChat}
-            className="text-gray-400 hover:text-white p-1"
-          >
-            {isChatOpen ? 
-              <ChevronDown className="w-5 h-5" /> : 
-              <ChevronUp className="w-5 h-5" />
-            }
-          </button>
-        </div>
-
-        {/* Messages Area */}
-        <div className="h-96 overflow-y-auto p-4 space-y-4">
-          {messages.map((message) => (
-            <div
-              key={message.id}
-              className={`flex flex-col ${
-                message.sender === 'You' ? 'items-end' : 'items-start'
-              }`}
-            >
-              <div className={`max-w-[80%] rounded-lg px-4 py-2 ${
-                message.sender === 'You' 
-                  ? 'bg-blue-500 text-white' 
-                  : 'bg-gray-700 text-white'
-              }`}>
-                <p className="text-sm">{message.text}</p>
-              </div>
-              <span className="text-xs text-gray-400 mt-1">
-                {message.sender} • {message.time}
-              </span>
-            </div>
-          ))}
-          <div ref={messagesEndRef} />
-        </div>
-
-        {/* Message Input */}
-        <form onSubmit={handleSendMessage} className="p-4 border-t border-gray-700">
-          <div className="flex space-x-2">
-            <input
-              type="text"
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              placeholder="Type a message..."
-              className="flex-1 bg-gray-700 text-white rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            />
-            <button
-              type="submit"
-              className="bg-blue-500 hover:bg-blue-600 text-white rounded-lg px-4 py-2 transition-colors duration-200"
-            >
-              <Send className="w-5 h-5" />
-            </button>
-          </div>
-        </form>
+      <ChatSection 
+            isChatOpen={isChatOpen}
+            toggleChat={toggleChat}
+            messages={messages}
+            newMessage={newMessage}
+            setNewMessage={setNewMessage}
+            handleSendMessage={handleSendMessage}
+            currentUserId={user.id}
+        />
       </div>
-
-      {/* Sidebar */}
-      <div className={`bg-gray-800 transition-all duration-300 ease-in-out ${sidebarOpen ? 'w-1/3' : 'w-0'} overflow-hidden`}>
-        {sidebarOpen && (
-          <div className="h-full flex flex-col">
-            <div className="p-4 border-b border-gray-700 flex justify-between items-center">
-              <h2 className="text-white font-medium">
-                {activeTab === 'chat' ? 'Chat' : 'Code Editor'}
-              </h2>
-              <button
-                onClick={() => toggleSidebar(activeTab)}
-                className="p-2 hover:bg-gray-700 rounded-full transition-colors duration-200"
-              >
-                <X className="text-gray-400 hover:text-white w-4 h-4" />
-              </button>
-            </div>
-            
-            <div className="flex-1 p-4">
-              {activeTab === 'chat' && (
-                <div className="h-full bg-gray-900/50 rounded-lg p-4">
-                  <p className="text-gray-400 text-center">Chat functionality coming soon...</p>
-                </div>
-              )}
-              
-              {activeTab === 'code' && (
-                <div className="h-full bg-gray-900/50 rounded-lg p-4">
-                  <p className="text-gray-400 text-center">Code editor functionality coming soon...</p>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
-      </div>
-      </div>
-    </div>
+    // </div>
   );
 };
 
