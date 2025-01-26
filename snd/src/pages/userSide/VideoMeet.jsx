@@ -4,6 +4,7 @@ import { verifyMeet } from '../../wsApi';
 import { useParams } from 'react-router-dom';
 import ChatSection from '../../components/ChatSection';
 import { useAuthStore } from '../../store/useAuthStore';
+import CodeEditor from '../../components/CodeEditor';
 
 const VideoMeeting = ({ scheduleId, onError }) => {
     const localVideoRef = useRef();
@@ -65,6 +66,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
         }
     };
 
+    //here creates new rtcpeer connection with STUN , (TURN on the future)
     const createPeerConnection = () => {
         const configuration = {
             iceServers: [
@@ -76,7 +78,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
 
         const pc = new RTCPeerConnection(configuration);
 
-        // Handle negotiation needed
+        //negotiation
         pc.onnegotiationneeded = async () => {
             try {
                 if (pc.signalingState === "stable") {
@@ -92,6 +94,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
             }
         };
 
+        //when ice candidate is discovered
         pc.onicecandidate = (event) => {
             if (event.candidate && webSocketRef.current?.readyState === WebSocket.OPEN) {
                 webSocketRef.current.send(JSON.stringify({
@@ -101,6 +104,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
             }
         };
 
+        //remote track is added
         pc.ontrack = (event) => {
             logInfo('Received remote track', event.streams[0]);
             if (remoteVideoRef.current && event.streams[0]) {
@@ -110,6 +114,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
             }
         };
 
+        //ice connection state changes
         pc.oniceconnectionstatechange = () => {
             logInfo('ICE Connection State:', pc.iceConnectionState);
             switch (pc.iceConnectionState) {
@@ -131,7 +136,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
         };
 
         pc.onconnectionstatechange = () => {
-            logInfo('Connection State:', pc.connectionState);
+            logInfo('............Connection State:', pc.connectionState);
             setConnectionStatus(pc.connectionState);
         };
 
@@ -469,34 +474,10 @@ const VideoMeeting = ({ scheduleId, onError }) => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   };
 
-//   const processIceCandidateQueue = async () => {
-//     if (peerConnectionRef.current.remoteDescription) {
-//         while (iceCandidatesQueue.current.length) {
-//             const candidate = iceCandidatesQueue.current.shift();
-//             await peerConnectionRef.current.addIceCandidate(new RTCIceCandidate(candidate));
-//         }
-//     }
-// };
-
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-//   const handleSendMessage = (e) => {
-//     e.preventDefault();
-//     if (newMessage.trim()) {
-//       const now = new Date();
-//       const time = `${now.getHours()}:${String(now.getMinutes()).padStart(2, '0')}`;
-      
-//       setMessages(prev => [...prev, {
-//         id: prev.length + 1,
-//         sender: 'You',
-//         text: newMessage.trim(),
-//         time
-//       }]);
-//       setNewMessage('');
-//     }
-//   };
 
   const toggleChat = () => {
     setIsChatOpen(!isChatOpen);
@@ -590,7 +571,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
 
             {/* Sidebar */}
             <div className={`bg-gray-800 transition-all duration-300 ease-in-out ${
-                sidebarOpen ? 'w-1/2' : 'w-0'
+                sidebarOpen ? 'w-1/2 border border-gray-500' : 'w-0'
             } overflow-hidden`}>
                 {sidebarOpen && (
                     <div className="h-full flex flex-col">
@@ -604,18 +585,24 @@ const VideoMeeting = ({ scheduleId, onError }) => {
                             </button>
                         </div>
                         
-                        <div className="flex-1 p-4">
-                            <div className="h-full bg-gray-900 rounded-lg p-4">
-                                <div className="h-full flex flex-col">
-                                    <div className="flex-1 font-mono text-gray-300">
+                        {/* <div className="flex-1 p-4"> */}
+                            {/* <div className="h-full bg-gray-900 rounded-lg p-4"> */}
+                                {/* <div className="h-full flex flex-col"> */}
+                                    {/* <div className="flex-1 font-mono text-gray-300"> */}
                                         {/* Code editor content would go here */}
-                                        <pre className="p-4">
+                                        {/* <pre className="p-4">
                                             // Your code here...
-                                        </pre>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
+                                        </pre> */}
+                                        {activeTab === 'code' && (
+                                            <CodeEditor 
+                                                websocket={webSocketRef.current}
+                                                isOpen={activeTab === 'code'} 
+                                            />
+                                        )}
+                                    {/* </div> */}
+                                {/* </div> */}
+                            {/* </div> */}
+                        {/* </div> */}
                     </div>
                 )}
             </div>
