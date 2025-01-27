@@ -509,3 +509,15 @@ export const updateRequest = async (pk,data) => {
         throw error
     }
 }
+
+export const timeTransaction = async () => {
+    try{
+        // const params = new URLSearchParams(data).toString();
+
+        const response = await instance.get('/time-transactions/')
+        return response.data
+    } catch (error) {
+        console.error("Error during get the requests")
+        throw error
+    }
+}

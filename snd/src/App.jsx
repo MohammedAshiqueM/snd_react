@@ -39,7 +39,7 @@ import ProposedRequests from './pages/userSide/ProposedRequests';
 import Sessions from './pages/userSide/Sessions';
 import VideoMeet from './pages/userSide/VideoMeet';
 import CodeEditor from './components/CodeEditor';
-import Account from './pages/userSide/Account';
+import TimeAccountPage from './pages/userSide/Account';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -94,7 +94,7 @@ function App() {
                         <Route path="/schedules" element={<ProposedRequests />} />
                         <Route path="/sessions" element={<Sessions />} />
                         <Route path="/meeting-room/:meeting_id" element={<VideoMeet />} />
-                        <Route path="/account" element={<Account />} />
+                        <Route path="/account" element={<TimeAccountPage />} />
                         
                         {/* <Route path="/shimmer" element={<Shimmer />} /> */}
                         {/* admin */}
