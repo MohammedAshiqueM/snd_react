@@ -188,3 +188,9 @@ export const verifyMeet = async (schedule_id) => {
     const response = await instance.get(`meeting/${schedule_id}/verify/`);
     return response.data;
 };
+
+export const ratingUser = async (data) => {
+    console.log("here inside")
+    const response = await instance.post(`ratings/`,data);
+    return response.data;
+};

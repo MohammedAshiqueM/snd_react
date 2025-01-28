@@ -1,24 +1,50 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { sessionDetails, followUnfollow, updateRequest } from '../../api'; 
+import { sessionDetails, followUnfollow, updateRequest, } from '../../api'; 
 import { baseUrl } from '../../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import noUser from '../../assets/Images/no_user.jpg'
 import { useAuthStore } from '../../store/useAuthStore';
-import { Edit2, MoreVertical } from 'lucide-react';
+import { Activity, Edit2, MoreVertical, X } from 'lucide-react';
 import SessionRequestModal from '../../components/SessionRequestModal';
 import StatusDropdown from '../../components/StatusDropdown';
 import ProposedSchedules from './ProposedSchedules';
 import { getSchedulesForRequest } from '../../wsApi';
 import ScheduleProposal from '../../components/ScheduleProposal';
+import RequestCycleStatus from '../../components/RequestCycleStatus';
+
+const StatusModal = ({ isOpen, onClose, children }) => {
+    if (!isOpen) return null;
+  
+    return (
+        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+        <div className="relative max-w-2xl w-full mx-auto">
+          <div className="relative bg-[#0A0B1A] rounded-xl shadow-xl">
+            {/* Close button */}
+            <button
+              onClick={onClose}
+              className="absolute -right-3 -top-3 w-8 h-8 flex items-center justify-center bg-gray-800 hover:bg-gray-700 rounded-full text-gray-400 hover:text-white transition-colors z-10"
+            >
+              <X size={18} />
+            </button>
+            {/* Content */}
+            <div className="p-1">
+              {children}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  };
+  
 
 export default function SessionDetails() {
   const { pk } = useParams();
   const [blog, setBlog] = useState(null);
   const { user } = useAuthStore();
-
+  const [isStatusModalOpen, setIsStatusModalOpen] = useState(false);
   const [isFollowing, setIsFollowing] = useState(false);
   const [loading, setLoading] = useState(true);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
@@ -142,6 +168,7 @@ export default function SessionDetails() {
                   Posted {formatDistanceToNow(new Date(blog.created_at))} ago
                 </p>
               </div>
+              
             </div>
             <div className="flex items-center space-x-4">
               {!isOwner && <button
@@ -152,6 +179,14 @@ export default function SessionDetails() {
               >
                 {isFollowing ? "Unfollow" : "Follow"}
               </button>}
+              {/* Progress Button */}
+              <button
+                onClick={() => setIsStatusModalOpen(true)}
+                className="flex items-center gap-2 px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg hover:bg-blue-500/30 transition-colors"
+              >
+                <Activity size={16} />
+                View Progress
+              </button>
             </div>
           </div>
                 
@@ -214,6 +249,19 @@ export default function SessionDetails() {
           }
         
         </article>
+        {/* Status Modal */}
+        <StatusModal
+            isOpen={isStatusModalOpen}
+            onClose={() => setIsStatusModalOpen(false)}
+          >
+            <RequestCycleStatus 
+              status={blog.status}
+              scheduleData={{
+                proposals_count: blog.schedule_proposals_count,
+                accepted_schedule: blog.accepted_schedule
+              }}
+            />
+          </StatusModal>
       </main>
       {isEditModalOpen && (
        <SessionRequestModal

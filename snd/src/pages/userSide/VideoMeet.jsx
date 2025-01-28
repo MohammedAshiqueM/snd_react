@@ -5,6 +5,7 @@ import { useParams } from 'react-router-dom';
 import ChatSection from '../../components/ChatSection';
 import { useAuthStore } from '../../store/useAuthStore';
 import CodeEditor from '../../components/CodeEditor';
+import RatingModal from '../../components/RatingModal';
 
 const VideoMeeting = ({ scheduleId, onError }) => {
     const localVideoRef = useRef();
@@ -32,6 +33,70 @@ const VideoMeeting = ({ scheduleId, onError }) => {
     const [isInitiator, setIsInitiator] = useState(false);
     const [wsReady, setWsReady] = useState(false);
     const { user } = useAuthStore();
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const hasShownRating = useRef(false);
+    const searchParams = new URLSearchParams(window.location.search);
+    const teacherId = searchParams.get('teacherId');
+    const studentId = searchParams.get('studentId');
+    const [isTeacher, setIsTeacher] = useState(false);
+
+    useEffect(() => {
+        const checkTeacherStatus = () => {
+            const isUserTeacher = String(user.id) === String(teacherId);
+            console.log("Teacher check:", {
+                userId: user.id,
+                teacherId: teacherId,
+                isTeacher: isUserTeacher
+            });
+            setIsTeacher(isUserTeacher);
+        };
+        
+        checkTeacherStatus();
+    }, [user.id, teacherId]);
+
+    useEffect(() => {
+        const handleBeforeUnload = (e) => {
+            if (!hasShownRating.current && !isTeacher) {
+                console.log("Preventing unload for student");
+                e.preventDefault();
+                e.returnValue = '';
+                setShowRatingModal(true);
+                return '';
+            } else {
+                console.log("Allowing unload for teacher");
+            }
+        };
+
+        window.addEventListener('beforeunload', handleBeforeUnload);
+        return () => window.removeEventListener('beforeunload', handleBeforeUnload);
+    }, [isTeacher]);
+
+    const handleRatingSubmit = () => {
+        hasShownRating.current = true;
+        window.close();
+    };
+
+    const handleRatingClose = () => {
+        hasShownRating.current = true;
+        window.close();
+    };
+
+    const endCall = () => {
+        console.log("End call triggered:", {
+            isTeacher,
+            userId: user.id,
+            teacherId
+        });
+        
+        if (isTeacher) {
+            console.log("Teacher ending call - closing window directly");
+            window.close();
+        } else {
+            console.log("Student ending call - showing rating modal");
+            setShowRatingModal(true);
+        }
+    };
+
     const logInfo = (message, data = '') => {
         console.log(`[VideoMeeting] ${message}`, data);
     };
@@ -485,11 +550,12 @@ const VideoMeeting = ({ scheduleId, onError }) => {
     setActiveTab('none');
   };
 
-  const endCall = () => {
-    window.close();
-  };
+//   const endCall = () => {
+//     window.close();
+//   };
 
   return (
+    <>
     <div className="h-screen w-full bg-gray-900 flex overflow-hidden">
 
 <div className={`flex-1 relative transition-all duration-300 ${sidebarOpen ? 'w-1/2' : 'w-full'}`}>
@@ -617,7 +683,14 @@ const VideoMeeting = ({ scheduleId, onError }) => {
             currentUserId={user.id}
         />
       </div>
-    // </div>
+      {showRatingModal && user.id !== teacherId && (
+                <RatingModal
+                    teacherId={teacherId}
+                    onClose={handleRatingClose}
+                    onSubmit={handleRatingSubmit}
+                />
+            )}
+        </>
   );
 };
 

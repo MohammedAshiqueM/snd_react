@@ -20,16 +20,18 @@ import { ProposalCount } from './ProposedSchedules';
 
 const TabButton = ({ active, onClick, children }) => (
     <button
-      onClick={onClick}
-      className={`px-6 py-3 text-lg font-semibold rounded-t-lg transition-colors duration-200 ${
-        active 
-          ? 'bg-[#1A1B2E] text-blue-400 border-t-2 border-blue-400' 
-          : 'bg-transparent text-gray-400 hover:text-gray-300'
-      }`}
-    >
-      {children}
-    </button>
-  );
+    onClick={onClick}
+    className={`px-6 py-3 text-lg font-medium rounded-t-lg transition-all duration-300 relative
+      ${active 
+        ? 'text-white bg-gradient-to-r from-indigo-500/20 to-purple-500/20 border-t-2 border-indigo-500' 
+        : 'text-gray-400 hover:text-white hover:bg-indigo-500/10'}`}
+  >
+    {children}
+    {active && (
+      <div className="absolute bottom-0 left-0 w-full h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500" />
+    )}
+  </button>
+);
   
   const RequestCard = ({ request, onStatusUpdate, onEdit }) => {
     const [updateLoading, setUpdateLoading] = useState(false);
@@ -65,105 +67,109 @@ const TabButton = ({ active, onClick, children }) => (
     };
   
     return (
-      <div
-        className="border border-gray-700 bg-[#1A1B2E] rounded-lg p-6 relative hover:border-blue-400 transition-colors duration-200 cursor-pointer"
-        onClick={handleClick}
-      >
-        {/* Header Section */}
-        <div className="flex justify-between items-start mb-4">
-          <h2 className="text-xl font-semibold text-blue-400 hover:text-blue-300">
-            {request.title}
-          </h2>
-          <div className="status-badge" onClick={(e) => e.stopPropagation()}>
-            <StatusDropdown
+        <div
+          onClick={handleClick}
+          className="group border border-gray-800 bg-gradient-to-r from-[#1A1B2E] to-[#1E1F36] rounded-lg p-6 
+                    hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10 
+                    transition-all duration-300 relative overflow-hidden"
+        >
+          <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 opacity-0 
+                        group-hover:opacity-100 transition-opacity duration-300" />
+          
+          <div className="relative z-10">
+            <div className="flex justify-between items-start mb-4">
+              <h2 className="text-xl font-semibold bg-gradient-to-r from-indigo-400 to-purple-400 
+                           bg-clip-text text-transparent group-hover:from-indigo-300 
+                           group-hover:to-purple-300 transition-all duration-300">
+                {request.title}
+              </h2>
+              <StatusDropdown
               currentStatus={request.status}
               onStatusChange={handleStatusChange}
               isOwner={isOwner}
             />
-          </div>
-        </div>
-  
-        {/* Content Section */}
-        <p className="text-gray-300 mb-6 whitespace-pre-wrap">
-          {truncateText(request.body_content, 24)}
-        </p>
-  
-        {/* Tags Section */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          {request.tags.map((tagObj, index) => (
-            <span
-              key={index}
-              className="flex items-center gap-1 px-3 py-1 text-sm rounded-full bg-blue-900/50 text-blue-400"
-            >
-              <Tag size={14} />
-              {tagObj.tag.name}
-            </span>
-          ))}
-        </div>
-  
-        {/* Details Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div className="flex items-center gap-2 text-gray-400">
-            <Clock size={16} />
-            <span>{request.duration_minutes} minutes</span>
-          </div>
-          <div className="flex items-center gap-2 text-gray-400">
-            <Calendar size={16} />
-            <span>
-              Preferred: {new Date(request.preferred_time).toLocaleString()}
-            </span>
-          </div>
-        </div>
-  
-        {/* User Info */}
-        <div className="flex items-center gap-2 text-gray-400 mb-4">
-          <UserCheck size={16} />
-          <span>
-            Requested by {request.user?.username}{" "}
-            {formatDistanceToNow(new Date(request.created_at))} ago
-          </span>
-        </div>
-        {isOwner && (
-        <ProposalCount count={request.schedule_proposals_count} />
-      )}
-        {/* Schedule List */}
-        <div
+            </div>
+    
+            <p className="text-gray-300 mb-6 whitespace-pre-wrap">
+              {truncateText(request.body_content, 24)}
+            </p>
+    
+            <div className="flex flex-wrap gap-2 mb-4">
+              {request.tags.map((tagObj, index) => (
+                <span
+                  key={index}
+                  className="flex items-center gap-1 px-3 py-1 text-sm rounded-full 
+                           bg-indigo-500/10 text-indigo-400 border border-indigo-500/20"
+                >
+                  <Tag size={14} />
+                  {tagObj.tag.name}
+                </span>
+              ))}
+            </div>
+    
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+              <div className="flex items-center gap-2 text-gray-400">
+                <Clock size={16} />
+                <span>{request.duration_minutes} minutes</span>
+              </div>
+              <div className="flex items-center gap-2 text-gray-400">
+                <Calendar size={16} />
+                <span>
+                  Preferred: {new Date(request.preferred_time).toLocaleString()}
+                </span>
+              </div>
+            </div>
+    
+            <div className="flex items-center gap-2 text-gray-400 mb-4">
+              <UserCheck size={16} />
+              <span>
+                Requested by {request.user?.username}{" "}
+                {formatDistanceToNow(new Date(request.created_at))} ago
+              </span>
+            </div>
+    
+            {isOwner && <ProposalCount count={request.schedule_proposals_count} />}
+    
+            <div className="flex justify-end gap-4 mt-4">
+            <div
           className="flex justify-end gap-4 mt-4"
           onClick={(e) => e.stopPropagation()} // Prevent parent click
         >
-          {canSchedule && (
-            <>
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsScheduleModalOpen(true);
-                }}
-                className="px-4 py-2 rounded-lg bg-green-500 text-white hover:bg-green-600 transition-colors"
-              >
-                Propose Schedule
-              </button>
-              {isScheduleModalOpen && (
-                <ScheduleProposal
-                  isOpen={isScheduleModalOpen}
-                  onClose={() => setIsScheduleModalOpen(false)}
-                  requestId={request.id}
-                  onScheduleProposed={() => {
-                    setIsScheduleModalOpen(false);
-                  }}
-                />
+              {canSchedule && (
+                <>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsScheduleModalOpen(true);
+                    }}
+                    className="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 
+                             text-white hover:shadow-lg hover:shadow-indigo-500/20 
+                             transition-all duration-300"
+                  >
+                    Propose Schedule
+                  </button>
+                  {isScheduleModalOpen && (
+                    <ScheduleProposal
+                      isOpen={isScheduleModalOpen}
+                      onClose={() => setIsScheduleModalOpen(false)}
+                      requestId={request.id}
+                      onScheduleProposed={() => setIsScheduleModalOpen(false)}
+                    />
+                  )}
+                </>
               )}
-            </>
-          )}
-        
-          {
-            request.has_proposed && <div className={`px-3 py-1 rounded-md text-sm bg-green-900/50 text-green-400`}>
-                    Scheduled
+              {request.has_proposed && (
+                <div className="px-3 py-1 rounded-md text-sm bg-green-500/20 text-green-400 
+                             border border-green-500/20">
+                  Scheduled
+                </div>
+              )}
+              </div>
             </div>
-          }
+          </div>
         </div>
-      </div>
-    );
-  };
+      );
+    };
   
   
 
@@ -322,7 +328,7 @@ function SessionRequest() {
           <div className={`p-4 pt-40 transition-all duration-300 ${
             isSidebarCollapsed ? 'ml-16' : 'ml-48'
           }`}>
-            <div className="flex gap-2 mb-6 border-b border-gray-700">
+            <div className="flex gap-2 mb-6 border-b border-gray-800">
               <TabButton 
                 active={activeTab === 'my-requests'} 
                 onClick={() => {

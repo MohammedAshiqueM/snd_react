@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Bell, Heart, MessageCircle, Search, Share2, ChevronUp, ChevronDown, Pen } from 'lucide-react';
+import { Bell, Heart, MessageCircle, Search, Share2, ChevronUp, ChevronDown, Pen, X } from 'lucide-react';
 import { getBlogs, userSkills } from '../../api';
 import { useNavigate } from 'react-router-dom';
 import BlogWriteModal from '../../components/BlogWriteModal';
@@ -30,6 +30,17 @@ const Home = () => {
     const [isLoading, setIsLoading] = useState(true);
     const { isAuthenticated, loading: authLoading } = useAuthStore();
     const blogsPerPage = 12;
+
+    const [showWelcome, setShowWelcome] = useState(() => {
+        const savedState = localStorage.getItem('hideWelcome');
+        return !savedState; // Show welcome if not hidden
+    });
+
+    // Function to handle welcome section close
+    const handleWelcomeClose = () => {
+        setShowWelcome(false);
+        localStorage.setItem('hideWelcome', 'true');
+    };
 
     // Voting logic
     const handleVote = (postId, voteType) => {
@@ -117,122 +128,181 @@ useEffect(() => {
     
     
 
-    return (
-        <div className="min-h-screen bg-[#0A0B1A] flex flex-col">
-            {/* Top Navigation */}
+return (
+    <div className="min-h-screen bg-gradient-to-b from-[#0A0B1A] to-[#1A1B2E] flex flex-col">
             <NavBar
-                // onSearch={handleSearch}
                 searchQuery={searchQuery}
                 onWriteClick={() => setIsEditModalOpen(true)}
                 writeButtonLabel="Write Blog"
             />
 
-            {/* Main Content */}
             <div className="flex flex-1">
-                {/* Sidebar */}
                 <SideBar
                     isCollapsed={isSidebarCollapsed}
-                    onToggle={handleSidebarToggle}
+                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
                 />
-                {/* Content Grid */}
-                <main
-                    className={`flex-1 p-4 pt-40 transition-all duration-300 ${
-                        isSidebarCollapsed ? 'ml-16' : 'ml-48'
-                    }`}
-                >
-                    {(isLoading || authLoading)  ? (
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                
+                <main className={`flex-1 p-6 pt-40 transition-all duration-300 ${
+                    isSidebarCollapsed ? 'ml-16' : 'ml-48'
+                }`}>
+                    {/* Enhanced Welcome Section */}
+                    {showWelcome && (
+                        <div className="relative mb-8 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-2xl p-8 border border-indigo-500/20 overflow-hidden group">
+                            {/* Animated Background Effect */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 transform -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000" />
+                            
+                            <button 
+                                onClick={handleWelcomeClose}
+                                className="absolute top-4 right-4 p-1.5 rounded-lg text-gray-400 hover:text-white hover:bg-white/10 transition-all duration-300"
+                            >
+                                <X className="w-4 h-4" />
+                            </button>
+                            
+                            <div className="relative">
+                                <h1 className="text-3xl font-bold text-white mb-4">Welcome to the Tech Community</h1>
+                                <p className="text-gray-300 max-w-2xl">Share your knowledge, discover new perspectives, and connect with fellow tech enthusiasts.</p>
+                            </div>
+                        </div>
+                    )}
+
+                    {(isLoading || authLoading) ? (
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {Array.from({ length: blogsPerPage }).map((_, index) => (
                                 <Shimmer key={index} />
                             ))}
                         </div>
                     ) : posts.length > 0 ? (
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
                             {posts.map((post, i) => (
                                 <div
                                     key={i}
-                                    className="group rounded-lg border border-gray-800 bg-[#0D0E21] p-4 transition-colors hover:border-gray-700"
+                                    className="group relative rounded-xl border border-gray-800 bg-gradient-to-b from-[#0D0E21] to-[#151632] p-4 transition-all duration-300 hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10 cursor-pointer transform hover:-translate-y-1"
                                     onClick={() => navigate(`/blogs/${post.slug}`)}
                                 >
+                                    {/* Enhanced Image Container */}
                                     <div className="relative aspect-video overflow-hidden rounded-lg">
                                         <img
                                             src={post.image ? `${baseUrl}${post.image}` : blogDefault}
                                             alt={post.title || 'Untitled'}
-                                            className="h-full w-full object-cover transition-transform group-hover:scale-105"
+                                            className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
                                     </div>
-                                    <div className="mt-4">
-                                        <h3 className="font-semibold text-white truncate">{post.title || 'Untitled Post'}</h3>
-                                        <div className="flex space-x-2 pt-2">
+                                    
+                                    <div className="mt-4 space-y-3">
+                                        {/* Enhanced Title */}
+                                        <h3 className="font-semibold text-white truncate text-lg group-hover:text-indigo-400 transition-colors">
+                                            {post.title || 'Untitled Post'}
+                                        </h3>
+                                        
+                                        {/* Enhanced Tags */}
+                                        <div className="flex flex-wrap gap-2">
                                             {post.tags.map((tagObj, index) => (
                                                 <span
                                                     key={index}
-                                                    className="text-xs text-blue-400 bg-blue-900 px-2 py-1 rounded"
+                                                    className="text-xs text-indigo-400 bg-indigo-500/10 px-3 py-1 rounded-full transition-all duration-300 hover:bg-indigo-500/20 hover:text-white"
                                                 >
                                                     {tagObj.tag.name}
                                                 </span>
                                             ))}
                                         </div>
-                                        <div className="mt-4 flex items-center justify-between flex-wrap">
-                                        <div className="flex items-center gap-2 max-w-full">
-                                            <div className="h-6 w-6 rounded-full bg-gray-700 flex-shrink-0">
-                                                <img
-                                                    src={post.user?.profile_image ? `${baseUrl}${post.user.profile_image}` : noUser}
-                                                    alt={post.user?.first_name || 'Unknown'}
-                                                    className="h-full w-full rounded-full"
-                                                />
-                                            </div>
-                                            <span 
-                                                className="text-sm text-gray-400 truncate max-w-[200px] overflow-hidden"
-                                                title={post.user?.first_name || 'Unknown Author'}
-                                            >
-                                                {post.user?.first_name || 'Unknown Author'}
-                                            </span>
-                                        </div>
-                                        <div className="flex items-center gap-3 text-gray-400">
-                                            <div className="flex items-center gap-0.5 bg-[#1A1B2E] rounded-md p-0.5">
-                                                <button
-                                                    onClick={() => handleVote(post.id, 1)}
-                                                    className={`p-1 rounded ${
-                                                        votes[post.id] === 1 ? 'text-blue-500 bg-blue-500/10' : 'hover:bg-[#2A2B3E]'
-                                                    }`}
-                                                >
-                                                    <ChevronUp className="h-4 w-4" />
-                                                </button>
-                                                <span className="text-xs px-1 min-w-[24px] text-center">
-                                                    {(post.vote_count || 0) + (votes[post.id] || 0)}
-                                                </span>
-                                                <button
-                                                    onClick={() => handleVote(post.id, -1)}
-                                                    className={`p-1 rounded ${
-                                                        votes[post.id] === -1 ? 'text-red-500 bg-red-500/10' : 'hover:bg-[#2A2B3E]'
-                                                    }`}
-                                                >
-                                                    <ChevronDown className="h-4 w-4" />
-                                                </button>
-                                            </div>
-                                            <button className="flex items-center gap-1 hover:text-white">
-                                                <MessageCircle className="h-4 w-4" />
-                                                <span className="text-xs">{post.comment_count || 0}</span>
-                                            </button>
-                                            <button className="hover:text-white">
-                                                <Share2 className="h-4 w-4" />
-                                            </button>
-                                        </div>
-                                    </div>
 
+                                        {/* Enhanced Author and Interaction Section */}
+                                        <div className="mt-4 flex items-center justify-between flex-wrap">
+                                            <div className="flex items-center gap-3 max-w-[60%]">
+                                                <div className="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 p-0.5">
+                                                    <div className="h-full w-full rounded-full bg-[#0D0E21] p-0.5 overflow-hidden">
+                                                        <img
+                                                            src={post.user?.profile_image ? `${baseUrl}${post.user.profile_image}` : noUser}
+                                                            alt={post.user?.first_name || 'Unknown'}
+                                                            className="h-full w-full object-cover transition-transform group-hover:scale-110"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <span 
+                                                    className="text-sm text-gray-300 truncate hover:text-indigo-400 transition-colors"
+                                                    title={post.user?.first_name || 'Unknown Author'}
+                                                >
+                                                    {post.user?.first_name || 'Unknown Author'}
+                                                </span>
+                                            </div>
+                                            
+                                            {/* Enhanced Interaction Buttons */}
+                                            <div className="flex items-center gap-3 text-gray-400">
+                                                <div className="flex items-center gap-0.5 bg-[#1A1B2E] rounded-lg p-1">
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleVote(post.id, 1);
+                                                        }}
+                                                        className={`p-1.5 rounded-md transition-all ${
+                                                            votes[post.id] === 1 
+                                                                ? 'text-indigo-400 bg-indigo-500/20' 
+                                                                : 'hover:bg-indigo-500/10 hover:text-indigo-400'
+                                                        }`}
+                                                    >
+                                                        <ChevronUp className="h-4 w-4" />
+                                                    </button>
+                                                    <span className="text-xs px-2 min-w-[24px] text-center font-medium">
+                                                        {(post.vote_count || 0) + (votes[post.id] || 0)}
+                                                    </span>
+                                                    <button
+                                                        onClick={(e) => {
+                                                            e.stopPropagation();
+                                                            handleVote(post.id, -1);
+                                                        }}
+                                                        className={`p-1.5 rounded-md transition-all ${
+                                                            votes[post.id] === -1 
+                                                                ? 'text-red-400 bg-red-500/20' 
+                                                                : 'hover:bg-red-500/10 hover:text-red-400'
+                                                        }`}
+                                                    >
+                                                        <ChevronDown className="h-4 w-4" />
+                                                    </button>
+                                                </div>
+                                                
+                                                <button 
+                                                    className="flex items-center gap-1 hover:text-indigo-400 transition-colors p-1.5"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <MessageCircle className="h-4 w-4" />
+                                                    <span className="text-xs font-medium">{post.comment_count || 0}</span>
+                                                </button>
+                                                
+                                                <button 
+                                                    className="hover:text-indigo-400 transition-colors p-1.5"
+                                                    onClick={(e) => e.stopPropagation()}
+                                                >
+                                                    <Share2 className="h-4 w-4" />
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                             ))}
                         </div>
                     ) : (
-                        <p className="text-gray-400 text-center">No blogs found.</p>
+                        <div className="flex flex-col items-center justify-center h-[50vh] bg-gradient-to-r from-indigo-500/5 to-purple-500/5 rounded-2xl border border-indigo-500/20">
+                            <div className="w-16 h-16 mb-4 text-indigo-400">
+                                <Pen className="w-full h-full" />
+                            </div>
+                            <p className="text-xl font-medium text-white">No blogs found</p>
+                            <p className="text-sm mt-2 text-gray-400">Be the first one to write a blog!</p>
+                        </div>
                     )}
-                    <Paginator
-                        currentPage={currentPage} 
-                        totalPages={totalPages} 
-                        onPageChange={handlePageChange} 
-                    />
+                    
+                    <div className="mt-8">
+                        <Paginator
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={(newPage) => {
+                                if (newPage >= 1 && newPage <= totalPages) {
+                                    setCurrentPage(newPage);
+                                    fetchBlogs(newPage, selectedCategory, searchQuery);
+                                }
+                            }}
+                        />
+                    </div>
                 </main>
             </div>
 

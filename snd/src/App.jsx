@@ -40,6 +40,9 @@ import Sessions from './pages/userSide/Sessions';
 import VideoMeet from './pages/userSide/VideoMeet';
 import CodeEditor from './components/CodeEditor';
 import TimeAccountPage from './pages/userSide/Account';
+import TimePlans from './pages/userSide/TimePlans';
+import PurchaseHistoryPage from './pages/userSide/PurchaseHistory';
+import RatingModal from './components/RatingModal';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -95,7 +98,10 @@ function App() {
                         <Route path="/sessions" element={<Sessions />} />
                         <Route path="/meeting-room/:meeting_id" element={<VideoMeet />} />
                         <Route path="/account" element={<TimeAccountPage />} />
-                        
+                        <Route path="/time-plans" element={<TimePlans />} />
+                        <Route path="/purchase-history" element={<PurchaseHistoryPage />} />
+                        <Route path="/rate" element={<RatingModal />} />
+
                         {/* <Route path="/shimmer" element={<Shimmer />} /> */}
                         {/* admin */}
 

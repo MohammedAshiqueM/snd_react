@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { notificationHandshake } from '../wsApi';
+import { Bell } from 'lucide-react';
 
 const WebSocketNotification = ({ userId }) => {
   const [notifications, setNotifications] = useState([]);
@@ -173,58 +174,52 @@ const WebSocketNotification = ({ userId }) => {
     <div className="relative">
       {/* Bell Icon */}
       <button
-        className="relative p-2"
+        className="relative rounded-full p-2 text-gray-400 hover:text-white hover:bg-indigo-500/10 
+                transition-all duration-300 group"
         onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-      >
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          viewBox="0 0 24 24"
-          xmlns="http://www.w3.org/2000/svg"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M15 17h5l-1.405-1.405a2.032 2.032 0 01-.595-1.405V10c0-3.59-2.91-6.5-6.5-6.5S5.5 6.41 5.5 10v4.19c0 .52-.212 1.027-.595 1.405L3.5 17h5m6.5 0v1.5a3.5 3.5 0 01-7 0V17m7 0H8"
-          ></path>
-        </svg>
+    >
+        <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
-            {unreadCount}
-          </span>
+            <span className="absolute top-1 right-1 h-4 w-4 flex items-center justify-center 
+                        rounded-full bg-indigo-500 group-hover:animate-pulse text-white text-xs">{unreadCount}
+            </span>
         )}
-      </button>
+    </button>
+
 
       {/* Dropdown Notifications */}
       {isDropdownOpen && (
-        <div className="absolute right-0 mt-2 w-80 bg-white shadow-lg rounded-md border">
-          {notifications.length === 0 ? (
-            <div className="p-4 text-center text-gray-500">
-              No notifications
-            </div>
-          ) : (
-            <ul>
-              {notifications.map((notification) => (
-                <li
-                  key={notification.id}
-                  onClick={() => markAsRead(notification)}
-                  className={`p-4 cursor-pointer ${
-                    !notification.isRead ? 'bg-blue-50' : ''
-                  }`}
-                >
-                  <div className="font-medium">{notification.title}</div>
-                  <div className="text-sm text-gray-500">
-                    {notification.message}
+        <div className="absolute right-0 mt-2 w-80 bg-[#1a1b2e] rounded-lg shadow-lg 
+                     border border-gray-800/50 overflow-hidden z-50">
+          <div className="max-h-96 overflow-y-auto">
+            {notifications.length === 0 ? (
+              <div className="p-4 text-center text-gray-400">
+                No notifications
+              </div>
+            ) : (
+              <div className="divide-y divide-gray-800">
+                {notifications.map((notification) => (
+                  <div
+                    key={notification.id}
+                    onClick={() => markAsRead(notification)}
+                    className={`p-4 cursor-pointer hover:bg-indigo-500/10 
+                             transition-colors duration-200
+                             ${!notification.isRead ? 'bg-indigo-500/5' : ''}`}
+                  >
+                    <div className="font-medium text-white">
+                      {notification.title}
+                    </div>
+                    <div className="text-sm text-gray-400 mt-1">
+                      {notification.message}
+                    </div>
+                    <div className="text-xs text-gray-500 mt-1">
+                      {new Date(notification.timestamp).toLocaleString()}
+                    </div>
                   </div>
-                  <div className="text-xs text-gray-400">
-                    {new Date(notification.timestamp).toLocaleString()}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
+                ))}
+              </div>
+            )}
+          </div>
         </div>
       )}
     </div>

@@ -23,14 +23,14 @@ const TabButton = ({ active, onClick, children }) => (
   </button>
 );
 
-const handleJoin = async (id) => {
+const handleJoin = async (id, teacherId, studentId) => {
     try {
       const data = await joinMeet(id);
       
       // Check if we received the expected response format
       if (data && data.meeting_id) {
         // Open meeting in new window/tab with the received meeting ID
-        window.open(`/meeting-room/${data.meeting_id}`, '_blank');
+        window.open(`/meeting-room/${data.meeting_id}?teacherId=${teacherId}&studentId=${studentId}`, '_blank');
       } else {
         console.error('Invalid meeting response format:', data);
         alert('Unable to join meeting: Invalid response format');
@@ -42,11 +42,11 @@ const handleJoin = async (id) => {
   };
 
 const JoinButton = ({ scheduleProps }) => {
-    const { scheduledTime, id } = scheduleProps;
+    const { scheduledTime, id, teacherId, studentId } = scheduleProps;
     const [timeLeft, setTimeLeft] = useState('');
     const [canJoin, setCanJoin] = useState(false);
     const [countdown, setCountdown] = useState('');
-  
+    
     useEffect(() => {
       const calculateTimeLeft = () => {
         const now = new Date();
@@ -98,7 +98,7 @@ const JoinButton = ({ scheduleProps }) => {
               ? 'bg-blue-600 hover:bg-blue-700 text-white'
               : 'bg-gray-700 text-gray-400 cursor-not-allowed'
           }`}
-          onClick={() => handleJoin(id)}
+          onClick={() => handleJoin(id, teacherId, studentId)}
           disabled={!canJoin}
         >
           <Video size={16} />
@@ -170,8 +170,14 @@ const ScheduleCard = ({ schedule }) => {
           Created {formatDistanceToNow(new Date(schedule.request.created_at))} ago
         </div>
         {schedule.status === 'AC' && (
-          <JoinButton scheduleProps={{ scheduledTime: schedule.scheduled_time, id: schedule.id }} />
-
+          <JoinButton
+            scheduleProps={{
+              scheduledTime: schedule.scheduled_time,
+              id: schedule.id,
+              teacherId: schedule.teacher.id,
+              studentId: schedule.student.id
+            }}
+          />
         )}
       </div>
     </div>

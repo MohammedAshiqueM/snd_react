@@ -11,21 +11,29 @@ import {
   ChevronLeft,
   ChevronRight,
   Menu,
-  X
+  X,
+  Inbox,
+  CalendarClock,
+  UserCircle,
+  MessageCircle,
+  Timer
 } from 'lucide-react';
 
 export function ToggleButton({ isCollapsed, onToggle }) {
     return (
       <button
         onClick={onToggle}
-        className={`fixed top-16 ${
-          isCollapsed ? 'left-16' : 'left-48'
-        } bg-[#0D0E21] border border-gray-800 text-gray-400 hover:text-white z-40 rounded transition-all duration-300 hidden md:block`}
+        className={`absolute top-5 -right-4 bg-gradient-to-r from-indigo-500 to-purple-500 
+                 text-white z-40 rounded-full p-1.5 shadow-lg hover:shadow-indigo-500/20 
+                 transition-all duration-300 w-8 h-8 flex items-center justify-center overflow-hidden`}
       >
-        {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
+        <div className="absolute inset-0 w-1/2 h-full bg-[#0D0E21] left-0 "></div>
+
+        {isCollapsed ? <ChevronRight className="w-4 h-4 relative z-10" /> : <ChevronLeft className="w-4 h-4 relative z-10" />}
       </button>
     );
   }
+  
   
   export default function SideBar({ isCollapsed, onToggle }) {
     const location = useLocation();
@@ -34,16 +42,17 @@ export function ToggleButton({ isCollapsed, onToggle }) {
     const [isOpen, setIsOpen] = useState(false);
   
     const navItems = [
-      { name: 'Home', path: '/home', icon: HomeIcon },
-      { name: 'Questions', path: '/questions', icon: Compass },
-      { name: 'Requests', path: '/requests', icon: Compass },
-      { name: 'Schedules', path: '/schedules', icon: Compass },
-      { name: 'Account', path: '/account', icon: User },
-      { name: 'Tags', path: '/tags', icon: Tag },
-      { name: 'Users', path: '/users', icon: Users },
-      { name: 'Messages', path: '/chat', icon: MessageSquare },
-      { name: 'Session', path: '/sessions', icon: FileQuestion },
-    ];
+        { name: 'Home', path: '/home', icon: HomeIcon },
+        { name: 'Questions', path: '/questions', icon: FileQuestion },
+        { name: 'Requests', path: '/requests', icon: Inbox },
+        { name: 'Schedules', path: '/schedules', icon: CalendarClock }, 
+        { name: 'Account', path: '/account', icon: UserCircle },
+        { name: 'Tags', path: '/tags', icon: Tag },
+        { name: 'Users', path: '/users', icon: Users },
+        { name: 'Messages', path: '/chat', icon: MessageCircle },
+        { name: 'Session', path: '/sessions', icon: Timer },  
+      ];
+      
   
     return (
       <>
@@ -78,26 +87,32 @@ export function ToggleButton({ isCollapsed, onToggle }) {
           </nav>
         </div>
   
-        {/* Collapse/Expand Button Outside Sidebar */}
-        <ToggleButton isCollapsed={isCollapsed} onToggle={onToggle} />
   
         <aside
-          className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-[#0D0E21] border-r border-t border-gray-800 z-50 transition-all duration-300 ${
-            isCollapsed ? 'w-16' : 'w-48'
-          } hidden md:block`}
+          className={`fixed top-16 left-0 h-[calc(100vh-64px)] bg-gradient-to-b from-[#0D0E21] to-[#1a1b2e] 
+                 border-r border-t border-gray-800/50 z-50 transition-all duration-300 
+                 ${isCollapsed ? 'w-16' : 'w-48'} hidden md:block`}
         >
+        <div className="relative">
+            <ToggleButton isCollapsed={isCollapsed} onToggle={onToggle} />
+        </div>
           <nav className="space-y-3 p-2 pt-14 h-full">
             {navItems.map((item, index) => (
               <Link to={item.path} key={index}>
                 <button
-                  className={`flex items-center w-full px-2 py-2 text-left rounded-md space-x-3 ${
-                    isActive(item.path)
-                      ? 'bg-gray-800 text-white'
-                      : 'text-gray-400 hover:bg-gray-800 hover:text-white text-base'
-                  } ${isCollapsed ? 'justify-center' : ''}`}
+                  className={`flex items-center w-full px-3 py-2 rounded-lg transition-all duration-300 
+                         ${isActive(item.path)
+                           ? 'bg-gradient-to-r from-indigo-500/20 to-purple-500/20 text-white'
+                           : 'text-gray-400 hover:bg-indigo-500/10 hover:text-white'
+                         } ${isCollapsed ? 'justify-center' : 'space-x-3'}`}
                 >
                   <item.icon className={`w-5 h-5 ${isCollapsed ? '' : 'hidden'}`} />
-                  {!isCollapsed && <span>{item.name}</span>}
+                {!isCollapsed && (
+                  <>
+                    <item.icon className="w-5 h-5" />
+                    <span>{item.name}</span>
+                  </>
+                )}
                 </button>
               </Link>
             ))}
