@@ -159,7 +159,7 @@ return (
                             </button>
                             
                             <div className="relative">
-                                <h1 className="text-3xl font-bold text-white mb-4">Welcome to the Tech Community</h1>
+                                <h1 className="text-3xl font-bold text-white mb-4">Welcome to the Snd Tech Community</h1>
                                 <p className="text-gray-300 max-w-2xl">Share your knowledge, discover new perspectives, and connect with fellow tech enthusiasts.</p>
                             </div>
                         </div>

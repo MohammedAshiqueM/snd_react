@@ -194,3 +194,14 @@ export const ratingUser = async (data) => {
     const response = await instance.post(`ratings/`,data);
     return response.data;
 };
+
+export const meetDetails = async (id) => {
+    const response = await instance.get(`session/${id}`);
+    return response.data
+};
+
+export const transferTime = async (data) => {
+    console.log("here inside")
+    const response = await instance.post(`transfer-time/`,data);
+    return response.data;
+};

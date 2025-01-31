@@ -1,11 +1,17 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Mic, MicOff, Video, VideoOff, PhoneOff, MessageSquare, Code, ChevronUp, ChevronDown, Maximize2, Minimize2, Send, X } from 'lucide-react';
-import { verifyMeet } from '../../wsApi';
+import { meetDetails, transferTime, verifyMeet } from '../../wsApi';
 import { useParams } from 'react-router-dom';
 import ChatSection from '../../components/ChatSection';
 import { useAuthStore } from '../../store/useAuthStore';
 import CodeEditor from '../../components/CodeEditor';
 import RatingModal from '../../components/RatingModal';
+import TimeTracker from '../../components/TimeTracker';
+import SessionEndModal from '../../components/SessionEndModal';
+import { sessionDetails } from '../../api';
+import ConfirmEndCallDialog from '../../components/ConfirmEndCallDialog';
+import RequestEndCallDialog from '../../components/RequestEndCallDialog';
+import RejectionNotification from '../../components/RejectionNotification';
 
 const VideoMeeting = ({ scheduleId, onError }) => {
     const localVideoRef = useRef();
@@ -13,7 +19,9 @@ const VideoMeeting = ({ scheduleId, onError }) => {
     const peerConnectionRef = useRef();
     const webSocketRef = useRef();
     const { meeting_id } = useParams();
-    
+    const [isTeacher, setIsTeacher] = useState(false);
+
+    const isTeacherRef = useRef(isTeacher);
     const [isMuted, setIsMuted] = useState(false);
     const [isVideoOff, setIsVideoOff] = useState(false);
     const [isConnected, setIsConnected] = useState(false);
@@ -38,7 +46,181 @@ const VideoMeeting = ({ scheduleId, onError }) => {
     const searchParams = new URLSearchParams(window.location.search);
     const teacherId = searchParams.get('teacherId');
     const studentId = searchParams.get('studentId');
-    const [isTeacher, setIsTeacher] = useState(false);
+    const [showTeacherModal, setShowTeacherModal] = useState(false);
+    const [meetingDuration, setMeetingDuration] = useState(60);
+    const [remoteUserPresent, setRemoteUserPresent] = useState(false);
+    const [bothUsersPresent, setBothUsersPresent] = useState(false);
+    const [startTime, setStartTime] = useState(null);
+    const [showEndCallDialog, setShowEndCallDialog] = useState(false);
+    const [pendingEndCall, setPendingEndCall] = useState(false);
+    const [showRequestEndCallDialog, setShowRequestEndCallDialog] = useState(false);
+    const [endCallRequester, setEndCallRequester] = useState(null);
+    const [showToast, setShowToast] = useState(false);
+    const [toastMessage, setToastMessage] = useState('');
+
+    useEffect(() => {
+        isTeacherRef.current = isTeacher;
+      }, [isTeacher]);
+
+    const handleEndCallRequest = (requesterRole) => {
+        if (!webSocketRef.current || !startTime) return;
+        
+        const elapsedMinutes = Math.ceil((Date.now() - startTime) / 60000);
+        
+        // Send end call request
+        webSocketRef.current.send(JSON.stringify({
+            type: 'end_call_request',
+            sender_id: user.id,
+            sender_role: isTeacher ? 'teacher' : 'student',
+            elapsed_minutes: elapsedMinutes
+        }));
+        
+        setPendingEndCall(true);
+    };
+
+    const handleEndCallResponse = async (accepted) => {
+        setShowRequestEndCallDialog(false);
+        
+        if (accepted) {
+            const elapsedMinutes = Math.ceil((Date.now() - startTime) / 60000);
+            
+            try {
+                // Transfer time first
+                await transferTime({
+                    meeting_id: meeting_id,
+                    elapsedMinutes: elapsedMinutes
+                });
+
+                // Send confirmation through WebSocket
+                webSocketRef.current?.send(JSON.stringify({
+                    type: 'end_call_confirmed',
+                    elapsed_minutes: elapsedMinutes
+                }));
+
+                // Handle UI based on role
+                if (isTeacher) {
+                    window.close();
+                } else {
+                    setShowRatingModal(true);
+                }
+            } catch (error) {
+                console.error('Error during call end process:', error);
+            }
+        } else {
+            // If rejected, notify the requester
+            webSocketRef.current?.send(JSON.stringify({
+                type: 'end_call_rejected',
+                target_id: endCallRequester === 'teacher' ? teacherId : studentId
+            }));
+        }
+        
+        setEndCallRequester(null);
+    };
+
+    useEffect(() => {
+        const handleWebSocketEndCallMessages = async (data) => {
+            if (!webSocketRef.current) return;
+
+            switch (data.type) {
+                case 'end_call_request':
+                    // Show dialog only to non-initiator
+                    if (data.sender_id !== user.id) {
+                        setEndCallRequester(data.sender_role);
+                        setShowRequestEndCallDialog(true);
+                    }
+                    break;
+                    
+                case 'end_call_confirmed':
+                    try {
+                        const elapsedMinutes = Math.ceil((Date.now() - startTime) / 60000);
+                        
+                        // await transferTime({
+                        // meeting_id: meeting_id,
+                        // elapsedMinutes: elapsedMinutes
+                        // });
+
+                        // Use the ref value instead of state to get current status
+                        if (isTeacherRef.current) {
+                        window.close();
+                        } else {
+                        setShowRatingModal(true); // Show rating for student
+                        }
+                    } catch (error) {
+                        console.error('Error during time transfer:', error);
+                    }
+                    break;
+                    
+                case 'end_call_rejected':
+                    if (pendingEndCall) {
+                        setPendingEndCall(false);
+                        setToastMessage(isTeacher 
+                            ? "The student has declined to end the call"
+                            : "The teacher has declined to end the call"
+                        );
+                        setShowToast(true);
+                    }
+                    break;
+            }
+        };
+
+        if (webSocketRef.current) {
+            const ws = webSocketRef.current;
+            ws.addEventListener('message', async (event) => {
+                const data = JSON.parse(event.data);
+                if (['end_call_request', 'end_call_confirmed', 'end_call_rejected'].includes(data.type)) {
+                    await handleWebSocketEndCallMessages(data);
+                }
+            });
+        }
+
+        return () => {
+            if (webSocketRef.current) {
+                webSocketRef.current.removeEventListener('message', handleWebSocketEndCallMessages);
+            }
+        };
+    }, [webSocketRef.current, isTeacher, meeting_id, startTime, user.id, pendingEndCall]);
+
+    useEffect(() => {
+        setBothUsersPresent(isConnected && remoteUserPresent);
+    }, [isConnected, remoteUserPresent]);
+
+    useEffect(() => {
+        const fetchScheduleDetails = async () => {
+            try {
+                const data = await meetDetails(meeting_id);
+                console.log("Meeting details response:", data);
+                
+                // Ensure we have valid duration data
+                if (data && data.request && typeof data.request.duration_minutes === 'number' && data.request.duration_minutes > 0) {
+                    console.log("Setting duration to:", data.request.duration_minutes);
+                    setMeetingDuration(data.request.duration_minutes);
+                } else {
+                    console.warn("Invalid duration received:", data?.request?.duration_minutes);
+                    // Keep the default 60 minutes
+                }
+            } catch (error) {
+                console.error('Failed to fetch schedule details:', error);
+                // Keep the default 60 minutes
+            }
+        };
+    
+        if (meeting_id) {
+            fetchScheduleDetails();
+        }
+    }, [meeting_id]);
+
+    const handleTimeOver = () => {
+        if (isTeacher) {
+        setShowTeacherModal(true);
+        } else {
+        setShowRatingModal(true);
+        }
+    };
+
+    const handleTeacherModalClose = () => {
+        setShowTeacherModal(false);
+        window.close();
+    };
 
     useEffect(() => {
         const checkTeacherStatus = () => {
@@ -82,18 +264,52 @@ const VideoMeeting = ({ scheduleId, onError }) => {
     };
 
     const endCall = () => {
+        if (!startTime || !webSocketRef.current) return;
+        handleEndCallRequest(isTeacher ? 'teacher' : 'student');
+    };
+
+
+    //   const handleEndCallResponse = async (approved) => {
+    //     setShowRequestEndCallDialog(false);
+        
+    //     if (approved) {
+    //       const elapsedMinutes = Math.ceil((Date.now() - startTime) / 60000);
+          
+    //       // Send confirmation through WebSocket
+    //       webSocketRef.current?.send(JSON.stringify({
+    //         type: 'end_call_confirmed',
+    //         elapsed_minutes: elapsedMinutes
+    //       }));
+    //     }
+    //   };
+
+    // Add this new function to handle the confirmed end call
+    const handleEndCallConfirmed = async () => {
+        setShowEndCallDialog(false);  // Close the dialog first
+        
         console.log("End call triggered:", {
             isTeacher,
             userId: user.id,
-            teacherId
+            teacherId,
         });
-        
-        if (isTeacher) {
-            console.log("Teacher ending call - closing window directly");
-            window.close();
-        } else {
-            console.log("Student ending call - showing rating modal");
-            setShowRatingModal(true);
+    
+        // Calculate elapsed time (in minutes)
+        const elapsedMinutes = Math.ceil((Date.now() - startTime) / 60000); // Convert milliseconds to minutes
+    
+        try {
+            // Call the backend API to transfer time
+            await transferTime({meeting_id, elapsedMinutes});
+    
+            if (isTeacher) {
+                console.log("Teacher ending call - closing window directly");
+                window.close();
+            } else {
+                console.log("Student ending call - showing rating modal");
+                setShowRatingModal(true);
+            }
+        } catch (error) {
+            console.error('Error during time transfer:', error);
+            // Handle error (e.g., show a notification to the user)
         }
     };
 
@@ -435,6 +651,12 @@ const VideoMeeting = ({ scheduleId, onError }) => {
                         };
                         setMessages(prev => [...prev, messageData])
                         break;
+                    case 'userJoined':
+                        setRemoteUserPresent(true);
+                        break;
+                    case 'userLeft':
+                        setRemoteUserPresent(false);
+                        break;
             }
         } catch (err) {
             logError(err, 'handle-websocket-message');
@@ -445,25 +667,26 @@ const VideoMeeting = ({ scheduleId, onError }) => {
         const initializeMeeting = async () => {
             try {
                 setConnectionStatus('initializing');
-                
+                setStartTime(Date.now()); // Set the start time when the meeting begins
+
                 // Verify meeting access
                 const verifyResponse = await verifyMeet(meeting_id);
                 if (!verifyResponse.valid) {
                     throw new Error('Meeting verification failed');
                 }
 
-                // Initialize peer connection first
+                // Initialize peer connection and media stream
                 const pc = createPeerConnection();
                 peerConnectionRef.current = pc;
 
-                // Set up media stream
                 const stream = await setupMediaStream();
-                
-                // Initialize WebSocket with timeout
+                setMediaStream(stream);
+
+                // Initialize WebSocket
                 const ws = await initializeWebSocket(verifyResponse.websocket_url);
                 webSocketRef.current = ws;
-                
-                // Add tracks only after WebSocket is ready
+
+                // Add tracks to the peer connection
                 stream.getTracks().forEach(track => {
                     pc.addTrack(track, stream);
                 });
@@ -587,7 +810,12 @@ const VideoMeeting = ({ scheduleId, onError }) => {
                         muted
                     />
                 </div>
-
+                <TimeTracker 
+                    duration={.30}
+                    onTimeOver={handleTimeOver}
+                    isConnected={isConnected}
+                    onCallEnd={endCall} 
+                />
                 {/* Controls */}
                 <div className="absolute bottom-16 left-1/2 transform -translate-x-1/2 flex items-center space-x-4 bg-gray-800/90 px-4 py-2 rounded-full shadow-lg">
                     <button
@@ -683,13 +911,38 @@ const VideoMeeting = ({ scheduleId, onError }) => {
             currentUserId={user.id}
         />
       </div>
-      {showRatingModal && user.id !== teacherId && (
+      {showTeacherModal && (
+        <SessionEndModal
+          isOpen={showTeacherModal}
+          onClose={handleTeacherModalClose}
+        />
+      )}
+      {showRatingModal && !isTeacher && (
                 <RatingModal
                     teacherId={teacherId}
                     onClose={handleRatingClose}
                     onSubmit={handleRatingSubmit}
                 />
             )}
+        {showEndCallDialog && (
+        <ConfirmEndCallDialog
+            isOpen={showEndCallDialog}
+            onClose={() => setShowEndCallDialog(false)}
+            onConfirm={handleEndCallConfirmed}
+            isTeacher={isTeacher}
+        />
+        )}
+        <RequestEndCallDialog
+            isOpen={showRequestEndCallDialog}
+            onClose={() => handleEndCallResponse(false)}
+            onConfirm={() => handleEndCallResponse(true)}
+            requesterRole={endCallRequester}
+            />
+        <RejectionNotification 
+            message={toastMessage}
+            isVisible={showToast}
+            onClose={() => setShowToast(false)}
+        />
         </>
   );
 };
