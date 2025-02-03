@@ -207,7 +207,7 @@ export const logoutUser = async () => {
 //Suggest tags
 export const tagSuggestion = async (query) => {
     try {
-        const response = await instance.get(`tags?search=${query}`); 
+        const response = await instance.get(`tags/?search=${query}`); 
         
         return response
     } catch (error) {

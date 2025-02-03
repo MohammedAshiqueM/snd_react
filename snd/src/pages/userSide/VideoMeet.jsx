@@ -811,7 +811,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
                     />
                 </div>
                 <TimeTracker 
-                    duration={.30}
+                    duration={meetingDuration}
                     onTimeOver={handleTimeOver}
                     isConnected={isConnected}
                     onCallEnd={endCall} 

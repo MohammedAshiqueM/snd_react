@@ -6,7 +6,7 @@ import {
 } from 'lucide-react';
 import EditProfileModal from '../../components/EditProfileModal';
 import { myProfile } from '../../api';
-import { baseUrl } from '../../constants/constant';
+import { baseUrl, getCloudinaryUrl } from '../../constants/constant';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import noUser from '../../assets/Images/no_user.jpg';
@@ -32,6 +32,9 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
+  
+
+
   if (!profile) {
     return <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col"><SecondNavbar /></div>;
   }
@@ -43,6 +46,9 @@ export default function ProfilePage() {
     followers_count, following_count, last_active 
   } = profile;
 
+  const profileImageUrl = getCloudinaryUrl(profile_image) || noUser;
+  const bannerImageUrl = getCloudinaryUrl(banner_image) || "/placeholder.svg?height=256&width=1536";
+  
   const renderStars = (rating) => {
     const totalStars = 5;
     const roundedRating = Math.round(rating);
@@ -73,12 +79,12 @@ export default function ProfilePage() {
           isCollapsed={isSidebarCollapsed}
           onToggle={handleSidebarToggle}
         />
-        <main className="flex-1 pt-12 max-w-6xl mx-auto">
+        <main className="flex-1 transition-all duration-300 relative">
           {/* Banner and Profile Section */}
-          <div className="relative">
-            <div className="h-64 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl overflow-hidden">
+          <div className="relative w-full">
+            <div className="h-64 bg-gradient-to-r from-blue-600 to-purple-600 overflow-hidden">
               <img
-                src={banner_image ? `${baseUrl}${banner_image}` : "/placeholder.svg?height=256&width=1536"}
+                src={bannerImageUrl}
                 alt="Profile banner"
                 className="w-full h-full object-cover opacity-70"
               />
@@ -88,7 +94,7 @@ export default function ProfilePage() {
               <div className="flex items-end">
                 <div className="relative">
                   <img
-                    src={profile_image ? `${baseUrl}${profile_image}` : noUser}
+                    src={profileImageUrl}
                     alt="Profile picture"
                     className="h-36 w-36 rounded-xl border-4 border-white object-cover -mt-16 shadow-xl"
                   />
@@ -110,9 +116,14 @@ export default function ProfilePage() {
                       <span className="text-sm text-gray-400">@{username}</span>
                     </div>
                     <div className="flex items-center mt-2">
-                      {renderStars(rating)}
-                      {/* <span className="ml-2 text-sm text-gray-400">({rating.toFixed(1)})</span> */}
+                        <span className="text-sm text-gray-400 mr-2">Session Rating:</span>
+                            {renderStars(Number(rating))}
+                        <span className="ml-2 text-sm text-gray-400">
+                            ({rating ? Number(rating).toFixed(1) : 'N/A'})
+                        </span>
                     </div>
+
+
                   </div>
 
                   <div className="space-y-2">

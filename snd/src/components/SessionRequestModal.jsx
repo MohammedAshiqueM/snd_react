@@ -152,12 +152,17 @@ export default function SessionRequestModal({ isOpen, onClose, initialData, mode
 
       alert(formData.auto_publish ? 'Request published successfully!' : 'Request saved as draft!');
     } catch (error) {
-      console.error('Error:', error);
-      if (error.response?.data) {
-        setErrors(error.response.data);
-      } else {
-        setErrors({ message: 'An unexpected error occurred.' });
-      }
+        console.error('Error:', error);
+        if (error.data) {
+          // Extract nested validation errors
+          console.log("hereeeeeeeeeeee",error)
+          const backendErrors = error.data || {};
+          console.log(backendErrors)
+          setErrors(backendErrors);
+          console.log(errors)
+        } else {
+          setErrors({ message: 'An unexpected error occurred.' });
+        }
     } finally {
       setLoading(false);
     }
@@ -167,7 +172,7 @@ export default function SessionRequestModal({ isOpen, onClose, initialData, mode
 
   return (
     <div className="fixed inset-0 flex justify-center items-center bg-gray-800 bg-opacity-50 z-50">
-      <div className="bg-[#0D0E21] w-full sm:w-[800px] p-6 rounded-lg relative max-h-[90vh] overflow-y-auto">
+      <div className="bg-[#0D0E21] w-full sm:w-[800px] p-6 rounded-lg relative max-h-[90vh] overflow-y-auto p-4 space-y-4 scrollbar-thin scrollbar-thumb-gray-600 scrollbar-track-transparent">
         <button
           onClick={onClose}
           className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -177,9 +182,9 @@ export default function SessionRequestModal({ isOpen, onClose, initialData, mode
         <h2 className="text-xl font-bold text-white mb-6">New Skill Request</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
-          {errors.message && (
+          {/* {errors.message && (
             <div className="text-red-500 text-sm mb-4">{errors.message}</div>
-          )}
+          )} */}
 
           {/* Title */}
           <div>

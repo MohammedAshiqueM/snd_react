@@ -70,6 +70,7 @@ const CodeEditor = ({ websocket, isOpen }) => {
     const [isTerminalOpen, setIsTerminalOpen] = useState(true);
     const isTyping = useRef(false);
     const contentRef = useRef('');
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleEditorDidMount = (editor, monaco) => {
         editorRef.current = { editor, monaco };
@@ -148,7 +149,8 @@ const CodeEditor = ({ websocket, isOpen }) => {
         console.log('[DEBUG] Language:', selectedLanguage);
         // Clear previous terminal output
         setTerminalOutput([]);
-        
+        setIsLoading(true);
+
         if (websocket?.readyState === WebSocket.OPEN) {
             websocket.send(JSON.stringify({
                 type: 'run_code',
@@ -202,6 +204,8 @@ const CodeEditor = ({ websocket, isOpen }) => {
                 }
 
                 if (data.type === 'code_execution_result') {
+                    setIsLoading(false);
+                    console.log(data)
                     setTerminalOutput(prev => [
                         ...prev,
                         {
@@ -339,6 +343,11 @@ const CodeEditor = ({ websocket, isOpen }) => {
               ${isTerminalOpen ? 'block' : 'hidden'}
             `}
           >
+            {isLoading && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50 z-50">
+                    <div className="text-white">Running code...</div>
+                </div>
+            )}
             {terminalOutput.map((output, index) => (
               <div
                 key={index}

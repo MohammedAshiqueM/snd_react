@@ -3,7 +3,7 @@ import { Bell, Heart, MessageCircle, Search, Share2, ChevronUp, ChevronDown, Pen
 import { getBlogs, userSkills } from '../../api';
 import { useNavigate } from 'react-router-dom';
 import BlogWriteModal from '../../components/BlogWriteModal';
-import { baseUrl } from '../../constants/constant';
+import { baseUrl, getCloudinaryUrl } from '../../constants/constant';
 import useSearchStore from "../../store/useSearchStore";
 import noUser from '../../assets/Images/no_user.jpg';
 import blogDefault from '../../assets/Images/blogDefault.png';
@@ -13,16 +13,13 @@ import Paginator from '../../components/Paginator';
 import useSkillsStore from '../../store/useSkillStore';
 import Shimmer from './Shimmer';
 import { useAuthStore } from '../../store/useAuthStore';
+import useSidebarStore from '../../store/useSidebarStore';
 
 const Home = () => {
     const [votes, setVotes] = useState({});
     const [isEditModalOpen, setIsEditModalOpen] = useState(false);
     const navigate = useNavigate();
-    const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-        const savedState = localStorage.getItem('isSidebarCollapsed');
-        return savedState ? JSON.parse(savedState) : false;
-      });
-
+    const { isSidebarCollapsed, toggleSidebar } = useSidebarStore();
     const { searchQuery, selectedCategory, currentPage, setSelectedCategory, setCurrentPage, setSearchContext } = useSearchStore();
     const [posts, setPosts] = useState([]);
     const [totalPages, setTotalPages] = useState(1);
@@ -30,7 +27,7 @@ const Home = () => {
     const [isLoading, setIsLoading] = useState(true);
     const { isAuthenticated, loading: authLoading } = useAuthStore();
     const blogsPerPage = 12;
-
+    
     const [showWelcome, setShowWelcome] = useState(() => {
         const savedState = localStorage.getItem('hideWelcome');
         return !savedState; // Show welcome if not hidden
@@ -64,6 +61,7 @@ const Home = () => {
             const response = await getBlogs(params);
             setPosts(response.data);
             setTotalPages(response.total_pages || 1);
+
         } catch (err) {
             console.error("Error fetching blogs:", err);
             setPosts([]);
@@ -79,24 +77,6 @@ const Home = () => {
             fetchBlogs(newPage, selectedCategory, searchQuery);
         }
     };
-
-    const handleSidebarToggle = () => {
-        setIsSidebarCollapsed((prevState) => {
-          const newState = !prevState;
-          localStorage.setItem('isSidebarCollapsed', JSON.stringify(newState));
-          return newState;
-        });
-      };
-    
-      useEffect(() => {
-        const storedSidebarState = localStorage.getItem('isSidebarCollapsed');
-        if (storedSidebarState !== null) {
-            setIsSidebarCollapsed(JSON.parse(storedSidebarState));
-        }
-    
-        // fetchUserSkills();
-        setSearchContext("blogs");
-    }, []);
     
     // In your Home component, modify the useEffect like this:
 useEffect(() => {
@@ -139,7 +119,7 @@ return (
             <div className="flex flex-1">
                 <SideBar
                     isCollapsed={isSidebarCollapsed}
-                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                    onToggle={toggleSidebar}
                 />
                 
                 <main className={`flex-1 p-6 pt-40 transition-all duration-300 ${
@@ -182,7 +162,7 @@ return (
                                     {/* Enhanced Image Container */}
                                     <div className="relative aspect-video overflow-hidden rounded-lg">
                                         <img
-                                            src={post.image ? `${baseUrl}${post.image}` : blogDefault}
+                                            src={post.image ? getCloudinaryUrl(post.image) : blogDefault}
                                             alt={post.title || 'Untitled'}
                                             className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-110"
                                         />
@@ -213,7 +193,8 @@ return (
                                                 <div className="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 p-0.5">
                                                     <div className="h-full w-full rounded-full bg-[#0D0E21] p-0.5 overflow-hidden">
                                                         <img
-                                                            src={post.user?.profile_image ? `${baseUrl}${post.user.profile_image}` : noUser}
+                                                            src={post.user?.profile_image ? getCloudinaryUrl(post.user.profile_image) : noUser}
+
                                                             alt={post.user?.first_name || 'Unknown'}
                                                             className="h-full w-full object-cover transition-transform group-hover:scale-110"
                                                         />

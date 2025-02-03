@@ -2,12 +2,13 @@ import React, { useEffect, useState, useRef } from 'react';
 import { useParams } from 'react-router-dom';
 import { blogRead, followUnfollow, getComments, postComment, voteBlog,  } from '../../api'; 
 import { MessageCircle, Eye, ArrowBigUp, ArrowBigDown, Share2, Copy } from 'lucide-react';
-import { baseUrl } from '../../constants/constant';
+import { baseUrl, getCloudinaryUrl } from '../../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import noUser from '../../assets/Images/no_user.jpg'
 import { useAuthStore } from '../../store/useAuthStore';
+import useSidebarStore from '../../store/useSidebarStore';
 
 export default function BlogRead() {
   const { slug } = useParams();
@@ -20,14 +21,10 @@ export default function BlogRead() {
   const [error, setError] = useState(null);
   const [showComments, setShowComments] = useState(false);
   const [userVote, setUserVote] = useState(null);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
-    const savedState = localStorage.getItem('isSidebarCollapsed');
-    return savedState ? JSON.parse(savedState) : false;
-  });
+  const { isSidebarCollapsed, toggleSidebar } = useSidebarStore();
   const [isOwner, setIsOwner] = useState(false);
   const { user } = useAuthStore();
-  const commentsRef = useRef(null);
-
+  const commentsRef = useRef(null);  
   const toggleComments = () => {
     setShowComments(!showComments);
     setTimeout(() => {
@@ -37,13 +34,6 @@ export default function BlogRead() {
 
   const url = baseUrl;
   
-  const handleSidebarToggle = () => {
-    setIsSidebarCollapsed((prevState) => {
-      const newState = !prevState;
-      localStorage.setItem('isSidebarCollapsed', JSON.stringify(newState));
-      return newState;
-    });
-  };
   
   const handleVote = async (voteType) => {
     try {
@@ -118,8 +108,10 @@ export default function BlogRead() {
   }, [slug]);
   
   if (loading) return <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col"><SecondNavbar /></div>;
-
+  
   if (error) return <div>{error}</div>;
+  const blogWriterImage = getCloudinaryUrl(blog.data.user.profile_image) || noUser;
+  const blogImage = getCloudinaryUrl(blog.data.image);
 
   return (
     <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col">
@@ -128,7 +120,7 @@ export default function BlogRead() {
       <main className="flex-1 pt-16 transition-all duration-300">
         <SideBar
           isCollapsed={isSidebarCollapsed}
-          onToggle={handleSidebarToggle}
+          onToggle={toggleSidebar}
         />
         
         <article className={`transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-48'}`}>
@@ -139,7 +131,7 @@ export default function BlogRead() {
                 <div className="h-12 w-12 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 p-0.5">
                   <div className="h-full w-full rounded-full bg-[#0D0E21] p-0.5">
                     <img 
-                      src={`${url}${blog.data.user.profile_image}`} 
+                      src={blogWriterImage} 
                       alt={blog.data.user.first_name}
                       className="w-full h-full rounded-full object-cover" 
                     />
@@ -180,15 +172,15 @@ export default function BlogRead() {
                 {blog.data.title}
               </h1>
               
-              {blog.data.image && (
+              
                 <div className="mb-8">
                   <img 
-                    src={`${url}${blog.data.image}`} 
+                    src={blogImage} 
                     alt={blog.data.title} 
                     className="w-full max-h-[400px] object-contain" 
                   />
                 </div>
-              )}
+            
               
               <div className="prose prose-invert max-w-none px-4">
                 <p className="mb-4 text-gray-300 leading-relaxed">{blog.data.body_content}</p>
@@ -277,7 +269,7 @@ export default function BlogRead() {
                         <div className="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 p-0.5">
                           <div className="h-full w-full rounded-full bg-[#0D0E21] p-0.5">
                             <img
-                              src={comment.user.profile_image ? `${baseUrl}${comment.user.profile_image}` : noUser}
+                              src={comment.user.profile_image ? getCloudinaryUrl(comment.user.profile_image) : noUser}
                               alt={comment.user.first_name}
                               className="w-full h-full rounded-full object-cover" 
                             />

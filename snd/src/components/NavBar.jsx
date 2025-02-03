@@ -3,7 +3,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { Bell, Search, ChevronLeft, ChevronRight, Pen, LogOut } from "lucide-react";
 import {useAuthStore} from "../store/useAuthStore";
 import useSearchStore from "../store/useSearchStore";
-import { baseUrl } from "../constants/constant";
+import { baseUrl, getCloudinaryUrl } from "../constants/constant";
 import { logoutUser, userSkills } from "../api";
 import noUser from "../assets/Images/no_user.jpg";
 import useSkillsStore from "../store/useSkillStore";
@@ -20,6 +20,7 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
     setSearchContext,
   } = useSearchStore();
 //   const [skills, setSkills] = useState(["All"]);
+  const profileImageUrl = getCloudinaryUrl(user.profile_image) || noUser;
   const [searchInput, setSearchInput] = useState("");
   const navigate = useNavigate();
   const location = useLocation();
@@ -184,7 +185,7 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
                 <div className="h-full w-full rounded-full bg-[#0D0E21] p-0.5">
                   {user && (
                     <img
-                      src={user.profile_image ? `${baseUrl}${user.profile_image}` : noUser}
+                      src={profileImageUrl}
                       alt={user.first_name || "Untitled"}
                       className="h-full w-full rounded-full object-cover 
                                transition-transform group-hover:scale-105"

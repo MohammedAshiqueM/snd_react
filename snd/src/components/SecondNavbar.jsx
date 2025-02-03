@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Bell, Search, ChevronLeft, ChevronRight, Pen, LogOut } from "lucide-react";
 import {useAuthStore} from "../store/useAuthStore";
 import useSearchStore from "../store/useSearchStore";
-import { baseUrl } from "../constants/constant";
+import { baseUrl, getCloudinaryUrl } from "../constants/constant";
 import { logoutUser, userSkills } from "../api";
 // import { useSearchContext } from "../context/searchContext";
 import noUser from '../assets/Images/no_user.jpg'
@@ -17,7 +17,7 @@ export default function SecondNavbar({
 }) {
     const { user, clearAuth } = useAuthStore();
     const navigate = useNavigate();
-
+    const profileImageUrl = getCloudinaryUrl(user.profile_image) || noUser;
     const handleLogout = async () => {
         try {
             await logoutUser();
@@ -75,7 +75,7 @@ export default function SecondNavbar({
                 <div className="h-full w-full rounded-full bg-[#0D0E21] p-0.5">
                   {user && (
                     <img
-                      src={user.profile_image ? `${baseUrl}${user.profile_image}` : noUser}
+                      src={profileImageUrl}
                       alt={user.first_name || "Untitled"}
                       className="h-full w-full rounded-full object-cover 
                                transition-transform group-hover:scale-105"
