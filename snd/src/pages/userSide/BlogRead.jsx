@@ -8,7 +8,6 @@ import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import noUser from '../../assets/Images/no_user.jpg'
 import { useAuthStore } from '../../store/useAuthStore';
-import useSidebarStore from '../../store/useSidebarStore';
 
 export default function BlogRead() {
   const { slug } = useParams();
@@ -21,7 +20,10 @@ export default function BlogRead() {
   const [error, setError] = useState(null);
   const [showComments, setShowComments] = useState(false);
   const [userVote, setUserVote] = useState(null);
-  const { isSidebarCollapsed, toggleSidebar } = useSidebarStore();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
+    const savedState = localStorage.getItem('isSidebarCollapsed');
+    return savedState ? JSON.parse(savedState) : false;
+  });
   const [isOwner, setIsOwner] = useState(false);
   const { user } = useAuthStore();
   const commentsRef = useRef(null);  
@@ -34,6 +36,13 @@ export default function BlogRead() {
 
   const url = baseUrl;
   
+  const handleSidebarToggle = () => {
+    setIsSidebarCollapsed((prevState) => {
+      const newState = !prevState;
+      localStorage.setItem('isSidebarCollapsed', JSON.stringify(newState));
+      return newState;
+    });
+  };
   
   const handleVote = async (voteType) => {
     try {
@@ -112,7 +121,7 @@ export default function BlogRead() {
   if (error) return <div>{error}</div>;
   const blogWriterImage = getCloudinaryUrl(blog.data.user.profile_image) || noUser;
   const blogImage = getCloudinaryUrl(blog.data.image);
-
+  
   return (
     <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col">
       <SecondNavbar />
@@ -120,7 +129,7 @@ export default function BlogRead() {
       <main className="flex-1 pt-16 transition-all duration-300">
         <SideBar
           isCollapsed={isSidebarCollapsed}
-          onToggle={toggleSidebar}
+          onToggle={handleSidebarToggle}
         />
         
         <article className={`transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-48'}`}>
@@ -172,7 +181,7 @@ export default function BlogRead() {
                 {blog.data.title}
               </h1>
               
-              
+              {blog.data.image && (
                 <div className="mb-8">
                   <img 
                     src={blogImage} 
@@ -180,7 +189,7 @@ export default function BlogRead() {
                     className="w-full max-h-[400px] object-contain" 
                   />
                 </div>
-            
+              )}
               
               <div className="prose prose-invert max-w-none px-4">
                 <p className="mb-4 text-gray-300 leading-relaxed">{blog.data.body_content}</p>

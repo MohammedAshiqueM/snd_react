@@ -9,6 +9,17 @@ import Paginator from "../../components/Paginator";
 import useSkillsStore from "../../store/useSkillStore";
 import { useNavigate } from 'react-router-dom';
 
+// Shimmer Card Component
+const ShimmerCard = () => (
+  <div className="flex items-center space-x-3 p-3 rounded-lg bg-[#1F2231] animate-pulse">
+    <div className="w-10 h-10 bg-gray-700 rounded-full"></div>
+    <div className="flex-1 space-y-2">
+      <div className="h-4 bg-gray-700 rounded w-3/4"></div>
+      <div className="h-3 bg-gray-700 rounded w-1/2"></div>
+    </div>
+  </div>
+);
+
 function UsersList() {
   const [users, setUsers] = useState([]);
   const [totalPages, setTotalPages] = useState(1);
@@ -104,6 +115,17 @@ function UsersList() {
   }, [searchQuery, selectedCategory, skills]);
 
   const renderUsers = () => {
+    // If loading or no users, show shimmer
+    if (isLoading || users.length === 0) {
+      return (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          {[...Array(usersPerPage)].map((_, index) => (
+            <ShimmerCard key={index} />
+          ))}
+        </div>
+      );
+    }
+
     const displayUsers = users.length > 0 ? users : previousUsers;
     
     return (
@@ -158,16 +180,18 @@ function UsersList() {
         >
           <div className="mb-6">
             <div className="text-sm text-gray-500 mb-4">
-              {users.length} users {searchQuery && `matching "${searchQuery}"`}
-              {selectedCategory !== "All" && ` in ${selectedCategory}`}
+              {isLoading ? 'Loading users...' : `${users.length} users ${searchQuery && `matching "${searchQuery}"`}
+              ${selectedCategory !== "All" && ` in ${selectedCategory}`}`}
             </div>
             {renderUsers()}
-            <Paginator
-              currentPage={currentPage}
-              totalPages={totalPages}
-              onPageChange={handlePageChange}
-              disabled={isLoading}
-            />
+            {!isLoading && (
+              <Paginator
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={handlePageChange}
+                disabled={isLoading}
+              />
+            )}
           </div>
         </main>
       </div>
