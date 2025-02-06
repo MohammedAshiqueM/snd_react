@@ -14,7 +14,7 @@ export const chat = async (user_id) => {
             throw new Error("User is not authenticated or user ID is missing.");
         }
 
-        const response = await instance.get(`ws-handshake/${currentUser}/${user_id}`);
+        const response = await instance.get(`ws-handshake/${currentUser}/${user_id}/`);
         return response.data;
     } catch (error) {
         throw error.response ? error.response.data : error.message;
