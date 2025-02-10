@@ -1,49 +1,3 @@
-// import { create } from 'zustand';
-// import { persist } from 'zustand/middleware';
-
-// const useRoleStore = create((set) => ({
-//   role: null,
-//   setRole: (role) => set({ role }),
-//   clearRole: () => set({ role: null }),
-// }));
-
-// const useAuthStore = create(
-//     persist(
-//       (set) => ({
-//         isAuthenticated: null,
-//         user: null,
-//         loading: true,
-//         setAuthStatus: (status, userData) => {
-//           set((state) => ({
-//             ...state,
-//             isAuthenticated: status,
-//             user: userData,
-//             loading: false,
-//           }));
-//         },
-//         setUser: (userData) => {
-//           set((state) => ({
-//             ...state,
-//             user: userData,
-//           }));
-//         },
-//         clearAuth: () => {
-//           console.log('Clearing auth state');
-//           set({ isAuthenticated: false, user: null, loading: false });
-//           useRoleStore.getState().clearRole();
-//         },
-//       }),
-//       {
-//         name: 'auth-storage',
-//         getStorage: () => localStorage,
-//         onRehydrateStorage: () => (state) => {
-//           console.log('Rehydrated state:', state);
-//         },
-//       }
-//     )
-//   );
-  
-
 import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
@@ -79,7 +33,7 @@ const useAuthStore = create(
       },
 
       setAuthStatus: (status, userData) => {
-        // Only set as authenticated if we have user data
+        // Only set as authenticated user data
         if (status && !userData) {
           console.warn('Attempted to set authenticated without user data');
           return;

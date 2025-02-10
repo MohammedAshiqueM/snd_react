@@ -12,7 +12,6 @@ const ScheduleProposal = ({ isOpen, onClose, requestId, onScheduleProposed }) =>
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Update scheduleData when requestId changes
   useEffect(() => {
     console.log("RequestId received:", requestId);
     setScheduleData(prev => ({
@@ -26,35 +25,33 @@ const ScheduleProposal = ({ isOpen, onClose, requestId, onScheduleProposed }) =>
     setIsSubmitting(true);
     setError("");
   
-    console.log("Current scheduleData:", scheduleData); // Debug log
+    console.log("Current scheduleData:", scheduleData);
   
-    // Validate requestId
     if (!requestId) {
       setError("Missing request ID");
       setIsSubmitting(false);
       return;
     }
   
-    // Explicitly construct the data to be sent
     const formattedData = {
       scheduled_time: new Date(scheduleData.scheduled_time).toISOString(),
       timezone: scheduleData.timezone,
       note: scheduleData.note,
-      request: requestId, // Use the requestId prop directly
+      request: requestId,
     };
   
-    console.log("Sending data to backend:", formattedData); // Debug log
+    console.log("Sending data to backend:", formattedData);
   
     try {
-      const data = await createPropose(formattedData); // Expecting JSON directly
+      const data = await createPropose(formattedData);
   
-      console.log("Success response:", data); // Debug log
+      console.log("Success response:", data);
       alert("Schedule proposed successfully! ✅");
       
       onScheduleProposed(data);
       onClose();
     } catch (err) {
-      console.error("Error in submission:", err); // Debug log
+      console.error("Error in submission:", err);
       setError(err.message || "Failed to propose schedule");
     } finally {
       setIsSubmitting(false);
@@ -62,13 +59,12 @@ const ScheduleProposal = ({ isOpen, onClose, requestId, onScheduleProposed }) =>
   };
   
 
-  // Handle input changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setScheduleData(prev => ({
       ...prev,
       [name]: value,
-      request: requestId  // Maintain the requestId
+      request: requestId
     }));
   };
 

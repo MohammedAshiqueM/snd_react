@@ -43,6 +43,8 @@ import TimeAccountPage from './pages/userSide/Account';
 import TimePlans from './pages/userSide/TimePlans';
 import PurchaseHistoryPage from './pages/userSide/PurchaseHistory';
 import RatingModal from './components/RatingModal';
+import TimePlansAdmin from './pages/adminSide/TimePlansAdmin';
+import TransactionHistory from './pages/adminSide/TransactionHistory';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -84,34 +86,36 @@ function App() {
                         <Route path="/profile" element={<ProfileHeader />} />
                         <Route path="/forget-password" element={<ForgotPassword />} />
                         <Route path="/reset-password" element={<ResetPassword/>} />
-                        <Route path="/read" element={<BlogRead/>} />
-                        <Route path="/blogs/:slug" element={<BlogRead />} />
-                        <Route path="/questions" element={<Questions />} />
-                        <Route path="/question/:pk" element={<QuestionRead />} />
-                        <Route path="/users" element={<ProtectedRoute><UsersList /></ProtectedRoute>} />
-                        <Route path="/users/details/:pk" element={<UserDetails />} />
-                        <Route path="/tags" element={<Tags />} />
-                        <Route path="/chat" element={<Chat />} />
-                        <Route path="/requests" element={<SessionRequest />} />
-                        <Route path="/requests/:pk" element={<SessionDetails />} />
-                        <Route path="/schedules" element={<ProposedRequests />} />
-                        <Route path="/sessions" element={<Sessions />} />
-                        <Route path="/meeting-room/:meeting_id" element={<VideoMeet />} />
-                        <Route path="/account" element={<TimeAccountPage />} />
-                        <Route path="/time-plans" element={<TimePlans />} />
-                        <Route path="/purchase-history" element={<PurchaseHistoryPage />} />
-                        <Route path="/rate" element={<RatingModal />} />
+                        {/* <Route path="/read" element={<BlogRead/>} /> */}
+                        <Route path="/blogs/:slug" element={<UserRoute><BlogRead /></UserRoute>} />
+                        <Route path="/questions" element={<UserRoute><Questions /></UserRoute>} />
+                        <Route path="/question/:pk" element={<UserRoute><QuestionRead /></UserRoute>} />
+                        <Route path="/users" element={<UserRoute><UsersList /></UserRoute>} />
+                        <Route path="/users/details/:pk" element={<UserRoute><UserDetails /></UserRoute>} />
+                        <Route path="/tags" element={<UserRoute><Tags /></UserRoute>} />
+                        <Route path="/chat" element={<UserRoute><Chat /></UserRoute>} />
+                        <Route path="/requests" element={<UserRoute><SessionRequest /></UserRoute>} />
+                        <Route path="/requests/:pk" element={<UserRoute><SessionDetails /></UserRoute>} />
+                        <Route path="/schedules" element={<UserRoute><ProposedRequests /></UserRoute>} />
+                        <Route path="/sessions" element={<UserRoute><Sessions /></UserRoute>} />
+                        <Route path="/meeting-room/:meeting_id" element={<UserRoute><VideoMeet /></UserRoute>} />
+                        <Route path="/account" element={<UserRoute><TimeAccountPage /></UserRoute>} />
+                        <Route path="/time-plans" element={<UserRoute><TimePlans /></UserRoute>} />
+                        <Route path="/purchase-history" element={<UserRoute><PurchaseHistoryPage /></UserRoute>} />
+                        <Route path="/rate" element={<UserRoute><RatingModal /></UserRoute>} />
 
                         {/* <Route path="/shimmer" element={<Shimmer />} /> */}
                         {/* admin */}
 
                         <Route path="/admin" element={<LoginAdmin />} />
                         <Route path="/admin/dashboard" element={<AdminRoute><Dashboard /></AdminRoute>} />
-                        <Route path="/admin/users" element={<UsersAdmin />} />
-                        <Route path="/admin/user/details/:pk" element={<UserDetailsAdmin />} />
-                        <Route path="/admin/reports" element={<Reports />} />
-                        <Route path="/admin/report/details/:pk" element={<ReportsDetails />} />
-                        <Route path="/admin/tags" element={<TagsAdmin />} />
+                        <Route path="/admin/users" element={<AdminRoute><UsersAdmin /></AdminRoute>} />
+                        <Route path="/admin/user/details/:pk" element={<AdminRoute><UserDetailsAdmin /></AdminRoute>} />
+                        <Route path="/admin/reports" element={<AdminRoute><Reports /></AdminRoute>} />
+                        <Route path="/admin/report/details/:pk" element={<AdminRoute><ReportsDetails /></AdminRoute>} />
+                        <Route path="/admin/tags" element={<AdminRoute><TagsAdmin /></AdminRoute>} />
+                        <Route path="/admin/time-plans" element={<AdminRoute><TimePlansAdmin /></AdminRoute>} />
+                        <Route path="/admin/transaction-history" element={<AdminRoute><TransactionHistory /></AdminRoute>} />
 
                     </Routes>
                     {/* </SearchContextProvider> */}

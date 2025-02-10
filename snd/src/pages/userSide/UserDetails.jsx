@@ -4,7 +4,7 @@ import {
   Users, Clock, Award, UserCheck 
 } from 'lucide-react';
 import { followUnfollow, userDetails } from '../../api';
-import { baseUrl } from '../../constants/constant';
+import { baseUrl, getCloudinaryUrl } from '../../constants/constant';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import ReportModal from '../../components/ReportModal';
@@ -56,6 +56,9 @@ export default function UserDetails() {
     followers, following, isFollowing 
   } = profile;
 
+  const profileImageUrl = getCloudinaryUrl(profile_image) || noUser;
+  const bannerImageUrl = getCloudinaryUrl(banner_image) || "/placeholder.svg?height=256&width=1536";
+
   const renderStars = (rating) => {
     const totalStars = 5;
     const roundedRating = Math.round(rating);
@@ -91,7 +94,7 @@ export default function UserDetails() {
           <div className="relative">
             <div className="h-64 bg-gradient-to-r from-blue-600 to-purple-600 rounded-t-2xl overflow-hidden">
               <img
-                src={banner_image ? `${baseUrl}${banner_image}` : "/placeholder.svg?height=256&width=1536"}
+                src={bannerImageUrl ? bannerImageUrl : "/placeholder.svg?height=256&width=1536"}
                 alt="Profile banner"
                 className="w-full h-full object-cover opacity-70"
               />
@@ -101,7 +104,7 @@ export default function UserDetails() {
               <div className="flex items-end">
                 <div className="relative">
                   <img
-                    src={profile_image ? `${baseUrl}${profile_image}` : noUser}
+                    src={profileImageUrl ? profileImageUrl : noUser}
                     alt="Profile picture"
                     className="h-36 w-36 rounded-xl border-4 border-white object-cover -mt-16 shadow-xl"
                   />

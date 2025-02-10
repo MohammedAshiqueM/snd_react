@@ -196,7 +196,7 @@ export const ratingUser = async (data) => {
 };
 
 export const meetDetails = async (id) => {
-    const response = await instance.get(`session/${id}`);
+    const response = await instance.get(`session/${id}/`);
     return response.data
 };
 

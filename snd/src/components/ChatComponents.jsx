@@ -1,6 +1,6 @@
 import { Send,Paperclip } from "lucide-react";
 import { useCallback, useState } from "react";
-import { useDropzone } from "react-dropzone"; // Install this library: npm install react-dropzone
+import { useDropzone } from "react-dropzone";
 
 export const MessageInput = ({ onSendMessage, connectionStatus }) => {
   const [message, setMessage] = useState("");

@@ -190,17 +190,15 @@ const VideoMeeting = ({ scheduleId, onError }) => {
                 const data = await meetDetails(meeting_id);
                 console.log("Meeting details response:", data);
                 
-                // Ensure we have valid duration data
+                //valid duration data
                 if (data && data.request && typeof data.request.duration_minutes === 'number' && data.request.duration_minutes > 0) {
                     console.log("Setting duration to:", data.request.duration_minutes);
                     setMeetingDuration(data.request.duration_minutes);
                 } else {
                     console.warn("Invalid duration received:", data?.request?.duration_minutes);
-                    // Keep the default 60 minutes
                 }
             } catch (error) {
                 console.error('Failed to fetch schedule details:', error);
-                // Keep the default 60 minutes
             }
         };
     
@@ -285,7 +283,7 @@ const VideoMeeting = ({ scheduleId, onError }) => {
 
     // Add this new function to handle the confirmed end call
     const handleEndCallConfirmed = async () => {
-        setShowEndCallDialog(false);  // Close the dialog first
+        setShowEndCallDialog(false);  // Close the dialog
         
         console.log("End call triggered:", {
             isTeacher,
@@ -293,11 +291,9 @@ const VideoMeeting = ({ scheduleId, onError }) => {
             teacherId,
         });
     
-        // Calculate elapsed time (in minutes)
         const elapsedMinutes = Math.ceil((Date.now() - startTime) / 60000); // Convert milliseconds to minutes
     
         try {
-            // Call the backend API to transfer time
             await transferTime({meeting_id, elapsedMinutes});
     
             if (isTeacher) {
@@ -309,7 +305,6 @@ const VideoMeeting = ({ scheduleId, onError }) => {
             }
         } catch (error) {
             console.error('Error during time transfer:', error);
-            // Handle error (e.g., show a notification to the user)
         }
     };
 

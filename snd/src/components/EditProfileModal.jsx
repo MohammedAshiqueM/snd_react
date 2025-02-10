@@ -3,6 +3,7 @@ import axios from 'axios';
 import { X, Upload } from 'lucide-react';
 import { tagSuggestion, updateProfile } from '../api';
 import { isValidURL, validateImage } from '../util';
+import { getCloudinaryUrl } from '../constants/constant';
 
 export default function EditProfileModal({ isOpen, onClose, userData }) {
     const [formData, setFormData] = useState({
@@ -18,12 +19,12 @@ export default function EditProfileModal({ isOpen, onClose, userData }) {
       banner_image: null,
     });
   
-    const BASE_URL ='http://127.0.0.1:8000';
     const [profileImagePreview, setProfileImagePreview] = useState(
-    userData?.profile_image ? `${BASE_URL}${userData.profile_image}` : null
+    userData?.profile_image ? getCloudinaryUrl(userData.profile_image) : null
     );
+    
     const [bannerImagePreview, setBannerImagePreview] = useState(
-    userData?.banner_image ? `${BASE_URL}${userData.banner_image}` : null
+    userData?.banner_image ? getCloudinaryUrl(userData.banner_image) : null
     );
     const [tagSuggestions, setTagSuggestions] = useState([]);
     const [selectedTags, setSelectedTags] = useState(userData?.skills?.map(skill => skill.tag?.name || skill) || []);

@@ -7,12 +7,13 @@ import NavBar from '../../components/NavBar';
 import QuestionWriteModal from '../../components/QuestionWriteModal';
 import useSearchStore from '../../store/useSearchStore';
 import { getQuestion, userSkills } from '../../api';
-import { baseUrl } from '../../constants/constant';
+import { baseUrl, getCloudinaryUrl } from '../../constants/constant';
 import { truncateText } from '../../util';
 import Paginator from "../../components/Paginator";
 import useSkillsStore from '../../store/useSkillStore';
 import Shimmer from './Shimmer';
 import QuestionShimmer from '../../components/QuestionShimmer';
+import noUser from '../../assets/Images/no_user.jpg';
 
 
 function Question() {
@@ -122,7 +123,7 @@ function Question() {
       <div className="flex flex-1">
         <SideBar
             isCollapsed={isSidebarCollapsed}
-            onToggle={handleSidebarToggle   }
+            onToggle={handleSidebarToggle}
         />
         <main className="flex-1 p-4">
         <div className={`flex-1 p-4 pt-40 transition-all duration-300 ${isSidebarCollapsed ? 'ml-16' : 'ml-48'}`}>
@@ -175,7 +176,7 @@ function Question() {
                   {question.user && (
                     <div className="h-6 w-6 rounded-full bg-gray-700">
                       <img
-                        src={`${baseUrl}${question.user.profile_image}` || '/default-image.jpg'}
+                        src={question.user?.profile_image ? getCloudinaryUrl(question.user.profile_image) : noUser}
                         alt={question.user.first_name || 'Untitled'}
                         className="h-full w-full rounded-full object-cover"
                       />

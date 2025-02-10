@@ -33,16 +33,15 @@ const Home = () => {
 
     const [showWelcome, setShowWelcome] = useState(() => {
         const savedState = localStorage.getItem('hideWelcome');
-        return !savedState; // Show welcome if not hidden
+        return !savedState;
     });
 
-    // Function to handle welcome section close
     const handleWelcomeClose = () => {
         setShowWelcome(false);
         localStorage.setItem('hideWelcome', 'true');
     };
 
-    // Voting logic
+    // Voting
     const handleVote = (postId, voteType) => {
         setVotes(prev => {
             const currentVote = prev[postId] || 0;
@@ -55,7 +54,6 @@ const Home = () => {
         });
     };
 
-    // Fetch blogs
     const fetchBlogs = async (page = currentPage, category = selectedCategory, query = searchQuery) => {
         setIsLoading(true);
         
@@ -98,7 +96,6 @@ const Home = () => {
         setSearchContext("blogs");
     }, []);
     
-    // In your Home component, modify the useEffect like this:
 useEffect(() => {
     const initializeData = async () => {
         setIsLoading(true);
@@ -139,16 +136,15 @@ return (
             <div className="flex flex-1">
                 <SideBar
                     isCollapsed={isSidebarCollapsed}
-                    onToggle={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
+                    onToggle={handleSidebarToggle}
                 />
                 
                 <main className={`flex-1 p-6 pt-40 transition-all duration-300 ${
                     isSidebarCollapsed ? 'ml-16' : 'ml-48'
                 }`}>
-                    {/* Enhanced Welcome Section */}
+                    {/* Welcome Section */}
                     {showWelcome && (
                         <div className="relative mb-8 bg-gradient-to-r from-indigo-500/10 to-purple-500/10 rounded-2xl p-8 border border-indigo-500/20 overflow-hidden group">
-                            {/* Animated Background Effect */}
                             <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 to-purple-500/5 transform -skew-x-12 translate-x-full group-hover:translate-x-0 transition-transform duration-1000" />
                             
                             <button 
@@ -179,7 +175,7 @@ return (
                                     className="group relative rounded-xl border border-gray-800 bg-gradient-to-b from-[#0D0E21] to-[#151632] p-4 transition-all duration-300 hover:border-indigo-500/50 hover:shadow-lg hover:shadow-indigo-500/10 cursor-pointer transform hover:-translate-y-1"
                                     onClick={() => navigate(`/blogs/${post.slug}`)}
                                 >
-                                    {/* Enhanced Image Container */}
+                                    {/* Image Container */}
                                     <div className="relative aspect-video overflow-hidden rounded-lg">
                                         <img
                                             src={post.image ? getCloudinaryUrl(post.image) : blogDefault}
@@ -190,12 +186,12 @@ return (
                                     </div>
                                     
                                     <div className="mt-4 space-y-3">
-                                        {/* Enhanced Title */}
+                                        {/* Title */}
                                         <h3 className="font-semibold text-white truncate text-lg group-hover:text-indigo-400 transition-colors">
                                             {post.title || 'Untitled Post'}
                                         </h3>
                                         
-                                        {/* Enhanced Tags */}
+                                        {/* Tags */}
                                         <div className="flex flex-wrap gap-2">
                                             {post.tags.map((tagObj, index) => (
                                                 <span
@@ -207,7 +203,7 @@ return (
                                             ))}
                                         </div>
 
-                                        {/* Enhanced Author and Interaction Section */}
+                                        {/* Author and Interaction Section */}
                                         <div className="mt-4 flex items-center justify-between flex-wrap">
                                             <div className="flex items-center gap-3 max-w-[60%]">
                                                 <div className="h-8 w-8 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 p-0.5">
@@ -227,7 +223,7 @@ return (
                                                 </span>
                                             </div>
                                             
-                                            {/* Enhanced Interaction Buttons */}
+                                            {/* Interaction Buttons */}
                                             <div className="flex items-center gap-3 text-gray-400">
                                                 <div className="flex items-center gap-0.5 bg-[#1A1B2E] rounded-lg p-1">
                                                     <button
@@ -295,12 +291,7 @@ return (
                         <Paginator
                             currentPage={currentPage}
                             totalPages={totalPages}
-                            onPageChange={(newPage) => {
-                                if (newPage >= 1 && newPage <= totalPages) {
-                                    setCurrentPage(newPage);
-                                    fetchBlogs(newPage, selectedCategory, searchQuery);
-                                }
-                            }}
+                            onPageChange={handlePageChange}
                         />
                     </div>
                 </main>

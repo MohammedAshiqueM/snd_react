@@ -3,7 +3,7 @@ import SideBar from "../../components/SideBar";
 import NavBar from "../../components/NavBar";
 import useSearchStore from "../../store/useSearchStore";
 import { usersList } from "../../api";
-import { baseUrl } from "../../constants/constant";
+import { baseUrl, getCloudinaryUrl } from "../../constants/constant";
 import noUser from "../../assets/Images/no_user.jpg";
 import Paginator from "../../components/Paginator";
 import useSkillsStore from "../../store/useSkillStore";
@@ -122,9 +122,7 @@ function UsersAdmin() {
                     <div className="w-10 h-10 bg-gray-600 rounded-full flex items-center justify-center">
                       <img
                         src={
-                          user.profile_image
-                            ? `${url}${user.profile_image}`
-                            : noUser
+                            user.profile_image ? getCloudinaryUrl(user.profile_image) : noUser
                         }
                         className="h-full w-full rounded-full object-cover"
                         alt={user.username}

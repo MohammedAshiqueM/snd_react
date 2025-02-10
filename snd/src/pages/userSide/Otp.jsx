@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { emailVerification, resentOtp } from '../../api';
 import { getFromSession } from '../../util';
+import { useAuthStore } from '../../store/useAuthStore';
 
 const Otp = () => {
   const [otpValues, setOtpValues] = useState(['', '', '', '', '']);
@@ -12,6 +13,16 @@ const Otp = () => {
   const inputRefs = useRef([]);
   const timerRef = useRef(null);
   const navigate = useNavigate();
+  const { isAuthenticated,setAuthStatus  } = useAuthStore();
+
+    useEffect(() => {
+          if (isAuthenticated) {
+            navigate('/home');
+          }
+        
+        // setLoading(false);
+    
+    }, [isAuthenticated,navigate]);
 
   useEffect(() => {
     const savedTime = localStorage.getItem('timeLeft');
@@ -119,6 +130,7 @@ const Otp = () => {
         const response = await emailVerification(payload);
         // setSuccess('User registered successfully!');
         console.log(response);
+        setAuthStatus(true, response.user);
         navigate('/home');
     } catch (err) {
         setError(err.detail || 'An error occurred during registration.');

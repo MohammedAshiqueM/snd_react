@@ -24,14 +24,14 @@ export const NotificationProvider = ({ children }) => {
       const newNotifications = Array.isArray(response) ? response : response.notifications || [];
       const newCount = typeof response === 'object' ? response.unread_count : newNotifications.length;
   
-      console.log('Fetched Notifications:', newNotifications); // Log fetched notifications
-      console.log('Unread Count:', newCount); // Log unread count
+      console.log('Fetched Notifications:', newNotifications);
+      console.log('Unread Count:', newCount);
   
       setNotifications(newNotifications);
       setUnreadCount(newCount);
     } catch (error) {
       console.error('Error fetching notifications:', error);
-      setNotifications([]); // Set default value on error
+      setNotifications([]);
       setUnreadCount(0);
     }
   }, [user]);
@@ -39,7 +39,7 @@ export const NotificationProvider = ({ children }) => {
   const handleWebSocketNotification = useCallback((wsNotification) => {
     if (!wsNotification) return;
   
-    console.log('WebSocket Notification Received:', wsNotification); // Log WebSocket notification
+    console.log('WebSocket Notification Received:', wsNotification);
   
     setNotifications(prev => {
       const exists = prev.some(n => n.id === wsNotification.id);
@@ -94,7 +94,7 @@ export const NotificationProvider = ({ children }) => {
   const addNotification = useCallback((notification) => {
     if (!notification) return;
   
-    console.log('Manually Added Notification:', notification); // Log manually added notification
+    console.log('Manually Added Notification:', notification);
   
     setNotifications(prev => [notification, ...prev]);
     setUnreadCount(count => count + 1);
@@ -103,14 +103,14 @@ export const NotificationProvider = ({ children }) => {
   const markAsRead = useCallback(async (senderId) => {
     if (!senderId) return;
     try {
-      console.log('Marking notifications as read for senderId:', senderId); // Log senderId
+      console.log('Marking notifications as read for senderId:', senderId);
   
       await markMessagesAsRead(senderId);
       setNotifications(prev => {
         const updatedNotifications = prev.map(notif =>
           notif.sender_id === senderId ? { ...notif, isRead: true } : notif
         );
-        console.log('Updated Notifications After Marking Read:', updatedNotifications); // Log updated notifications
+        console.log('Updated Notifications After Marking Read:', updatedNotifications);
         const unreadCount = updatedNotifications.filter(n => !n.isRead).length;
         setUnreadCount(unreadCount);
         return updatedNotifications;
@@ -167,7 +167,7 @@ export const NotificationProvider = ({ children }) => {
   }, [user]);
 
   const value = {
-    notifications: notifications || [], // Ensure notifications is always an array
+    notifications: notifications || [],
     unreadCount,
     addNotification,
     removeNotification,

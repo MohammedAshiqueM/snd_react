@@ -1,4 +1,3 @@
-// NotificationBell Component
 const NotificationBell = () => {
     const { unreadCount, setShowNotifications, showNotifications } = useNotifications();
   

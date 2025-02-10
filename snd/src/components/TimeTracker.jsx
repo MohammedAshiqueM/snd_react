@@ -17,7 +17,7 @@ const TimeTracker = ({ duration, onTimeOver, isConnected, onCallEnd }) => {
       setTimerActive(true);
       console.log("TimeTracker: Connection established, starting timer");
     } else if (!isConnected && startTime) {
-      // Optional: Pause timer when connection is lost
+      // !!Optional: Pause timer when connection is lost
       setTimerActive(false);
       console.log("TimeTracker: Connection lost, pausing timer");
     }

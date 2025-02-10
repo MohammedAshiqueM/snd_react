@@ -44,9 +44,13 @@ export const ProposalCount = ({ count }) => {
   if (!count && count !== 0) return null;
   
   return (
-    <div className="flex items-center gap-2 text-gray-400 mt-2">
-      <Calendar size={16} />
-      <span>{count} schedule proposal{count !== 1 ? 's' : ''}</span>
+    <div className="group flex items-center gap-3 px-4 py-2 bg-indigo-500/10 border border-indigo-500/20 
+                  rounded-lg text-indigo-400 hover:border-indigo-500/50 transition-all duration-300">
+      <Calendar size={16} className="text-indigo-400" />
+      <span className="bg-gradient-to-r from-indigo-400 to-purple-400 bg-clip-text text-transparent 
+                     group-hover:from-indigo-300 group-hover:to-purple-300">
+        {count} schedule proposal{count !== 1 ? 's' : ''}
+      </span>
     </div>
   );
 };

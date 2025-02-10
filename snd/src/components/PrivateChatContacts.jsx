@@ -3,6 +3,7 @@ import { debounce } from 'lodash';
 import { useNotifications } from './NotificationContext';
 import NotificationBadge from './NotificationBadge';
 import NotificationToast from './NotificationToast';
+import { getCloudinaryUrl } from '../constants/constant';
 
 const PrivateChatContacts = ({
   contacts,
@@ -17,7 +18,6 @@ const PrivateChatContacts = ({
   const { notifications, markAsRead, clearNotifications } =
     useNotifications();
 
-  // Filter contacts when the search term changes
   const debouncedSearch = useCallback(
     debounce((term) => {
       const filtered = contacts.filter(
@@ -31,35 +31,9 @@ const PrivateChatContacts = ({
     [contacts]
   );
 
-  // Update filtered contacts when the `contacts` prop changes
   useEffect(() => {
     setFilteredContacts(contacts);
   }, [contacts]);
-
-  // Handle WebSocket messages
-//   useEffect(() => {
-//     if (websocket) {
-//       websocket.addEventListener('message', handleWebSocketMessage);
-//       return () => {
-//         websocket.removeEventListener('message', handleWebSocketMessage);
-//       };
-//     }
-//   }, [websocket]);
-
-//   const handleWebSocketMessage = (event) => {
-//     const data = JSON.parse(event.data);
-//     if (data.type === 'notification') {
-//       if (!selectedContact || selectedContact.id !== data.sender_id) {
-//         addNotification({
-//           sender: data.sender,
-//           sender_id: data.sender_id,
-//           message: data.message,
-//           timestamp: new Date(),
-//           isRead: false,
-//         });
-//       }
-//     }
-//   };
 
   const handleContactSelect = (contact) => {
     markAsRead(contact.id);
@@ -116,7 +90,7 @@ const PrivateChatContacts = ({
               <div className="relative">
                 {contact.profile_image ? (
                   <img
-                    src={contact.profile_image}
+                    src={getCloudinaryUrl(contact.profile_image)}
                     alt={contact.username}
                     className="w-12 h-12 rounded-full"
                   />

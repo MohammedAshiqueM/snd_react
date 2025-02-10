@@ -27,7 +27,6 @@ const handleJoin = async (id, teacherId, studentId,) => {
     try {
       const data = await joinMeet(id);
       
-      // Check if we received the expected response format
       if (data && data.meeting_id) {
         // Open meeting in new window/tab with the received meeting ID
         window.open(`/meeting-room/${data.meeting_id}?teacherId=${teacherId}&studentId=${studentId}`, '_blank');
@@ -252,12 +251,10 @@ export default function Sessions() {
       setCurrentPage(newPage);
     };
   
-    // Effect to set search context when component mounts
     useEffect(() => {
       setSearchContext('sessions');
     }, []);
   
-    // Effect to handle search and category changes
     useEffect(() => {
         console.log("schedules",schedules)
       fetchSchedules(currentPage, selectedCategory, searchQuery);

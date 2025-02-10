@@ -16,21 +16,20 @@ const WebSocketNotification = ({ userId }) => {
 
     try {
       const { websocket_url } = await notificationHandshake(userId);
-      console.log('Connecting to WebSocket:', websocket_url); // Debug
+      console.log('Connecting to WebSocket:', websocket_url);
 
       const newSocket = new WebSocket(websocket_url);
 
-      // Set up event handlers before attempting connection
       newSocket.addEventListener('open', () => {
         console.log('WebSocket Connected');
         setSocket(newSocket);
       });
 
       newSocket.addEventListener('message', (event) => {
-        console.log('Raw WebSocket Message:', event.data); // Debug
+        console.log('Raw WebSocket Message:', event.data);
         try {
           const data = JSON.parse(event.data);
-          console.log('Parsed WebSocket Message:', data); // Debug
+          console.log('Parsed WebSocket Message:', data);
         //   console.log('Received:', data);
           
           if (data.type === 'new_notification') {
@@ -88,7 +87,7 @@ const WebSocketNotification = ({ userId }) => {
     if (Notification.permission === 'granted') {
       new Notification(notification.sender_name || 'New Notification', {
         body: notification.message,
-        icon: '/notification-icon.png', // Replace with your actual icon path
+        icon: '/notification-icon.png',// a demo icon later update
       });
     }
   }, []);
@@ -116,7 +115,7 @@ const WebSocketNotification = ({ userId }) => {
       const handleMessage = (event) => {
         try {
           const data = JSON.parse(event.data);
-          console.log('Parsed WebSocket Message:', data); // Debug
+          console.log('Parsed WebSocket Message:', data);
   
           if (data.type === 'new_notification') {
             handleNewNotification(data.notification);
@@ -157,7 +156,6 @@ const WebSocketNotification = ({ userId }) => {
     }
   };
 
-  // Establish WebSocket connection on component mount
   useEffect(() => {
     if (userId) {
       connectWebSocket();

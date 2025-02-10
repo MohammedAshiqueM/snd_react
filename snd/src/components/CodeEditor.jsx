@@ -86,7 +86,6 @@ const CodeEditor = ({ websocket, isOpen }) => {
         
         setSupportedLanguages(langIds);
 
-        // Explicitly set initial model with JavaScript Hello World
         const model = monaco.editor.createModel(
             LANGUAGE_HELLO_WORLD['javascript'],
             'javascript'

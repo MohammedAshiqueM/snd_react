@@ -41,32 +41,28 @@ const NavbarAdmin = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon
     const value = e.target.value;
     setSearchInput(value);
     if (!value.trim()) {
-        setSearchQuery(""); // Reset search query if input is empty
-        setSelectedCategory("All"); // Clear the selected category
+        setSearchQuery("");
+        setSelectedCategory("All");
       }
   };
 
   // Handle search on Enter key
   const handleSearchKeyDown = (e) => {
     if (e.key === "Enter" && searchInput.trim()) {
-      // Check if the search query matches a category
       const matchedCategory = skills.find((skill) =>
         skill.toLowerCase() === searchInput.trim().toLowerCase()
       );
   
       if (matchedCategory) {
-        setSelectedCategory(matchedCategory); // Select the matched category
+        setSelectedCategory(matchedCategory);
       } else {
         if (selectedCategory === "All") {
-            // If currently on "All", you might want to keep it that way
             setSelectedCategory("All");
           }
       }
   
-      // Set the search query
       setSearchQuery(searchInput.trim());
   
-      // Navigate based on search context
       const route = Object.keys(pathToContextMap).find(
         (key) => pathToContextMap[key] === searchContext
       );
@@ -143,22 +139,41 @@ const NavbarAdmin = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon
             <button className="rounded-full p-2 text-gray-400 hover:bg-gray-800 hover:text-white">
               <Bell className="h-5 w-5" />
             </button>
-            {/* <a href="/profile">
-              <div className="h-8 w-8 rounded-full bg-gray-700">
-                {user && (
-                  <img
-                    src={user.profile_image ? `${baseUrl}${user.profile_image}` : noUser}
-                    alt={user.first_name || "Untitled"}
-                    className="h-full w-full rounded-full object-cover transition-transform group-hover:scale-105"
-                  />
-                )}
-              </div>
-            </a> */}
             <p className="p-2 text-gray-400">Admin</p>
           </div>
         </div>
       </nav>
+    {/* Category Navigation */}
+        <div className="fixed top-16 left-0 w-full z-40 bg-[#0A0B1A]/70 backdrop-blur-sm border-b border-gray-800/50">
+        <div className="flex h-16 items-center justify-between px-4">
+            <div className="flex justify-center px-4 mx-auto space-x-4 overflow-x-auto relative w-full">
+            <button className="p-1 text-gray-500 hover:text-white transition duration-200">
+                <ChevronLeft className="h-5 w-5" />
+            </button>
+            
+            <div className="flex space-x-4">
+                {renderSkillButtons}
+            </div>
+            
+            <button className="p-1 text-gray-500 hover:text-white transition duration-200">
+                <ChevronRight className="h-5 w-5" />
+            </button>
 
+            {onWriteClick && (
+                <button
+                onClick={onWriteClick}
+                className="flex items-center space-x-2 px-4 py-2 rounded-lg 
+                        bg-gradient-to-r from-indigo-500 to-purple-500 
+                        text-white hover:shadow-lg hover:shadow-indigo-500/20 
+                        transition-all duration-300 absolute right-4"
+                >
+                <WriteIcon className="h-4 w-4" />
+                <span>{writeButtonLabel}</span>
+                </button>
+            )}
+            </div>
+        </div>
+        </div>
     </>
   );
 };

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { formatDistanceToNow } from 'date-fns';
-import { Tag, Clock, UserCheck, Calendar, ChevronUp, ChevronDown, MoreVertical } from 'lucide-react';
+import { Tag, Clock, UserCheck, Calendar, ChevronUp, ChevronDown, MoreVertical, AlertTriangle, X } from 'lucide-react';
 
 import SideBar from '../../components/SideBar';
 import NavBar from '../../components/NavBar';
@@ -17,6 +17,22 @@ import { useAuthStore } from '../../store/useAuthStore';
 import ScheduleProposal from '../../components/ScheduleProposal';
 import { ProposalCount } from './ProposedSchedules';
 
+const ErrorToast = ({ message, onDismiss }) => {
+    if (!message) return null;
+  
+    return (
+      <div className="fixed bottom-4 right-4 flex items-center bg-red-950/90 border border-red-500/50 text-red-200 px-4 py-3 rounded-lg shadow-lg animate-in slide-in-from-right-2 z-50">
+        <AlertTriangle className="h-5 w-5 text-red-400 mr-3" />
+        <span>{message}</span>
+        <button
+          onClick={onDismiss}
+          className="ml-4 text-red-400 hover:text-red-300 transition-colors"
+        >
+          <X className="h-5 w-5" />
+        </button>
+      </div>
+    );
+  };
 
 const TabButton = ({ active, onClick, children }) => (
     <button
@@ -42,6 +58,45 @@ const TabButton = ({ active, onClick, children }) => (
     const [isScheduleModalOpen, setIsScheduleModalOpen] = useState(false);
     const isOwner = request?.user?.username === user.username;
     const canSchedule = !isOwner && request.status === "PE" && !request?.has_proposed;
+
+    useEffect(() => {
+        let errorTimeout;
+        if (error) {
+          errorTimeout = setTimeout(() => {
+            setError(null);
+          }, 5000); // Auto-dismiss after 5 seconds
+        }
+        return () => clearTimeout(errorTimeout);
+      }, [error]);
+    
+      const formatErrorMessage = (error) => {
+        try {
+          if (error.response?.data) {
+            const errorData = error.response.data;
+            
+            // Check for duration_minutes error
+            if (errorData.duration_minutes) {
+              return errorData.duration_minutes[0];
+            }
+            
+            const firstErrorField = Object.keys(errorData)[0];
+            if (firstErrorField && Array.isArray(errorData[firstErrorField])) {
+              return errorData[firstErrorField][0];
+            }
+          }
+          
+          if (error.duration_minutes && Array.isArray(error.duration_minutes)) {
+            return error.duration_minutes[0];
+          }
+          
+          return 'An error occurred. Please try again.';
+        } catch (e) {
+          console.error('Error formatting error message:', e);
+          return 'An error occurred. Please try again.';
+        }
+      };
+
+      
     const handleClick = (e) => {
       if (e.target.closest(".status-badge") || e.target.closest("button")) {
         e.stopPropagation();
@@ -51,19 +106,20 @@ const TabButton = ({ active, onClick, children }) => (
     };
   
     const handleStatusChange = async (newStatus) => {
-      setUpdateLoading(true);
-      setError(null);
-  
-      try {
-        await updateRequest(request.id, { status: newStatus });
-        onStatusUpdate(request.id, newStatus);
-        setShowStatusDropdown(false);
-      } catch (error) {
-        console.error("Error updating status:", error);
-        setError("Failed to update status. Please try again.");
-      } finally {
-        setUpdateLoading(false);
-      }
+        setUpdateLoading(true);
+        setError(null);
+    
+        try {
+            await updateRequest(request.id, { status: newStatus });
+            onStatusUpdate(request.id, newStatus);
+            setShowStatusDropdown(false);
+        } catch (error) {
+            console.error("Error updating status:", error);
+            const errorMessage = formatErrorMessage(error.response?.data || error);
+            setError(errorMessage);
+        } finally {
+            setUpdateLoading(false);
+        }
     };
   
     return (
@@ -167,6 +223,11 @@ const TabButton = ({ active, onClick, children }) => (
               </div>
             </div>
           </div>
+          {/* Error Toast */}
+      <ErrorToast 
+        message={error} 
+        onDismiss={() => setError(null)} 
+      />
         </div>
       );
     };

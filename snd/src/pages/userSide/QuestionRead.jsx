@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useParams } from 'react-router-dom';
 import { blogRead, followUnfollow, getAnswers, getComments, postAnswer, postComment, questionRead, voteQuestion,  } from '../../api'; 
 import { MessageCircle, Eye, ThumbsUp, ThumbsDown, Share2, Copy } from 'lucide-react'
-import { baseUrl } from '../../constants/constant';
+import { baseUrl, getCloudinaryUrl } from '../../constants/constant';
 import { formatDistanceToNow } from 'date-fns';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
@@ -44,7 +44,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
       const response = await voteQuestion(pk, voteType);
   
       if (response.vote_count !== undefined) {
-        setVotes(response.vote_count); // Update the vote count on the UI
+        setVotes(response.vote_count);
         setUserVote(newVoteType);
       }
     } catch (err) {
@@ -125,6 +125,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
 
   if (loading) return <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col"><SecondNavbar /></div>;
 //   if (error) return <div>{error}</div>;
+const blogWriterImage = getCloudinaryUrl(blog.data.user.profile_image) || noUser;
 
   return (
     <div className="min-h-screen bg-[#0A0B1A] text-white flex flex-col">
@@ -143,7 +144,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
             <div className="flex items-center space-x-4">
               <div className="h-12 w-12 rounded-full bg-gray-700 overflow-hidden">
                 <img 
-                  src={`${url}${blog.data.user.profile_image}`} 
+                  src={blogWriterImage} 
                   alt={blog.data.user.first_name}
                   className="object-cover w-full h-full" 
                 />
@@ -255,7 +256,7 @@ const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(() => {
                   >
                     <div className="h-8 w-8 rounded-full bg-gray-700 overflow-hidden">
                       <img 
-                        src={comment.user.profile_image ? `${baseUrl}${comment.user.profile_image}` : noUser}
+                        src={comment.user.profile_image ? getCloudinaryUrl(comment.user.profile_image) : noUser}
                         alt={comment.user.first_name}
                         className="w-full h-full object-cover" 
                       />

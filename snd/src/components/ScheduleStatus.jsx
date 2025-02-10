@@ -1,36 +1,29 @@
 import React from 'react';
-import { Clock, Calendar, UserCheck, CheckCircle, PenLine } from 'lucide-react';
+import { Clock, Calendar, UserCheck, CheckCircle, XCircle } from 'lucide-react';
 
-const RequestCycleStatus = ({ status, scheduleData }) => {
+const ScheduleStatus = ({ status, scheduleData }) => {
   const steps = [
     {
-      id: 'draft',
-      label: 'Draft',
-      description: 'Request is being prepared',
-      icon: PenLine,
-      isComplete: status !== 'DR'
-    },
-    {
-      id: 'pending',
-      label: 'Pending',
-      description: scheduleData?.proposals_count
-        ? `${scheduleData.proposals_count} schedule(s) proposed`
-        : 'Looking for teacher',
+      id: 'proposed',
+      label: 'Schedule Proposed',
+      description: scheduleData?.scheduled_time 
+        ? `Proposed for ${new Date(scheduleData.scheduled_time).toLocaleString()}`
+        : 'Time slot proposed',
       icon: Clock,
-      isComplete: ['SC', 'CO'].includes(status)
+      isComplete: ['PE', 'AC', 'CO'].includes(status)
     },
     {
-      id: 'scheduled',
-      label: 'Scheduled',
-      description: scheduleData?.accepted_schedule
-        ? `Session scheduled for ${new Date(scheduleData.accepted_schedule.scheduled_time).toLocaleString()}`
-        : 'Awaiting schedule confirmation',
+      id: 'accepted',
+      label: 'Schedule Accepted',
+      description: status === 'AC' || status === 'CO'
+        ? `Session confirmed for ${new Date(scheduleData?.scheduled_time).toLocaleString()}`
+        : 'Awaiting confirmation',
       icon: Calendar,
-      isComplete: ['SC', 'CO'].includes(status)
+      isComplete: ['AC', 'CO'].includes(status)
     },
     {
       id: 'completed',
-      label: 'Completed',
+      label: 'Session Completed',
       description: status === 'CO'
         ? 'Time credits transferred'
         : 'Session not completed yet',
@@ -44,30 +37,35 @@ const RequestCycleStatus = ({ status, scheduleData }) => {
     return (completedSteps / steps.length) * 100;
   };
 
-  const getStatusColor = () => {
-    switch (status) {
-      case 'DR': return 'text-gray-400';
-      case 'PE': return 'text-yellow-400';
-      case 'SC': return 'text-green-400';
-      case 'CO': return 'text-blue-400';
-      case 'CA': return 'text-red-400';
-      default: return 'text-gray-400';
-    }
-  };
-
-  // If request is cancelled, show special cancelled state
-  if (status === 'CA') {
+  // Special states for rejected or cancelled schedules
+  if (status === 'RE' || status === 'CA') {
     return (
       <div className="bg-gray-800 rounded-xl p-4 border border-gray-700 relative overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-orange-500/10" />
         <div className="relative">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-semibold text-red-400">Request Cancelled</h3>
+            <h3 className="text-lg font-semibold text-red-400">
+              Schedule {status === 'RE' ? 'Rejected' : 'Cancelled'}
+            </h3>
             <div className="bg-red-500/20 text-red-400 px-4 py-1 rounded-full text-sm">
-              Cancelled
+              {status === 'RE' ? 'Rejected' : 'Cancelled'}
             </div>
           </div>
-          <p className="text-gray-400 text-sm">This request has been cancelled and time credits have been released.</p>
+          <div className="flex items-center gap-3 mt-2">
+            <div className="p-2 rounded-lg bg-red-500/20">
+              <XCircle className="text-red-400" size={20} />
+            </div>
+            <p className="text-gray-400 text-sm">
+              {status === 'RE' 
+                ? 'This schedule proposal was rejected.'
+                : 'This schedule has been cancelled.'}
+            </p>
+          </div>
+          {scheduleData?.note && (
+            <div className="mt-4 p-3 rounded-lg bg-gray-700/30">
+              <p className="text-sm text-gray-400">{scheduleData.note}</p>
+            </div>
+          )}
         </div>
       </div>
     );
@@ -79,17 +77,15 @@ const RequestCycleStatus = ({ status, scheduleData }) => {
       
       <div className="relative">
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold text-blue-400">Request Progress</h3>
+          <h3 className="text-lg font-semibold text-blue-400">Schedule Status</h3>
           <div className={`px-4 py-1 rounded-full text-sm ${
-            status === 'DR' ? 'bg-gray-500/20 text-gray-400' :
-            status === 'PE' ? 'bg-yellow-500/20 text-yellow-400' :
-            status === 'SC' ? 'bg-green-500/20 text-green-400' :
+            status === 'PR' ? 'bg-yellow-500/20 text-yellow-400' :
+            status === 'AC' ? 'bg-green-500/20 text-green-400' :
             status === 'CO' ? 'bg-blue-500/20 text-blue-400' :
             'bg-gray-500/20 text-gray-400'
           }`}>
-            {status === 'DR' ? 'Draft' :
-             status === 'PE' ? 'Pending' :
-             status === 'SC' ? 'Scheduled' :
+            {status === 'PR' ? 'Proposed' :
+             status === 'AC' ? 'Accepted' :
              status === 'CO' ? 'Completed' :
              'Unknown Status'}
           </div>
@@ -110,7 +106,12 @@ const RequestCycleStatus = ({ status, scheduleData }) => {
                   cy="48"
                 />
                 <circle
-                  className={`${getStatusColor()} transition-all duration-1000 ease-out`}
+                  className={`${
+                    status === 'PR' ? 'text-yellow-400' :
+                    status === 'AC' ? 'text-green-400' :
+                    status === 'CO' ? 'text-blue-400' :
+                    'text-gray-400'
+                  } transition-all duration-1000 ease-out`}
                   strokeWidth="8"
                   strokeLinecap="round"
                   stroke="currentColor"
@@ -132,11 +133,11 @@ const RequestCycleStatus = ({ status, scheduleData }) => {
 
           {/* Steps */}
           <div className="space-y-2">
-            {steps.map((step, index) => (
+            {steps.map((step) => (
               <div 
                 key={step.id}
                 className={`transform transition-all duration-300 ${
-                  step.isComplete || status === 'CA' ? 'scale-100 opacity-100' : 'opacity-50'
+                  step.isComplete ? 'scale-100 opacity-100' : 'opacity-50'
                 }`}
               >
                 <div className="flex items-center gap-3 p-2 rounded-lg bg-gray-800/50 hover:bg-gray-700/50 transition-colors">
@@ -168,4 +169,4 @@ const RequestCycleStatus = ({ status, scheduleData }) => {
   );
 };
 
-export default RequestCycleStatus;
+export default ScheduleStatus;

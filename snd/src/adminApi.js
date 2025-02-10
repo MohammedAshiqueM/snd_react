@@ -59,10 +59,52 @@ export const tagList = async (data) => {
 export const addTag = async (data) => {
     try{
         const response = await instance.post(`dashboard/tag/add/`,data)
-        console.log(response.data)
+        console.log(response)
         return response.data
     } catch (error) {
         console.error("Error during listing users")
         throw error
     }
 }
+
+export const paymentPlans = async () => {
+    try {
+        const response = await instance.get('dashboard/time-plans/');
+        return response.data;
+    } catch (error) {
+        console.error("Error verifying payment:", error);
+        throw error;
+    }
+  };
+
+export const addPlans = async (data) => {
+    try {
+        const response = await instance.post('dashboard/time-plans/',data);
+        return response.data;
+    } catch (error) {
+        console.error("Error verifying payment:", error);
+        throw error;
+    }
+  };
+
+  export const updatePlan = async (id,data) => {
+    try {
+        const response = await instance.put(`dashboard/time-plans/${id}/`,data);
+        return response.data;
+    } catch (error) {
+        console.error("Error verifying payment:", error);
+        throw error;
+    }
+  };
+
+  export const getTransactionHistory = async (page = 1, pageSize = 10) => {
+    try {
+      const response = await instance.get(`dashboard/time/purchases/`, {
+        params: { page, page_size: pageSize }
+      });
+      return response.data;
+    } catch (error) {
+      console.error("Error fetching transaction history:", error);
+      throw error;
+    }
+  };

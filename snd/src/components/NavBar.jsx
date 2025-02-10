@@ -36,7 +36,7 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
   };
 
   useEffect(() => {
-    fetchSkills(); // Fetch skills only once
+    fetchSkills();
     setSelectedCategory("All"); // Default to "All" category on initial load
   }, [fetchSkills]);
 
@@ -45,8 +45,8 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
     const value = e.target.value;
     setSearchInput(value);
     if (!value.trim()) {
-        setSearchQuery(""); // Reset search query if input is empty
-        setSelectedCategory("All"); // Clear the selected category
+        setSearchQuery("");
+        setSelectedCategory("All");
       }
   };
 
@@ -62,15 +62,12 @@ const NavBar = ({ onWriteClick, writeButtonLabel = "Write", writeButtonIcon = Pe
         setSelectedCategory(matchedCategory); // Select the matched category
       } else {
         if (selectedCategory === "All") {
-            // If currently on "All", you might want to keep it that way
             setSelectedCategory("All");
           }
       }
   
-      // Set the search query
       setSearchQuery(searchInput.trim());
   
-      // Navigate based on search context
       const route = Object.keys(pathToContextMap).find(
         (key) => pathToContextMap[key] === searchContext
       );

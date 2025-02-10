@@ -3,7 +3,7 @@ import axios from 'axios';
 import { Star, Github, Mail, Edit, Pen, Linkedin } from 'lucide-react';
 import { myProfile, userDetails } from '../../api';
 // import { baseUrl } from './constants/constant';
-import { baseUrl } from '../../constants/constant';
+import { baseUrl, getCloudinaryUrl } from '../../constants/constant';
 import SideBar from '../../components/SideBar';
 import SecondNavbar from '../../components/SecondNavbar';
 import noUser from '../../assets/Images/no_user.jpg'
@@ -70,6 +70,10 @@ export default function UserDetailsAdmin() {
     last_active,
     is_blocked 
   } = profile;
+
+  const profileImageUrl = getCloudinaryUrl(profile_image) || noUser;
+  const bannerImageUrl = getCloudinaryUrl(banner_image) || "/placeholder.svg?height=256&width=1536";
+
   const renderStars = (rating) => {
     const totalStars = 5;
     const roundedRating = Math.round(rating);
@@ -103,7 +107,7 @@ export default function UserDetailsAdmin() {
     <main className="flex-1 pt-12">
       <div className="relative h-48 bg-gradient-to-r from-yellow-400 to-blue-600">
         <img
-          src={`${url}${banner_image}` || "/placeholder.svg?height=192&width=1024"}
+          src={bannerImageUrl ? bannerImageUrl : "/placeholder.svg?height=256&width=1536"}
           alt="Profile banner"
           className="h-full w-full object-cover"
         />
@@ -112,9 +116,7 @@ export default function UserDetailsAdmin() {
         <div className="absolute top-[-12rem] flex items-end">
           <div className="relative">
             <img
-            //   src={`${url}${profile_image}` || "/placeholder-avatar.svg"}
-              src={profile_image ? `${baseUrl}${profile_image}` : noUser}
-
+              src={profileImageUrl ? profileImageUrl : noUser}
               alt="Profile picture"
               className="h-[11rem] w-[11rem] rounded-lg border-4 border-white object-cover"
             />

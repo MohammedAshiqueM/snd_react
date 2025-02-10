@@ -155,7 +155,7 @@ export default function Chat() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Enhanced infinite scroll with debounce
+  // infinite scroll with debounce
   const handleContactsScroll = useCallback(
     debounce(() => {
       if (!contactsContainerRef.current || loading || !hasMore) return;
@@ -176,7 +176,7 @@ export default function Chat() {
     }
   }, [handleContactsScroll]);
 
-  // Enhanced contact update logic
+  // contact update logic
   const updateContactWithNewMessage = useCallback((contactId, newMessage, timestamp, senderId) => {
     setContacts((prevContacts) => {
       const contactIndex = prevContacts.findIndex((c) => c.id === contactId);
@@ -201,7 +201,6 @@ export default function Chat() {
     });
   }, [selectedContact, user.id]);
 
-  // Fetch contacts with improved error handling
   const fetchContacts = async (pageNum = 1) => {
     if (loading) return;
     setLoading(true);
@@ -255,7 +254,7 @@ export default function Chat() {
     try {
       const response = await onlineStatus();
       if (response && response.online_users) {
-        setOnlineUsers(new Set(response.online_users)); // Convert array to Set
+        setOnlineUsers(new Set(response.online_users));
       }
     } catch (error) {
       console.error("Failed to fetch online users:", error);
@@ -263,8 +262,8 @@ export default function Chat() {
   }, []);
 
   useEffect(() => {
-    fetchOnlineUsers(); // Fetch online users on initial load
-    fetchContacts(page); // Fetch initial contact list
+    fetchOnlineUsers();
+    fetchContacts(page);
   }, [fetchOnlineUsers, page]);
 
   useEffect(() => {
@@ -277,7 +276,6 @@ export default function Chat() {
     );
   }, [onlineUsers]);
 
-  // Add cleanup on component unmount
   useEffect(() => {
     return () => {
       if (socketRef.current) {
@@ -348,8 +346,8 @@ export default function Chat() {
                     isSent: msg.sender_id === user.id,
                     timestamp: new Date(msg.timestamp),
                     roomId: generateRoomId(msg.sender_id, msg.receiver_id),
-                    media: msg.media,  // Store the media URL directly
-                    mediaType: msg.media_type  // Store the media type directly
+                    media: msg.media, 
+                    mediaType: msg.media_type 
                   }));
                   setMessages(formattedHistory);
                   scrollToBottom();
@@ -394,7 +392,7 @@ export default function Chat() {
                 break;
 
                 default:
-                    if (data.message || data.media) {  // Check for either message or media
+                    if (data.message || data.media) {
                       const isSentByMe = data.sender_id === user.id;
                       const newMessage = {
                         text: data.message,
@@ -402,8 +400,8 @@ export default function Chat() {
                         isSent: isSentByMe,
                         timestamp: new Date(data.timestamp || Date.now()),
                         roomId: messageRoomId,
-                        media: data.media,  // Store the media URL directly
-                        mediaType: data.media_type  // Store the media type directly
+                        media: data.media,
+                        mediaType: data.media_type
                       };
       
                       setMessages((prev) => {
@@ -413,8 +411,8 @@ export default function Chat() {
                             isSent: isSentByMe,
                             timestamp: new Date(data.timestamp || Date.now()),
                             roomId: messageRoomId,
-                            media: data.media,  // Include media URL
-                            mediaType: data.media_type  // Include media type
+                            media: data.media,
+                            mediaType: data.media_type
                           };
                         const isDuplicate = prev.some(
                           (m) =>
@@ -504,7 +502,7 @@ export default function Chat() {
     if (file) {
       const reader = new FileReader();
       reader.onload = () => {
-        setMedia(reader.result); // Base64-encoded file
+        setMedia(reader.result);
         setMediaType(file.type.split("/")[0]); // 'image', 'video', 'audio', etc.
       };
       reader.readAsDataURL(file);

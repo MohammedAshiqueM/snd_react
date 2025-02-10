@@ -1,4 +1,3 @@
-// store/useSkillsStore.js
 import { create } from 'zustand';
 import { userSkills } from '../api';
 
