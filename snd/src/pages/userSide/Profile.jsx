@@ -32,7 +32,17 @@ export default function ProfilePage() {
     fetchProfile();
   }, []);
 
-  
+  const handleProfileUpdate = (updatedData) => {
+    setProfile(prevProfile => ({
+      ...prevProfile,
+      ...updatedData,
+      // Handle special cases for images
+      profile_image: updatedData.profile_image || prevProfile.profile_image,
+      banner_image: updatedData.banner_image || prevProfile.banner_image,
+      // Handle skills array
+      skills: updatedData.skills || prevProfile.skills
+    }));
+  };
 
 
   if (!profile) {
@@ -211,6 +221,7 @@ export default function ProfilePage() {
         isOpen={isEditModalOpen}
         onClose={() => setIsEditModalOpen(false)}
         userData={profile}
+        onUpdateSuccess={handleProfileUpdate}
       />
     </div>
   );

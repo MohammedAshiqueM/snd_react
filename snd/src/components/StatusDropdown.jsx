@@ -17,8 +17,8 @@ const StatusDropdown = ({ currentStatus, onStatusChange, isOwner }) => {
       gradient: 'from-amber-400 to-amber-500',
       hoverGradient: 'hover:from-amber-500 hover:to-amber-600',
       icon: '⏳',
-      label: 'Publish',
-      description: 'Waiting for someone to accept',
+      label: 'Pending',
+      description: 'The request is published and waiting for someone to accept',
       allowedTransitions: ['CA']
     },
     'AC': {
@@ -61,6 +61,11 @@ const StatusDropdown = ({ currentStatus, onStatusChange, isOwner }) => {
       description: 'Session is scheduled',
       allowedTransitions: []
     }
+  };
+
+  const getDropdownLabel = (status) => {
+    if (status === 'PE') return 'Publish';
+    return statusConfig[status].label;
   };
 
   const currentStatusConfig = statusConfig[currentStatus];
@@ -117,7 +122,7 @@ const StatusDropdown = ({ currentStatus, onStatusChange, isOwner }) => {
                   `}
                 >
                   <span className="text-lg leading-none">{config.icon}</span>
-                  <span>{config.label}</span>
+                  <span>{getDropdownLabel(status)}</span>
                   {currentStatus === status && (
                     <Check className="w-4 h-4 ml-auto text-white" />
                   )}

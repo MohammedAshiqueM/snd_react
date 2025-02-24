@@ -5,7 +5,7 @@ import { tagSuggestion, updateProfile } from '../api';
 import { isValidURL, validateImage } from '../util';
 import { getCloudinaryUrl } from '../constants/constant';
 
-export default function EditProfileModal({ isOpen, onClose, userData }) {
+export default function EditProfileModal({ isOpen, onClose, userData, onUpdateSuccess }) {
     const [formData, setFormData] = useState({
       first_name: userData?.first_name || '',
       last_name: userData?.last_name || '',
@@ -176,6 +176,19 @@ export default function EditProfileModal({ isOpen, onClose, userData }) {
   try {
     const response = await updateProfile(submitData); 
     // console.log('Profile updated successfully:', response.data); 
+    const updatedData = {
+        first_name: formData.first_name,
+        last_name: formData.last_name,
+        github_url: formData.github_url,
+        linkedin_url: formData.linkedin_url,
+        about: formData.about,
+        skills: formData.skills,
+        // Handle file uploads
+        profile_image: formData.profile_image ? URL.createObjectURL(formData.profile_image) : userData.profile_image,
+        banner_image: formData.banner_image ? URL.createObjectURL(formData.banner_image) : userData.banner_image,
+      };
+
+      onUpdateSuccess(updatedData);
     onClose();
   } catch (error) {
     console.error('Profile update failed:', error);
