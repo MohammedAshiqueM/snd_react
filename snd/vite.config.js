@@ -8,7 +8,7 @@ export default defineConfig({
     host: '127.0.0.1', // Changed the  default 'localhost'
     port: 5173
   },
-  base: '/',
+  base: './',
   // Ensure proper handling of assets
   build: {
     outDir: 'dist',
