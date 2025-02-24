@@ -33,7 +33,7 @@ import { NotificationProvider } from './components/NotificationContext';
 import { WebSocketProvider } from './components/WebSocketContext';
 import SessionRequest from './pages/userSide/SessionRequest';
 import SessionDetails from './pages/userSide/SessionDetails';
-import ProposedRequests from './pages/userSide/ProposedRequests';
+import ProposedRequests from './pages/userSide/ProposedRequests.jsx';
 import Sessions from './pages/userSide/Sessions';
 import VideoMeet from './pages/userSide/VideoMeet';
 import TimeAccountPage from './pages/userSide/Account';
