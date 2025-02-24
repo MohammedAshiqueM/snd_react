@@ -19,7 +19,7 @@ import Questions from './pages/userSide/Question';
 // import { SearchContextProvider } from './context/searchContext';
 import QuestionRead from './pages/userSide/QuestionRead';
 import UsersList from './pages/userSide/UsersList';
-import Dashboard from './pages/adminSide/dashboard';
+import Dashboard from './pages/adminSide/Dashboard';
 import LoginAdmin from './pages/adminSide/LoginAdmin';
 import UserDetails from './pages/userSide/UserDetails';
 import UsersAdmin from './pages/adminSide/usersAdmin';
