@@ -82,7 +82,7 @@ function App() {
                         <Route path="/home" element={<UserRoute><Home /></UserRoute>} />
                         <Route path="/profile" element={<ProfileHeader />} />
                         <Route path="/forget-password" element={<ForgotPassword />} />
-                        <Route path="/reset-password/" element={<ResetPassword/>} />
+                        <Route path="/reset-password" element={<ResetPassword/>} />
                         {/* <Route path="/read" element={<BlogRead/>} /> */}
                         <Route path="/blogs/:slug" element={<UserRoute><BlogRead /></UserRoute>} />
                         <Route path="/questions" element={<UserRoute><Questions /></UserRoute>} />
