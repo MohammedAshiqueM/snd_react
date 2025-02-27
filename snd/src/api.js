@@ -502,7 +502,7 @@ export const sessionDetails = async (pk,data) => {
 
 export const updateRequest = async (pk,data) => {
     try{
-        const response = await instance.put(`requests/${pk}/`,data)
+        const response = await instance.patch(`requests/${pk}/`,data)
         return response.data
     } catch (error) {
         console.error("Error during get the requests")
