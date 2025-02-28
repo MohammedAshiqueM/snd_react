@@ -96,12 +96,14 @@ function App() {
                         <Route path="/requests/:pk" element={<UserRoute><SessionDetails /></UserRoute>} />
                         <Route path="/schedules" element={<UserRoute><ProposedRequests /></UserRoute>} />
                         <Route path="/sessions" element={<UserRoute><Sessions /></UserRoute>} />
-                        <Route path="/meeting-room/:meeting_id" element={<UserRoute><VideoMeet /></UserRoute>} />
+                        <Route path="/meeting-room/:meeting_id" element={<UserRoute><Sessions /></UserRoute>} />
                         <Route path="/account" element={<UserRoute><TimeAccountPage /></UserRoute>} />
                         <Route path="/time-plans" element={<UserRoute><TimePlans /></UserRoute>} />
                         <Route path="/purchase-history" element={<UserRoute><PurchaseHistoryPage /></UserRoute>} />
                         <Route path="/rate" element={<UserRoute><RatingModal /></UserRoute>} />
                         <Route path="*" element={<NotFound />} />
+                        <Route path="/meeting" element={<UserRoute><VideoMeet /></UserRoute>} />
+
 
                         {/* <Route path="/shimmer" element={<Shimmer />} /> */}
                         {/* admin */}
