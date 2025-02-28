@@ -8,7 +8,7 @@ export default defineConfig({
     host: '0.0.0.0', // Allow access from any IP
     port: 5173,
   },
-  base: './', // Use './' for local development, adjust for production if needed
+  base: '/', // Use './' for local development, adjust for production if needed
   build: {
     outDir: 'dist', // Output directory
     assetsDir: 'assets', // Optional: Directory for static assets
