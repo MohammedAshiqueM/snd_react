@@ -42,6 +42,7 @@ import PurchaseHistoryPage from './pages/userSide/PurchaseHistory';
 import RatingModal from './components/RatingModal';
 import TimePlansAdmin from './pages/adminSide/TimePlansAdmin';
 import TransactionHistory from './pages/adminSide/TransactionHistory';
+import NotFound from './pages/userSide/NotFound';
 
 function App() {
     const { setAuthStatus,isAuthenticated } = useAuthStore();
@@ -100,6 +101,7 @@ function App() {
                         <Route path="/time-plans" element={<UserRoute><TimePlans /></UserRoute>} />
                         <Route path="/purchase-history" element={<UserRoute><PurchaseHistoryPage /></UserRoute>} />
                         <Route path="/rate" element={<UserRoute><RatingModal /></UserRoute>} />
+                        <Route path="*" element={<NotFound />} />
 
                         {/* <Route path="/shimmer" element={<Shimmer />} /> */}
                         {/* admin */}
