@@ -13,7 +13,7 @@ import ConfirmEndCallDialog from '../../components/ConfirmEndCallDialog';
 import RequestEndCallDialog from '../../components/RequestEndCallDialog';
 import RejectionNotification from '../../components/RejectionNotification';
 
-function VideoMeeting() {
+function VideoMeet() {
     return (
       <div style={{ padding: '20px', backgroundColor: 'white', color: 'black' }}>
         <h1>Hello, World!</h1>
@@ -21,4 +21,4 @@ function VideoMeeting() {
     );
   }
 
-export default VideoMeeting;
+export default VideoMeet;
