@@ -96,7 +96,7 @@ function App() {
                         <Route path="/requests/:pk" element={<UserRoute><SessionDetails /></UserRoute>} />
                         <Route path="/schedules" element={<UserRoute><ProposedRequests /></UserRoute>} />
                         <Route path="/sessions" element={<UserRoute><Sessions /></UserRoute>} />
-                        <Route path="/meeting-room/:meeting_id" element={<UserRoute><Sessions /></UserRoute>} />
+                        <Route path="/meeting-room/:meeting_id" element={<VideoMeet />} />
                         <Route path="/account" element={<UserRoute><TimeAccountPage /></UserRoute>} />
                         <Route path="/time-plans" element={<UserRoute><TimePlans /></UserRoute>} />
                         <Route path="/purchase-history" element={<UserRoute><PurchaseHistoryPage /></UserRoute>} />
